@@ -1,0 +1,53 @@
+name: Stable Release
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  publish_stable:
+    uses: TigreGotico/gh-automations/.github/workflows/publish-stable.yml@dev
+    secrets: inherit
+    with:
+      branch: 'master'
+      version_file: 'version.py'
+      setup_py: 'setup.py'
+      publish_release: true
+
+  publish_pypi:
+    needs: publish_stable
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Build Tools
+        run: python -m pip install build wheel
+      - name: Build Distribution Packages
+        run: python -m build
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
+
+  sync_dev:
+    needs: publish_stable
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: master
+      - name: Push master -> dev
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: dev
