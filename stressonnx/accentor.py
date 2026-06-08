@@ -4,9 +4,24 @@ vocabulary + rules (SimpleAccentor langs).
 Models and data are downloaded from HuggingFace on first use and cached under
 ``~/.local/share/stressonnx/<lang>/``.
 
-Two families
-------------
-``main_accentor`` langs (``ru``, ``ukr``, ``bel``):
+Three families
+--------------
+``ruaccent`` lang (``ru``):
+    Homograph-aware neural pipeline derived from RUAccent (Den4ikAI/ruaccent),
+    licensed Apache-2.0 per upstream classifiers and setup.py.
+    Models sourced from HuggingFace: ruaccent/accentuator.
+    Pipeline:
+    1. Predict per-word stress usage (STRESS / NO_STRESS) via a BERT-family
+       token-classifier ONNX model.
+    2. Resolve yo-homographs (е→ё disambiguation) via a DistilBERT ONNX model.
+    3. Resolve omographs (context-sensitive stress variants) via a RoBERTa NLI
+       ONNX model; each omograph candidate is scored against the sentence
+       context.
+    4. Accent non-omograph words: look up in the accent dictionary or run the
+       character-level RoFormer ONNX accent model.
+    Runtime deps: onnxruntime, numpy, tokenizers (no torch, no transformers).
+
+``main_accentor`` langs (``ukr``, ``bel``):
     Pipeline:
     1. Tokenise sentence → (raw tokens, clean tokens, prediction mask).
     2. Compute fastText-style n-gram embeddings for each clean token by
@@ -63,8 +78,11 @@ STRESS_TOKEN = "+"
 # ---------------------------------------------------------------------------
 # Language routing tables
 # ---------------------------------------------------------------------------
+#: Languages backed by the RUAccent homograph-aware pipeline.
+RUACCENT_LANGS = {"ru"}
+
 #: Languages backed by the neural ONNX pipeline (main_accentor).
-MAIN_LANGS = {"ru", "ukr", "bel"}
+MAIN_LANGS = {"ukr", "bel"}
 
 #: Languages backed by vocabulary + rules (simple_accentor).
 SIMPLE_LANGS = {
@@ -76,7 +94,7 @@ SIMPLE_LANGS = {
     "kjh", "mdf", "sah", "tat", "tgk", "udm", "xal",
 }
 
-ALL_LANGS = MAIN_LANGS | SIMPLE_LANGS
+ALL_LANGS = RUACCENT_LANGS | MAIN_LANGS | SIMPLE_LANGS
 
 # OOV stress-position rule per simple lang.
 # "last"  → last vowel
@@ -655,3 +673,402 @@ class SimpleStressor:
             else:
                 out.append(self._accentuate_oov(raw_word))
         return "".join(out)
+
+
+# ===========================================================================
+# RuAccent family (ru) — homograph-aware neural pipeline
+#
+# Attribution: RUAccent by Den4ikAI (https://github.com/Den4ikAI/ruaccent),
+# licensed Apache-2.0 per upstream setup.py classifiers.
+# Models: HuggingFace ruaccent/accentuator (turbo2 omograph model).
+# Mirrored to TigreGotico/stressonnx-models under ru_ruaccent/.
+# Runtime: onnxruntime + numpy + tokenizers (no torch, no transformers).
+# ===========================================================================
+
+# Files to download for the ru_ruaccent variant
+_RUACCENT_FILES = [
+    "nn_omograph/model.onnx",
+    "nn_omograph/tokenizer.json",
+    "nn_accent/model.onnx",
+    "nn_accent/vocab.txt",
+    "nn_accent/config.json",
+    "nn_stress_usage/model.onnx",
+    "nn_stress_usage/tokenizer.json",
+    "nn_stress_usage/config.json",
+    "nn_yo_homograph/model.onnx",
+    "nn_yo_homograph/tokenizer.json",
+    "nn_yo_homograph/config.json",
+    "dictionary/omographs.json.gz",
+    "dictionary/yo_words.json.gz",
+    "dictionary/yo_homographs.json.gz",
+    "dictionary/accents_nn.json.gz",
+    "meta.json",
+]
+
+# Characters to strip from text before processing (matches RUAccent normalize regex)
+_RE_RUACCENT_NORM = re.compile(
+    r"[^a-zA-Z0-9\sа-яА-ЯёЁ—.,!?:;\"“”‘’"
+    r"(){}\[\]«»„“\"\-]"
+)
+
+# Punctuation characters used by delete_spaces_before_punc
+_PUNC_CHARS = '!"#%&\'()*,./:;<=>?@[\\]^_`{|}-'
+
+_RU_SPLIT_RE = re.compile(r"\w*(?:\+\w+)*|[^\w\s]+")
+
+
+def _ruaccent_norm(text: str) -> str:
+    return _RE_RUACCENT_NORM.sub("", text)
+
+
+def _delete_spaces_before_punc(text: str) -> str:
+    for char in _PUNC_CHARS:
+        if char == "-":
+            text = text.replace(" " + char, char).replace(char + " ", char)
+        text = text.replace(" " + char, char)
+    return text.replace("~", "-")
+
+
+def _fix_capital(source: str, target: str) -> str:
+    if len(source) != len(target):
+        return target
+    return "".join(
+        t.upper() if s.isupper() else t.lower()
+        for s, t in zip(source, target)
+    )
+
+
+def _ruaccent_split_by_words(string: str):
+    """Split *string* into (words, remaining_text_parts) preserving punctuation."""
+    string = string.replace(" - ", " ~ ")
+    match = list(_RU_SPLIT_RE.finditer(string.lower()))
+    remaining = [string[l.end():r.start()] for l, r in zip(match, match[1:])]
+    raw_words = [string[x.start():x.end()] for x in match]
+    mask = [i for i, w in enumerate(raw_words) if w]
+    valid_words = [raw_words[i] for i in mask]
+    if not mask:
+        return valid_words, ["", ""]
+    rem = ["".join(remaining[:mask[0]])]
+    rem += ["".join(remaining[l + 1:r]) for l, r in zip(mask, mask[1:])]
+    rem.append("".join(remaining[mask[-1] + 1:]))
+    return valid_words, rem
+
+
+def _ruaccent_split_by_sentences(text: str) -> list:
+    """Split *text* into sentences using razdel if available, else return as-is."""
+    try:
+        from razdel import sentenize
+        from razdel.substring import Substring
+        sentences = list(sentenize(text))
+        if not sentences:
+            return []
+        result = [
+            text[l.stop:r.start] + r.text if l.stop != r.start else r.text
+            for l, r in zip([Substring(0, 0, "")] + sentences, sentences)
+        ]
+        result[-1] = result[-1] + text[sentences[-1].stop:]
+        return result
+    except ImportError:
+        return [text]
+
+
+class RuAccentStressor:
+    """Homograph-aware Russian stress accentor backed by RUAccent ONNX models.
+
+    Uses four ONNX models (no torch, no transformers):
+
+    * **stress_usage** (BERT-family token classifier) — predicts STRESS / NO_STRESS
+      per word in context.
+    * **yo_homograph** (DistilBERT token classifier) — resolves е→ё substitutions
+      for yo-homographs.
+    * **omograph** (RoBERTa NLI classifier, turbo2 variant) — picks the correct
+      stressed variant of context-dependent homographs (замок castle/lock,
+      мука flour/torment, белок protein/squirrel …).
+    * **accent** (RoFormer char-level token classifier) — accentuates words not
+      found in the accent dictionary.
+
+    All tokenizers are loaded via the ``tokenizers`` library (HuggingFace
+    *fast tokenizer* format) without requiring ``transformers`` or ``torch``.
+
+    Attribution
+    -----------
+    Derived from RUAccent by Den4ikAI
+    (https://github.com/Den4ikAI/ruaccent), licensed Apache-2.0 per upstream
+    setup.py and PyPI classifiers.  Models sourced from
+    ``ruaccent/accentuator`` on HuggingFace and mirrored to
+    ``TigreGotico/stressonnx-models`` under ``ru_ruaccent/``.
+
+    Parameters
+    ----------
+    cache_dir:
+        Override the default cache location
+        (``~/.local/share/stressonnx/ru_ruaccent``).
+    """
+
+    def __init__(self, cache_dir: str | None = None) -> None:
+        if cache_dir is None:
+            base = os.path.join(
+                os.path.expanduser("~"), ".local", "share", "stressonnx"
+            )
+            cache_dir = os.path.join(base, "ru_ruaccent")
+        self._cache_dir = cache_dir
+        self._loaded = False
+
+    # ------------------------------------------------------------------
+    # Lazy loading
+    # ------------------------------------------------------------------
+
+    def _ensure_loaded(self) -> None:
+        if self._loaded:
+            return
+
+        cache = self._cache_dir
+        os.makedirs(cache, exist_ok=True)
+
+        # Download all files
+        for fname in _RUACCENT_FILES:
+            local = os.path.join(cache, fname)
+            if not os.path.exists(local):
+                os.makedirs(os.path.dirname(local), exist_ok=True)
+                hf_hub_download(
+                    repo_id=HF_REPO_ID,
+                    filename=f"ru_ruaccent/{fname}",
+                    local_dir=cache,
+                )
+
+        try:
+            from tokenizers import Tokenizer as _Tokenizer  # type: ignore
+        except ImportError as exc:  # pragma: no cover
+            raise ImportError(
+                "stressonnx 'ru' (RuAccentStressor) requires the 'tokenizers' "
+                "package.  Install it with: pip install tokenizers"
+            ) from exc
+
+        # ONNX sessions
+        self._omograph_sess = ort.InferenceSession(
+            os.path.join(cache, "nn_omograph", "model.onnx"),
+            providers=["CPUExecutionProvider"],
+        )
+        self._accent_sess = ort.InferenceSession(
+            os.path.join(cache, "nn_accent", "model.onnx"),
+            providers=["CPUExecutionProvider"],
+        )
+        self._stress_usage_sess = ort.InferenceSession(
+            os.path.join(cache, "nn_stress_usage", "model.onnx"),
+            providers=["CPUExecutionProvider"],
+        )
+        self._yo_hom_sess = ort.InferenceSession(
+            os.path.join(cache, "nn_yo_homograph", "model.onnx"),
+            providers=["CPUExecutionProvider"],
+        )
+
+        # Tokenizers (no transformers)
+        self._omograph_tok = _Tokenizer.from_file(
+            os.path.join(cache, "nn_omograph", "tokenizer.json")
+        )
+        self._stress_usage_tok = _Tokenizer.from_file(
+            os.path.join(cache, "nn_stress_usage", "tokenizer.json")
+        )
+        self._yo_hom_tok = _Tokenizer.from_file(
+            os.path.join(cache, "nn_yo_homograph", "tokenizer.json")
+        )
+
+        # Char vocab for accent model
+        with open(os.path.join(cache, "nn_accent", "vocab.txt"), encoding="utf-8") as fh:
+            self._char_vocab = {line.rstrip("\n"): i for i, line in enumerate(fh)}
+        with open(os.path.join(cache, "nn_accent", "config.json"), encoding="utf-8") as fh:
+            self._accent_id2label = json.load(fh)["id2label"]
+
+        # Label maps
+        with open(os.path.join(cache, "nn_stress_usage", "config.json"), encoding="utf-8") as fh:
+            self._stress_id2label = json.load(fh)["id2label"]
+        with open(os.path.join(cache, "nn_yo_homograph", "config.json"), encoding="utf-8") as fh:
+            self._yo_id2label = json.load(fh)["id2label"]
+
+        # Dictionaries
+        import gzip as _gzip
+        self._omographs: dict = json.load(
+            _gzip.open(os.path.join(cache, "dictionary", "omographs.json.gz"))
+        )
+        # Extra entry matching RUAccent's hardcoded update
+        self._omographs["коса"] = ["к+оса", "кос+а"]
+        self._yo_words: dict = json.load(
+            _gzip.open(os.path.join(cache, "dictionary", "yo_words.json.gz"))
+        )
+        self._yo_homographs: dict = json.load(
+            _gzip.open(os.path.join(cache, "dictionary", "yo_homographs.json.gz"))
+        )
+        self._accents: dict = json.load(
+            _gzip.open(os.path.join(cache, "dictionary", "accents_nn.json.gz"))
+        )
+        # Single-vowel mappings from RUAccent
+        self._accents.update({"о": "+о", "О": "+О"})
+
+        self._loaded = True
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _softmax(x: np.ndarray) -> np.ndarray:
+        e = np.exp(x - x.max(axis=-1, keepdims=True))
+        return e / e.sum(axis=-1, keepdims=True)
+
+    def _predict_word_labels(
+        self,
+        text: str,
+        sess: "ort.InferenceSession",
+        tok,
+        id2label: dict,
+        has_tti: bool = True,
+    ) -> list:
+        """Run a token-classification model and aggregate subword → word labels."""
+        enc = tok.encode(text)
+        input_ids = np.array([enc.ids], dtype=np.int64)
+        attn = np.array([enc.attention_mask], dtype=np.int64)
+        feed: dict = {"input_ids": input_ids, "attention_mask": attn}
+        if has_tti:
+            feed["token_type_ids"] = np.zeros_like(input_ids)
+        logits = sess.run(None, feed)[0][0]
+        probs = self._softmax(logits)
+
+        word_probs: dict = {}
+        for i, wid in enumerate(enc.word_ids):
+            if wid is None:
+                continue
+            word_probs.setdefault(wid, []).append(probs[i])
+
+        return [
+            id2label[str(int(np.stack(word_probs[wid]).mean(0).argmax()))]
+            for wid in sorted(word_probs)
+        ]
+
+    def _put_accent(self, word: str) -> str:
+        """Accentuate a single word with the char-level RoFormer model."""
+        lower = word.lower()
+        # BOS=2, EOS=3, UNK=1
+        ids = [2] + [self._char_vocab.get(c, 1) for c in lower] + [3]
+        input_ids = np.array([ids], dtype=np.int64)
+        logits = self._accent_sess.run(
+            None,
+            {
+                "input_ids": input_ids,
+                "attention_mask": np.ones_like(input_ids),
+                "token_type_ids": np.zeros_like(input_ids),
+            },
+        )[0][0]
+        probs = self._softmax(logits)
+        result = list(word)
+        for i, (label_id, score) in enumerate(
+            zip(logits.argmax(axis=-1), probs.max(axis=-1))
+        ):
+            label = self._accent_id2label[str(int(label_id))]
+            if label not in ("NO", "STRESS_SECONDARY") and score >= 0.55:
+                result[i - 1] = STRESS_TOKEN + result[i - 1]
+        return "".join(result)
+
+    @staticmethod
+    def _has_punct(text: str) -> bool:
+        return any(c in '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~' for c in text)
+
+    @staticmethod
+    def _count_vowels(text: str) -> int:
+        return sum(1 for c in text if c in "аеёиоуыэюяАЕЁИОУЫЭЮЯ")
+
+    def _process_yo(self, words: list, sentence: str) -> list:
+        lower = sentence.lower()
+        yo_preds = None
+        if "е" in lower:
+            yo_preds = self._predict_word_labels(
+                lower, self._yo_hom_sess, self._yo_hom_tok,
+                self._yo_id2label, has_tti=False,
+            )
+        for i, word in enumerate(words):
+            lw = word.lower()
+            words[i] = _fix_capital(word, self._yo_words.get(lw, word))
+            if yo_preds and i < len(yo_preds) and yo_preds[i] == "YO":
+                words[i] = _fix_capital(word, self._yo_homographs.get(lw, word))
+        return words
+
+    def _process_omographs(self, splitted_text: list) -> list:
+        """Resolve homographs using the NLI model.
+
+        Each omograph is scored against the *original* (pre-modification) context
+        to avoid leaking prior stress decisions into subsequent classifications.
+        """
+        # Snapshot original words so every omograph sees the same context
+        original = list(splitted_text)
+        found = [
+            (i, self._omographs[w])
+            for i, w in enumerate(splitted_text)
+            if w in self._omographs
+        ]
+        for pos, variants in found:
+            probs = []
+            for hyp in variants:
+                tmp = list(original)
+                tmp[pos] = " <w>" + tmp[pos] + "</w> "
+                txt = _delete_spaces_before_punc(" ".join(tmp))
+                enc = self._omograph_tok.encode(txt, pair=hyp)
+                input_ids = np.array([enc.ids], dtype=np.int64)
+                attn = np.array([enc.attention_mask], dtype=np.int64)
+                logits = self._omograph_sess.run(
+                    None, {"input_ids": input_ids, "attention_mask": attn}
+                )[0][0]
+                e = np.exp(logits - logits.max())
+                probs.append(float(e[1] / e.sum()))
+            splitted_text[pos] = variants[int(np.argmax(probs))]
+        return splitted_text
+
+    def _process_accent(self, words: list, stress_usages: list) -> list:
+        for i, word in enumerate(words):
+            if STRESS_TOKEN in word:
+                continue
+            if i < len(stress_usages) and stress_usages[i] == "STRESS":
+                lower = word.lower()
+                stressed = self._accents.get(lower, lower)
+                if (
+                    stressed == lower
+                    and not self._has_punct(lower)
+                    and self._count_vowels(lower) > 1
+                ):
+                    words[i] = self._put_accent(word)
+                else:
+                    matches = list(re.finditer(r"\+", stressed))
+                    word_fixed = list(word)
+                    for j, m in enumerate(matches):
+                        word_fixed = (
+                            word_fixed[: m.start() + j]
+                            + [STRESS_TOKEN]
+                            + list(word)[m.end() - 1:]
+                        )
+                    words[i] = "".join(word_fixed)
+        return words
+
+    def _process_sentence(self, sentence: str) -> str:
+        words, remaining = _ruaccent_split_by_words(sentence)
+        if not words:
+            return "".join(remaining)
+        stress_usages = self._predict_word_labels(
+            sentence, self._stress_usage_sess, self._stress_usage_tok,
+            self._stress_id2label, has_tti=True,
+        )
+        words = self._process_yo(words, sentence)
+        words = self._process_omographs(words)
+        words = self._process_accent(words, stress_usages)
+        result = "".join(l + r for l, r in zip(remaining, words)) + remaining[-1]
+        return _delete_spaces_before_punc(result)
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+
+    def __call__(self, text: str) -> str:
+        self._ensure_loaded()
+        text = _ruaccent_norm(text)
+        sentences = _ruaccent_split_by_sentences(text)
+        if not sentences:
+            return text
+        outputs = [self._process_sentence(s) for s in sentences]
+        return "".join(outputs)
