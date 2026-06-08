@@ -141,19 +141,19 @@ def test_stressor_lang_attr():
 def test_stressor_callable_simple():
     s = Stressor(lang="kaz")
     result = s("Казан")
-    assert "+" in result
+    assert "́" in result  # combining acute U+0301
 
 
 def test_stressor_callable_silero_ukr():
     s = Stressor(model="silero", lang="ukr")
     result = s("Привіт")
-    assert "+" in result
+    assert "́" in result
 
 
 def test_stressor_callable_silero_bel():
     s = Stressor(model="silero", lang="bel")
     result = s("свет")
-    assert "+" in result
+    assert "́" in result
 
 
 # ---------------------------------------------------------------------------
@@ -162,12 +162,12 @@ def test_stressor_callable_silero_bel():
 
 def test_stress_model_param_simple():
     result = stress("Казан", "tat", model="simple")
-    assert result == "Каз+ан"
+    assert result == "Каза́н"
 
 
 def test_stress_model_param_silero():
     result = stress("Привіт", "ukr", model="silero")
-    assert "+" in result
+    assert "́" in result
 
 
 def test_stress_model_none_equals_default():
@@ -178,8 +178,8 @@ def test_stress_model_none_equals_default():
 
 def test_stress_backward_compat_no_model():
     """stress(text, lang) without model argument still works."""
-    assert "+" in stress("Привіт", "ukr")
-    assert "+" in stress("Казан", "tat")
+    assert "́" in stress("Привіт", "ukr")
+    assert "́" in stress("Казан", "tat")
 
 
 def test_stress_model_wrong_for_lang():

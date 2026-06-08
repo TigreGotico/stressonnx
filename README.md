@@ -10,81 +10,124 @@ and downloaded + cached automatically on first use.
 
 ---
 
+## Output notation
+
+All backends emit the **combining acute accent** (U+0301) placed immediately
+after the stressed vowel:
+
+```
+приве́т   =  п р и в е ́ т
+               ^^^^^
+               е + U+0301
+```
+
+This matches the convention used by `russian_text_stresser` and models such as
+Chatterbox-Multilingual.  The legacy `+`-before-vowel format (`прив+ет`, used
+internally by silero and ruaccent dictionaries) is exposed as a conversion
+utility for downstream consumers that were trained on it.
+
+---
+
 ## Quick start
 
 ```python
 from stressonnx import stress
 
 # Russian — homograph-aware (замок castle vs lock, мука flour vs torment, …)
-stress("старинный замок стоит на горе", "ru")   # → 'стар+инный з+амок ст+оит на гор+е'
-stress("дверной замок надёжен", "ru")           # → 'дверн+ой зам+ок надёжен'
-stress("мука для хлеба", "ru")                  # → 'мук+а для хл+еба'
-stress("мука была невыносима", "ru")            # → 'м+ука был+а невынос+има'
+stress("старинный замок стоит на горе", "ru")   # → 'стари́нный за́мок стои́т на горе́'
+stress("дверной замок надёжен", "ru")           # → 'дверно́й замо́к надёжен'
+stress("мука для хлеба", "ru")                  # → 'муко́ для хле́ба'
+stress("мука была невыносима", "ru")            # → 'му́ка была́ невыноси́ма'
 
 # Other languages
-stress("Привіт світ", "ukr")      # → 'Прив+іт св+іт'
-stress("Прывітанне свет", "bel")  # → 'Прывіт+анне св+ет'
-stress("Salam dünya", "aze_lat")  # → 'Salam düny+a'
+stress("Привіт світ", "ukr")      # → 'Приві́т сві́т'
+stress("Прывітанне свет", "bel")  # → 'Прывіта́нне све́т'
+stress("Salam dünya", "aze_lat")  # → 'Salam дюнья́'
 ```
 
 ---
 
 ## API
 
-### `stress(text, lang="ru", model=None) -> str`
+### `stress(text, lang="ru", model=None, notation="diacritic") -> str`
 
-Insert `+` before the stressed vowel of each word.
+Insert stress marks into *text*.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `text` | `str` | Input text. |
 | `lang` | `str` | Language tag (e.g. `"ru"`, `"ukr"`, `"kaz"`). Defaults to `"ru"`. |
 | `model` | `str \| None` | Model id — `"ruaccent"`, `"silero"`, or `"simple"`. `None` selects the default model for `lang` (see [model registry](#model-registry)). |
+| `notation` | `str` | `"diacritic"` (default) — combining acute after stressed vowel. `"plus"` — legacy `+`-before-vowel form for models trained on it. |
 
 ```python
 from stressonnx import stress
 
+# Default — combining acute
+stress("привет", "ru")                           # → 'приве́т'
+
+# Legacy plus notation
+stress("привет", "ru", notation="plus")          # → 'прив+ет'
+
 # Explicit model selection
-stress("Привіт світ", "ukr", model="silero")    # neural
-stress("Казан",       "tat", model="simple")    # vocabulary + rules
-stress("замок",       "ru",  model="ruaccent")  # homograph-aware
+stress("Привіт світ", "ukr", model="silero")    # → 'Приві́т сві́т'
+stress("Казан",       "tat", model="simple")    # → 'Каза́н'
+stress("замок",       "ru",  model="ruaccent")  # → 'за́мок' or 'замо́к' (context-dependent)
 ```
 
 Singletons are loaded lazily on first call; subsequent calls for the same
 `(lang, model)` pair reuse the cached instance.
 
-### `Stressor(model=None, lang=None, cache_dir=None)`
+### `to_plus_notation(text) -> str`
 
-High-level class.  Accepts the same `model` and `lang` parameters as
-`stress()`.  Use this when you want to hold a reference to the accentor
-rather than calling the module-level function.
+Convert combining-acute stress notation to the legacy `+`-before-vowel form.
+
+```python
+from stressonnx import to_plus_notation
+
+to_plus_notation("приве́т")   # → 'прив+ет'
+to_plus_notation("за́мок")    # → 'з+амок'
+```
+
+Useful when feeding output into models that were trained on `+`-marked text
+(silero TTS, some ruaccent consumers).  `stress(..., notation="plus")` is a
+one-step shortcut.
+
+### `Stressor(model=None, lang=None, notation="diacritic", cache_dir=None)`
+
+High-level class.  Accepts the same parameters as `stress()`.
 
 ```python
 from stressonnx import Stressor
 
 # Russian (default model: ruaccent)
 s = Stressor(lang="ru")
-s("белок яйца полезен")     # → 'бел+ок яйц+а пол+езен'
+s("белок яйца полезен")     # → 'бело́к яйца́ поле́зен'
 
 # Ukrainian — neural
 s = Stressor(model="silero", lang="ukr")
-s("Привіт світ")            # → 'Прив+іт св+іт'
+s("Привіт світ")            # → 'Приві́т сві́т'
 
 # Kazakh — vocab + rules
 s = Stressor(model="simple", lang="kaz")
-s("Сәлем Қазақстан")        # → 'Сәл+ем Қазақст+ан'
+s("Сәлем Қазақстан")        # → 'Сәле́м Қазақста́н'
+
+# Legacy plus notation
+s = Stressor(lang="ru", notation="plus")
+s("привет")                 # → 'прив+ет'
 ```
 
 `Stressor` exposes:
 - `s.model` — the model-id string selected at construction.
 - `s.lang` — the language tag.
+- `s.notation` — `"diacritic"` or `"plus"`.
 - `s(text)` — accentuate a string.
 
 ### `make_stressor(model=None, lang=None, cache_dir=None)`
 
-Factory function: returns a backend stressor instance without the singleton
-caching.  Useful when you need multiple independent instances or want to
-pass a custom `cache_dir`.
+Factory function: returns a backend stressor instance (always emits the
+combining-acute form).  Useful when you need multiple independent instances or
+want a custom `cache_dir`.
 
 ```python
 from stressonnx import make_stressor
@@ -101,7 +144,7 @@ s = make_stressor(model="simple", lang="kaz")  # → SimpleStressor("kaz")
 | `_SileroStressor(lang, cache_dir=None)` | silero | Neural ONNX (ukr, bel) |
 | `SimpleStressor(lang, cache_dir=None)` | simple | Vocabulary + rules |
 
-All three are callable: `instance(text) -> str`.
+All three are callable: `instance(text) -> str` (combining-acute output).
 
 ---
 

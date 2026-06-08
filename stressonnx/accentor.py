@@ -83,7 +83,7 @@ _SIMPLE_FILES = [
     "meta.json",
 ]
 
-STRESS_TOKEN = "+"
+STRESS_TOKEN = "́"  # combining acute accent — placed AFTER the stressed vowel
 
 # ---------------------------------------------------------------------------
 # Language routing tables
@@ -568,7 +568,7 @@ class _SileroStressor:
                 + ("ё" if raw_word[exc_yo].islower() else "Ё")
                 + raw_word[exc_yo + 1:]
             )
-        return raw_word[:exc_stress] + STRESS_TOKEN + raw_word[exc_stress:]
+        return raw_word[:exc_stress + 1] + STRESS_TOKEN + raw_word[exc_stress + 1:]
 
     # ------------------------------------------------------------------
     # Main entry point
@@ -592,7 +592,7 @@ class _SileroStressor:
                 continue
 
             raw_lower = raw_word.lower()
-            have_stress = STRESS_TOKEN in raw_lower
+            have_stress = STRESS_TOKEN in raw_word
             if have_stress:
                 out.append(raw_word)
                 continue
@@ -623,7 +623,7 @@ class _SileroStressor:
 
             if not have_stress and set_stress:
                 for i, sp in enumerate(stress_positions):
-                    raw_word = raw_word[: sp + i] + STRESS_TOKEN + raw_word[sp + i:]
+                    raw_word = raw_word[: sp + i + 1] + STRESS_TOKEN + raw_word[sp + i + 1:]
 
             out.append(raw_word)
         return "".join(out)
@@ -652,19 +652,24 @@ class Stressor:
     cache_dir:
         Override the HF download cache directory passed to the backend.
 
+    notation:
+        Output notation.  ``"diacritic"`` (default) places the combining
+        acute accent (U+0301) after each stressed vowel (``"приве́т"``).
+        ``"plus"`` emits the legacy ``+``-before-vowel form (``"прив+ет"``).
+
     Examples
     --------
     >>> s = Stressor(lang="ru")                # default: ruaccent
     >>> s("старинный замок стоит на горе")
-    'стар+инный з+амок ст+оит на гор+е'
+    'стари́нный за́мок стои́т на горе́'
 
     >>> s = Stressor(model="silero", lang="ukr")
     >>> s("Привіт світ")
-    'Прив+іт св+іт'
+    'Приві́т сві́т'
 
     >>> s = Stressor(model="simple", lang="kaz")
     >>> s("Сәлем Қазақстан")
-    'Сәл+ем Қазақст+ан'
+    'Сәле́м Қазақста́н'
     """
 
     def __init__(
@@ -672,15 +677,25 @@ class Stressor:
         model: str | None = None,
         lang: str | None = None,
         cache_dir: str | None = None,
+        notation: str = "diacritic",
     ) -> None:
         self._backend = make_stressor(model=model, lang=lang, cache_dir=cache_dir)
         # Expose for inspection
         self.lang = getattr(self._backend, "lang", lang)
         self.model = model or DEFAULT_MODEL.get(lang or "")
+        if notation not in ("diacritic", "plus"):
+            raise ValueError(
+                f"notation must be 'diacritic' or 'plus'; got {notation!r}."
+            )
+        self.notation = notation
 
     def __call__(self, text: str) -> str:
-        """Accentuate *text*; inserts ``+`` before each stressed vowel."""
-        return self._backend(text)
+        """Accentuate *text*; returns the combining-acute form by default."""
+        result = self._backend(text)
+        if self.notation == "plus":
+            from stressonnx import to_plus_notation
+            return to_plus_notation(result)
+        return result
 
 
 # ===========================================================================
@@ -760,7 +775,7 @@ class SimpleStressor:
 
     def _accentuate_vocab(self, clean_word: str, raw_word: str) -> str:
         idx = self._vocab[clean_word]
-        return raw_word[:idx] + STRESS_TOKEN + raw_word[idx:]
+        return raw_word[:idx + 1] + STRESS_TOKEN + raw_word[idx + 1:]
 
     def _accentuate_oov(self, raw_word: str) -> str:
         vowel_ids = [i for i, c in enumerate(raw_word.lower()) if c in self._vowels]
@@ -782,7 +797,7 @@ class SimpleStressor:
                 idx = vowel_ids[-2]
         else:
             idx = vowel_ids[-1]
-        return raw_word[:idx] + STRESS_TOKEN + raw_word[idx:]
+        return raw_word[:idx + 1] + STRESS_TOKEN + raw_word[idx + 1:]
 
     def __call__(self, sentence: str) -> str:
         self._ensure_loaded()
@@ -794,7 +809,7 @@ class SimpleStressor:
             if not need:
                 out.append(raw_word)
                 continue
-            if STRESS_TOKEN in raw_word.lower():
+            if STRESS_TOKEN in raw_word:
                 out.append(raw_word)
                 continue
             if clean_word in self._vocab:
@@ -843,7 +858,29 @@ _RE_RUACCENT_NORM = re.compile(
 # Punctuation characters used by delete_spaces_before_punc
 _PUNC_CHARS = '!"#%&\'()*,./:;<=>?@[\\]^_`{|}-'
 
-_RU_SPLIT_RE = re.compile(r"\w*(?:\+\w+)*|[^\w\s]+")
+# Matches word tokens; ́ = combining acute (diacritic stress mark) is
+# treated as part of the word since it attaches to the preceding vowel.
+_RU_SPLIT_RE = re.compile(r"[\w\u0301]+|[^\w\s\u0301]+")
+
+
+def _plus_to_diacritic(word: str) -> str:
+    """Convert a single word from ``+``-before-vowel to combining-acute notation.
+
+    ``"з+амок"`` → ``"за́мок"``
+    """
+    result = []
+    i = 0
+    while i < len(word):
+        ch = word[i]
+        if ch == "+" and i + 1 < len(word):
+            # Insert the vowel then the combining acute
+            result.append(word[i + 1])
+            result.append(STRESS_TOKEN)
+            i += 2
+        else:
+            result.append(ch)
+            i += 1
+    return "".join(result)
 
 
 def _ruaccent_norm(text: str) -> str:
@@ -868,18 +905,40 @@ def _fix_capital(source: str, target: str) -> str:
 
 
 def _ruaccent_split_by_words(string: str):
-    """Split *string* into (words, remaining_text_parts) preserving punctuation."""
+    """Split *string* into (words, remaining_text_parts) preserving whitespace/punc.
+
+    Returns ``(valid_words, rem)`` where ``rem`` has ``len(valid_words) + 1``
+    elements: the text before the first word, between consecutive words, and
+    after the last word.  The original string can be reconstructed as::
+
+        "".join(l + r for l, r in zip(rem, valid_words)) + rem[-1]
+
+    Punctuation tokens (matched by the non-word alternative of *_RU_SPLIT_RE*)
+    are kept as-is and included in ``valid_words``; spaces fall into ``rem``.
+    """
     string = string.replace(" - ", " ~ ")
-    match = list(_RU_SPLIT_RE.finditer(string.lower()))
-    remaining = [string[l.end():r.start()] for l, r in zip(match, match[1:])]
-    raw_words = [string[x.start():x.end()] for x in match]
+    all_matches = list(_RU_SPLIT_RE.finditer(string.lower()))
+    if not all_matches:
+        return [], ["", ""]
+
+    # Build valid_words (non-empty matches) and rem (gaps between them)
+    raw_words = [string[m.start():m.end()] for m in all_matches]
     mask = [i for i, w in enumerate(raw_words) if w]
-    valid_words = [raw_words[i] for i in mask]
     if not mask:
-        return valid_words, ["", ""]
-    rem = ["".join(remaining[:mask[0]])]
-    rem += ["".join(remaining[l + 1:r]) for l, r in zip(mask, mask[1:])]
-    rem.append("".join(remaining[mask[-1] + 1:]))
+        return [], ["", ""]
+
+    valid_words = [raw_words[i] for i in mask]
+    valid_spans = [all_matches[i] for i in mask]
+
+    # rem[0] = text before first valid word
+    # rem[k] = text between valid_spans[k-1] and valid_spans[k]
+    # rem[-1] = text after last valid word
+    rem = [string[:valid_spans[0].start()]]
+    rem += [
+        string[valid_spans[k - 1].end():valid_spans[k].start()]
+        for k in range(1, len(valid_spans))
+    ]
+    rem.append(string[valid_spans[-1].end():])
     return valid_words, rem
 
 
@@ -1094,7 +1153,7 @@ class RuAccentStressor:
         ):
             label = self._accent_id2label[str(int(label_id))]
             if label not in ("NO", "STRESS_SECONDARY") and score >= 0.55:
-                result[i - 1] = STRESS_TOKEN + result[i - 1]
+                result[i - 1] = result[i - 1] + STRESS_TOKEN
         return "".join(result)
 
     @staticmethod
@@ -1147,7 +1206,7 @@ class RuAccentStressor:
                 )[0][0]
                 e = np.exp(logits - logits.max())
                 probs.append(float(e[1] / e.sum()))
-            splitted_text[pos] = variants[int(np.argmax(probs))]
+            splitted_text[pos] = _plus_to_diacritic(variants[int(np.argmax(probs))])
         return splitted_text
 
     def _process_accent(self, words: list, stress_usages: list) -> list:
@@ -1164,15 +1223,17 @@ class RuAccentStressor:
                 ):
                     words[i] = self._put_accent(word)
                 else:
+                    # 'stressed' uses '+'-before-vowel notation from the dict.
+                    # Convert: for each '+' at pos p in 'stressed', the vowel
+                    # in the original word is at p - (number of '+' seen so far).
+                    # Place the combining acute AFTER that vowel.
                     matches = list(re.finditer(r"\+", stressed))
-                    word_fixed = list(word)
-                    for j, m in enumerate(matches):
-                        word_fixed = (
-                            word_fixed[: m.start() + j]
-                            + [STRESS_TOKEN]
-                            + list(word)[m.end() - 1:]
-                        )
-                    words[i] = "".join(word_fixed)
+                    result_chars = list(word)
+                    # Apply insertions in reverse order to keep indices stable.
+                    for j, m in reversed(list(enumerate(matches))):
+                        vowel_idx = m.start() - j  # position in original word
+                        result_chars.insert(vowel_idx + 1, STRESS_TOKEN)
+                    words[i] = "".join(result_chars)
         return words
 
     def _process_sentence(self, sentence: str) -> str:

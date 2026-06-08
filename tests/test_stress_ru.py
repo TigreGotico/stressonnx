@@ -1,25 +1,25 @@
 """End-to-end tests for Russian stress via RuAccentStressor (requires network on first run)."""
 import pytest
 
-# Basic accentuation cases
+# Basic accentuation cases — output is combining acute (U+0301) after stressed vowel
 CASES = [
-    ("Привет мир", "Прив+ет мир"),
-    ("Замок на горе котёнок", "З+амок на гор+е котёнок"),
-    ("Молоко убежало", "Молок+о убеж+ало"),
+    ("Привет мир", "Приве́т мир"),
+    ("Замок на горе котёнок", "За́мок на горе́ котёнок"),
+    ("Молоко убежало", "Молоко́ убежа́ло"),
 ]
 
 # Homograph disambiguation cases — the core motivation for the RUAccent backend.
-# замок: з+амок = castle (на горе), зам+ок = lock (дверной)
-# мука: мук+а = flour (для хлеба), м+ука = torment (невыносима)
-# белок: бел+ок = egg-white / protein (яйца), б+елок = squirrel-genitive (белка)
+# замок: за́мок = castle (на горе), замо́к = lock (дверной)
+# мука: муко́ = flour (для хлеба), му́ка = torment (невыносима)
+# белок: бело́к = egg-white / protein (яйца), бе́лок = squirrel-genitive (белка)
 HOMOGRAPH_CASES = [
-    ("старинный замок стоит на горе", "стар+инный з+амок ст+оит на гор+е"),
-    ("дверной замок надёжен", "дверн+ой зам+ок надёжен"),
-    ("белок яйца полезен", "бел+ок яйц+а пол+езен"),
-    ("мука для хлеба", "мук+а для хл+еба"),
-    ("мука была невыносима", "м+ука был+а невынос+има"),
-    ("острая коса на лугу", "+острая к+оса на луг+у"),
-    ("коса русалки", "кос+а рус+алки"),
+    ("старинный замок стоит на горе", "стари́нный за́мок сто́ит на горе́"),
+    ("дверной замок надёжен", "дверно́й замо́к надёжен"),
+    ("белок яйца полезен", "бело́к яйца́ поле́зен"),
+    ("мука для хлеба", "мука́ для хле́ба"),
+    ("мука была невыносима", "му́ка была́ невыноси́ма"),
+    ("острая коса на лугу", "о́страя ко́са на лугу́"),
+    ("коса русалки", "коса́ руса́лки"),
 ]
 
 
@@ -40,7 +40,8 @@ def test_ruaccent_stressor_class():
     from stressonnx import RuAccentStressor
     s = RuAccentStressor()
     result = s("привет мир")
-    assert "+" in result
+    # Combining acute U+0301 must be present
+    assert "́" in result
 
 
 def test_ru_not_in_main_langs():
@@ -55,3 +56,21 @@ def test_ukr_bel_unaffected():
     from stressonnx import MAIN_LANGS
     assert "ukr" in MAIN_LANGS
     assert "bel" in MAIN_LANGS
+
+
+def test_to_plus_notation_roundtrip():
+    """to_plus_notation converts combining-acute back to + notation."""
+    from stressonnx import stress, to_plus_notation
+    diacritic = stress("привет", "ru")
+    assert "́" in diacritic
+    plus_form = to_plus_notation(diacritic)
+    assert "+" in plus_form
+    assert "́" not in plus_form
+
+
+def test_notation_plus_kwarg():
+    """stress(..., notation='plus') returns legacy + form."""
+    from stressonnx import stress
+    result = stress("привет", "ru", notation="plus")
+    assert "+" in result
+    assert "́" not in result

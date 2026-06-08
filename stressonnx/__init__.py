@@ -22,7 +22,19 @@ Model families
     ``tat``, ``tgk``, ``udm``, ``xal`` (plus ``bel_simple`` alias).
 
 Pass ``bel`` to use the neural accentor; ``bel_simple`` for the vocab path.
+
+Output notation
+---------------
+All backends emit the **combining acute accent** (U+0301) placed immediately
+after the stressed vowel: ``"приве́т"``.  This is the standard Unicode stress
+notation compatible with ``russian_text_stresser`` and Chatterbox-Multilingual.
+
+For models trained on the legacy ``+``-before-vowel notation (``"прив+ет"``),
+use :func:`to_plus_notation` or pass ``notation="plus"`` to :func:`stress` /
+:class:`Stressor`.
 """
+import re as _re
+
 from stressonnx.accentor import (
     Stressor,
     _SileroStressor,
@@ -35,13 +47,58 @@ from stressonnx.accentor import (
     MAIN_LANGS,
     SIMPLE_LANGS,
     ALL_LANGS,
+    STRESS_TOKEN,
 )
 
 _SINGLETONS: dict = {}
 
+# Combining acute U+0301
+_COMBINING_ACUTE = "́"
 
-def stress(text: str, lang: str = "ru", model: str | None = None) -> str:
-    """Insert stress marks (``+`` before the stressed vowel) into *text*.
+# Vowel classes for plus-notation conversion
+_VOWEL_RE = _re.compile(r"([аАеЕёЁиИоОуУыЫэЭюЮяЯіІїЇєЄаАеЕёЁ])́")
+
+
+def to_plus_notation(text: str) -> str:
+    """Convert combining-acute stress notation to legacy ``+``-before-vowel.
+
+    ``"приве́т"`` → ``"прив+ет"``
+
+    Useful for models that were trained on ``+``-marked text.  Operates on any
+    script — it simply moves every U+0301 (combining acute) from after its base
+    character to a ``+`` before it.
+
+    Parameters
+    ----------
+    text:
+        Text containing U+0301 combining-acute stress marks.
+
+    Returns
+    -------
+    str
+        Text with each stressed vowel written as ``+<vowel>``.
+    """
+    result = []
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if i + 1 < len(text) and text[i + 1] == _COMBINING_ACUTE:
+            result.append("+")
+            result.append(ch)
+            i += 2  # skip the combining acute
+        else:
+            result.append(ch)
+            i += 1
+    return "".join(result)
+
+
+def stress(
+    text: str,
+    lang: str = "ru",
+    model: str | None = None,
+    notation: str = "diacritic",
+) -> str:
+    """Insert stress marks into *text*.
 
     Parameters
     ----------
@@ -58,11 +115,16 @@ def stress(text: str, lang: str = "ru", model: str | None = None) -> str:
         * ``ru`` → ``"ruaccent"`` (homograph-aware, context-sensitive)
         * ``ukr`` / ``bel`` → ``"silero"`` (neural ONNX)
         * all other supported languages → ``"simple"`` (vocab + rules)
+    notation:
+        Output notation.  ``"diacritic"`` (default) returns the combining
+        acute accent placed after the stressed vowel (``"приве́т"``).
+        ``"plus"`` returns the legacy ``+``-before-vowel form (``"прив+ет"``),
+        e.g. for models trained on that format.
 
     Returns
     -------
     str
-        Text with ``+`` inserted before each stressed vowel.
+        Text with stress marks inserted according to *notation*.
 
     Examples
     --------
@@ -71,24 +133,32 @@ def stress(text: str, lang: str = "ru", model: str | None = None) -> str:
         >>> from stressonnx import stress
         # Russian — homograph-aware (замок castle vs lock)
         >>> stress("старинный замок стоит на горе", "ru")
-        'стар+инный з+амок ст+оит на гор+е'
+        'стари́нный за́мок стои́т на горе́'
         >>> stress("дверной замок надёжен", "ru")
-        'дверн+ой зам+ок надёжен'
+        'дверно́й замо́к надёжен'
+
+        # Legacy plus notation for models trained on it
+        >>> stress("привет", "ru", notation="plus")
+        'прив+ет'
 
         # Explicit model selection
         >>> stress("Привіт світ", "ukr", model="silero")
-        'Прив+іт св+іт'
+        'Приві́т сві́т'
         >>> stress("Сәлем Қазақстан", "kaz", model="simple")
-        'Сәл+ем Қазақст+ан'
+        'Сәле́м Қазақста́н'
     """
     key = (lang, model)
     if key not in _SINGLETONS:
         _SINGLETONS[key] = make_stressor(model=model, lang=lang)
-    return _SINGLETONS[key](text)
+    result = _SINGLETONS[key](text)
+    if notation == "plus":
+        return to_plus_notation(result)
+    return result
 
 
 __all__ = [
     "stress",
+    "to_plus_notation",
     "Stressor",
     "_SileroStressor",
     "SimpleStressor",
@@ -100,4 +170,5 @@ __all__ = [
     "MAIN_LANGS",
     "SIMPLE_LANGS",
     "ALL_LANGS",
+    "STRESS_TOKEN",
 ]
