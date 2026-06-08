@@ -4,9 +4,16 @@ vocabulary + rules (SimpleAccentor langs).
 Models and data are downloaded from HuggingFace on first use and cached under
 ``~/.local/share/stressonnx/<lang>/``.
 
+Model registry
+--------------
+Every stress backend is registered in ``MODEL_REGISTRY`` keyed by a
+string model-id.  The registry entry declares which languages the model
+serves and which internal family it belongs to.  ``DEFAULT_MODEL`` maps each
+supported language tag to the model-id that is used when ``model=None``.
+
 Three families
 --------------
-``ruaccent`` lang (``ru``):
+``ruaccent`` (model id ``"ruaccent"``, language ``ru``):
     Homograph-aware neural pipeline derived from RUAccent (Den4ikAI/ruaccent),
     licensed Apache-2.0 per upstream classifiers and setup.py.
     Models sourced from HuggingFace: ruaccent/accentuator.
@@ -21,26 +28,29 @@ Three families
        character-level RoFormer ONNX accent model.
     Runtime deps: onnxruntime, numpy, tokenizers (no torch, no transformers).
 
-``main_accentor`` langs (``ukr``, ``bel``):
-    Pipeline:
+``silero`` (model id ``"silero"``, languages ``ukr``, ``bel``):
+    Neural ONNX pipeline exported from silero_stress.  Embedding-bag + MLP
+    heads. Pipeline:
     1. Tokenise sentence → (raw tokens, clean tokens, prediction mask).
     2. Compute fastText-style n-gram embeddings for each clean token by
        mean-pooling the rows selected from the embedding matrix.
     3. Run the ONNX MLP heads → stress_logits [N, K] (+ yo_logits for ``ru``).
     4. Decode: exceptions dict → skip sets → argmax position → insert '+'.
 
-``simple_accentor`` langs (``aze_cyr``, ``aze_lat``, ``uzb_cyr``, ``uzb_lat``,
-    ``bak``, ``bel``, ``chv``, ``erz``, ``hye``, ``kat``, ``kaz``, ``kbd``,
-    ``kir``, ``kjh``, ``mdf``, ``sah``, ``tat``, ``tgk``, ``udm``, ``xal``):
-    Pipeline:
+``simple_accentor`` (model id ``"simple"``, languages ``aze_cyr``,
+    ``aze_lat``, ``uzb_cyr``, ``uzb_lat``, ``bak``, ``bel``, ``chv``,
+    ``erz``, ``hye``, ``kat``, ``kaz``, ``kbd``, ``kir``, ``kjh``, ``mdf``,
+    ``sah``, ``tat``, ``tgk``, ``udm``, ``xal``):
+    Vocabulary + rule-based pipeline.
     1. Tokenise sentence.
     2. Look up clean token in vocabulary dict (word → stress char index).
     3. OOV fall-back: language-specific positional rule (last/first/none/kat).
     4. Insert '+' at the determined character index.
 
-``bel`` is available in *both* families; pass ``bel`` for the neural version
-and ``bel_simple`` (alias handled internally) for the rule/vocab version —
-or simply use ``bel`` which dispatches to the neural accentor by default.
+``bel`` is available in both the ``"silero"`` and ``"simple"`` models; the
+default for ``bel`` is the neural model (``"silero"``).  Pass
+``model="simple"`` (or the ``bel_simple`` language alias) to use the
+vocabulary-only path.
 """
 import gzip
 import json
@@ -95,6 +105,158 @@ SIMPLE_LANGS = {
 }
 
 ALL_LANGS = RUACCENT_LANGS | MAIN_LANGS | SIMPLE_LANGS
+
+# ---------------------------------------------------------------------------
+# Model registry
+# ---------------------------------------------------------------------------
+
+#: Registry mapping model-id → metadata dict.
+#:
+#: Keys per entry:
+#:   ``langs``       – frozenset of language tags supported by this model.
+#:   ``family``      – internal family string: ``"ruaccent"``, ``"silero"``,
+#:                     or ``"simple"``.
+#:   ``hf_subdir``   – sub-directory prefix inside ``TigreGotico/stressonnx-models``
+#:                     (``None`` for families that compute the sub-dir from the
+#:                     language tag at runtime).
+#:   ``description`` – one-line human-readable description.
+MODEL_REGISTRY: dict = {
+    "ruaccent": {
+        "langs": frozenset(RUACCENT_LANGS),
+        "family": "ruaccent",
+        "hf_subdir": "ru_ruaccent",
+        "description": (
+            "Homograph-aware Russian accentor (RUAccent by Den4ikAI, "
+            "Apache-2.0). Four-model ONNX pipeline: stress-usage classifier, "
+            "yo-homograph resolver, omograph resolver, char-level accent model."
+        ),
+    },
+    "silero": {
+        "langs": frozenset(MAIN_LANGS),
+        "family": "silero",
+        "hf_subdir": None,  # per-language: <lang>/
+        "description": (
+            "Neural ONNX accentor exported from silero_stress (MIT). "
+            "Fasttext-style n-gram embedding-bag + MLP heads for "
+            "Ukrainian and Belarusian."
+        ),
+    },
+    "simple": {
+        "langs": frozenset(SIMPLE_LANGS),
+        "family": "simple",
+        "hf_subdir": None,  # per-language: <lang>/
+        "description": (
+            "Vocabulary + rule-based accentor (silero_stress, MIT). "
+            "Dictionary lookup with per-language OOV positional fallback. "
+            "Supports 20 languages across Cyrillic/Latin scripts."
+        ),
+    },
+}
+
+#: Default model-id for each language tag.
+#:
+#: Languages that appear in multiple families (``bel``) map to their
+#: highest-quality (neural) model.  Access the alternative with
+#: ``model="simple"`` or the ``bel_simple`` alias.
+DEFAULT_MODEL: dict = {}
+# Build defaults: RUACCENT_LANGS → ruaccent, MAIN_LANGS → silero,
+# SIMPLE_LANGS → simple (do not overwrite a higher-priority entry).
+for _lang in RUACCENT_LANGS:
+    DEFAULT_MODEL[_lang] = "ruaccent"
+for _lang in MAIN_LANGS:
+    DEFAULT_MODEL[_lang] = "silero"
+for _lang in SIMPLE_LANGS:
+    if _lang not in DEFAULT_MODEL:
+        DEFAULT_MODEL[_lang] = "simple"
+
+
+def make_stressor(
+    model: str | None = None,
+    lang: str | None = None,
+    cache_dir: str | None = None,
+):
+    """Factory: return the appropriate stressor instance for *model* and *lang*.
+
+    Parameters
+    ----------
+    model:
+        Model-id string — one of ``"ruaccent"``, ``"silero"``, or ``"simple"``.
+        When *None*, the default model for *lang* is used (see
+        :data:`DEFAULT_MODEL`).
+    lang:
+        Language tag (e.g. ``"ru"``, ``"ukr"``, ``"kaz"``).  Required when
+        *model* is *None* so the default can be looked up.  Optional when
+        *model* is given and the model supports only one language, but
+        **required** when the model covers multiple languages (``"silero"``
+        covers both ``"ukr"`` and ``"bel"``).
+    cache_dir:
+        Override the HF download cache directory.
+
+    Returns
+    -------
+    Callable ``(str) -> str``
+        A stressor instance ready to be called with a text string.
+
+    Raises
+    ------
+    ValueError
+        If the combination of *model* and *lang* is unsupported.
+    """
+    if model is None:
+        if lang is None:
+            raise ValueError("At least one of 'model' or 'lang' must be provided.")
+        model = DEFAULT_MODEL.get(lang)
+        if model is None:
+            all_supported = sorted(DEFAULT_MODEL.keys())
+            raise ValueError(
+                f"Unsupported language {lang!r}.  Supported: {all_supported}."
+            )
+
+    entry = MODEL_REGISTRY.get(model)
+    if entry is None:
+        raise ValueError(
+            f"Unknown model {model!r}.  "
+            f"Available models: {sorted(MODEL_REGISTRY.keys())}."
+        )
+
+    family = entry["family"]
+
+    if family == "ruaccent":
+        if lang is not None and lang not in entry["langs"]:
+            raise ValueError(
+                f"Model {model!r} does not support language {lang!r}.  "
+                f"Supported: {sorted(entry['langs'])}."
+            )
+        return RuAccentStressor(cache_dir=cache_dir)
+
+    if family == "silero":
+        if lang is None:
+            raise ValueError(
+                f"Model {model!r} supports multiple languages "
+                f"({sorted(entry['langs'])}); 'lang' must be specified."
+            )
+        if lang not in entry["langs"]:
+            raise ValueError(
+                f"Model {model!r} does not support language {lang!r}.  "
+                f"Supported: {sorted(entry['langs'])}."
+            )
+        return _SileroStressor(lang=lang, cache_dir=cache_dir)
+
+    if family == "simple":
+        if lang is None:
+            raise ValueError(
+                f"Model {model!r} supports multiple languages "
+                f"({sorted(entry['langs'])}); 'lang' must be specified."
+            )
+        if lang not in entry["langs"]:
+            raise ValueError(
+                f"Model {model!r} does not support language {lang!r}.  "
+                f"Supported: {sorted(entry['langs'])}."
+            )
+        return SimpleStressor(lang=lang, cache_dir=cache_dir)
+
+    raise ValueError(f"Internal error: unknown family {family!r}.")
+
 
 # OOV stress-position rule per simple lang.
 # "last"  → last vowel
@@ -193,26 +355,27 @@ def _download_files(lang: str, cache_dir: str, filenames: list) -> dict:
 
 
 # ===========================================================================
-# Main-accentor family (ru / ukr / bel)
+# Main-accentor family (ukr / bel) — silero neural pipeline
 # ===========================================================================
 
-class Stressor:
-    """Lazy-load neural accentor for ``ru``, ``ukr``, or ``bel``.
+class _SileroStressor:
+    """Internal: lazy-load neural (silero) accentor for ``ukr`` or ``bel``.
+
+    Use :class:`Stressor` (the public wrapper) instead of this class directly.
 
     Parameters
     ----------
     lang:
-        Language tag: ``"ru"``, ``"ukr"``, or ``"bel"``.
+        Language tag: ``"ukr"`` or ``"bel"``.
     cache_dir:
         Override the default cache location
         (``~/.local/share/stressonnx/<lang>``).
     """
 
-    def __init__(self, lang: str = "ru", cache_dir: str | None = None) -> None:
+    def __init__(self, lang: str, cache_dir: str | None = None) -> None:
         if lang not in MAIN_LANGS:
             raise ValueError(
-                f"Stressor only supports main-accentor langs {sorted(MAIN_LANGS)}; "
-                f"got {lang!r}.  Use SimpleStressor for other langs."
+                f"_SileroStressor only supports {sorted(MAIN_LANGS)}; got {lang!r}."
             )
         self.lang = lang
         if cache_dir is None:
@@ -413,8 +576,6 @@ class Stressor:
 
     def __call__(self, sentence: str) -> str:
         self._ensure_loaded()
-        if self.lang == "ru":
-            return self._process_ru(sentence)
         return self._process_ukr_bel(sentence)
 
     def _process_ukr_bel(self, sentence: str) -> str:
@@ -467,91 +628,59 @@ class Stressor:
             out.append(raw_word)
         return "".join(out)
 
-    def _process_ru(self, sentence: str) -> str:
-        """Full decode path for Russian (includes yo logic)."""
-        raw_tokens, clean_tokens, prediction_mask = self._tokenize(sentence)
-        stress_preds, stress_probs, yo_preds, yo_probs = self._predict(clean_tokens)
 
-        out = []
-        for wi, (raw_word, clean_word, need) in enumerate(
-            zip(raw_tokens, clean_tokens, prediction_mask)
-        ):
-            raw_lower = raw_word.lower()
-            if not need:
-                out.append(raw_word)
-                continue
+# ===========================================================================
+# Public Stressor wrapper — model-aware entry point
+# ===========================================================================
 
-            have_stress = STRESS_TOKEN in raw_lower
-            have_yo = "ё" in raw_lower
-            if have_stress and have_yo:
-                out.append(raw_word)
-                continue
-            if (not have_stress) and have_yo:
-                if (
-                    sum(c in self._vowels for c in raw_lower) == 1
-                ) or clean_word.replace("ё", "е") in self._skip_stress:
-                    out.append(raw_word)
-                    continue
-                user_yo = [i for i, x in enumerate(raw_lower) if x == "ё"]
-                for i, yo_pos in enumerate(user_yo):
-                    raw_word = (
-                        raw_word[: yo_pos + i] + STRESS_TOKEN + raw_word[yo_pos + i:]
-                    )
-                out.append(raw_word)
-                continue
+class Stressor:
+    """Model-aware stress accentor wrapper.
 
-            if clean_word in self._exceptions:
-                out.append(self._accentuate_exception(clean_word, raw_word))
-                continue
+    ``Stressor`` is the recommended high-level class.  It accepts an explicit
+    *model* parameter (mirroring ``text2tashkeel``'s ``Diacritizer(model=…)``
+    ergonomics) and delegates to the appropriate backend.
 
-            stressed_vowel_ids = [int(stress_preds[wi])]
-            passed_stress = stress_probs[wi] > 0.5
-            set_stress = (
-                passed_stress
-                and not have_stress
-                and (clean_word.replace("ё", "е") not in self._skip_stress)
-            )
+    Parameters
+    ----------
+    model:
+        Model-id string — one of ``"ruaccent"``, ``"silero"``, or ``"simple"``.
+        When *None* (the default), the best model for *lang* is selected
+        automatically via :data:`DEFAULT_MODEL`.
+    lang:
+        Language tag (e.g. ``"ru"``, ``"ukr"``, ``"kaz"``).  Required when
+        *model* is *None* or when the chosen model covers multiple languages.
+    cache_dir:
+        Override the HF download cache directory passed to the backend.
 
-            yo_vowel_ids = [int(yo_preds[wi])]
-            passed_yo = yo_probs[wi] > 0.5
-            set_yo = passed_yo and (
-                clean_word.replace("ё", "е") not in self._skip_yo
-            )
+    Examples
+    --------
+    >>> s = Stressor(lang="ru")                # default: ruaccent
+    >>> s("старинный замок стоит на горе")
+    'стар+инный з+амок ст+оит на гор+е'
 
-            if have_stress:
-                stressed_vowel_ids = [
-                    sum(part.count(v) for v in self._vowels)
-                    for part in raw_lower.split(STRESS_TOKEN)
-                ]
+    >>> s = Stressor(model="silero", lang="ukr")
+    >>> s("Привіт світ")
+    'Прив+іт св+іт'
 
-            stress_positions, yo_positions, num_vowels, first_vowel_pos = (
-                self._get_positions(raw_lower, stressed_vowel_ids, yo_vowel_ids)
-            )
+    >>> s = Stressor(model="simple", lang="kaz")
+    >>> s("Сәлем Қазақстан")
+    'Сәл+ем Қазақст+ан'
+    """
 
-            if num_vowels == 0:
-                out.append(raw_word)
-                continue
+    def __init__(
+        self,
+        model: str | None = None,
+        lang: str | None = None,
+        cache_dir: str | None = None,
+    ) -> None:
+        self._backend = make_stressor(model=model, lang=lang, cache_dir=cache_dir)
+        # Expose for inspection
+        self.lang = getattr(self._backend, "lang", lang)
+        self.model = model or DEFAULT_MODEL.get(lang or "")
 
-            for yo_pos in yo_positions:
-                if yo_pos in stress_positions and set_yo:
-                    if raw_lower[yo_pos] == "е":
-                        raw_word = (
-                            raw_word[:yo_pos]
-                            + ("ё" if raw_word[yo_pos].islower() else "Ё")
-                            + raw_word[yo_pos + 1:]
-                        )
-
-            if num_vowels == 1:
-                stress_positions = [first_vowel_pos]
-                set_stress = True
-
-            if not have_stress and set_stress:
-                for i, sp in enumerate(stress_positions):
-                    raw_word = raw_word[: sp + i] + STRESS_TOKEN + raw_word[sp + i:]
-
-            out.append(raw_word)
-
-        return "".join(out)
+    def __call__(self, text: str) -> str:
+        """Accentuate *text*; inserts ``+`` before each stressed vowel."""
+        return self._backend(text)
 
 
 # ===========================================================================

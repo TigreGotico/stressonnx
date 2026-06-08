@@ -3,76 +3,101 @@
 Runtime dependencies: onnxruntime, numpy, huggingface_hub (no torch).
 Russian (``ru``) additionally requires: tokenizers.
 
-Three accentor families
------------------------
-RUAccent homograph-aware (``ru``):
-    Neural pipeline derived from RUAccent (Den4ikAI/ruaccent, Apache-2.0).
-    Resolves context-dependent homographs (замок castle/lock, мука flour/
-    torment, белок protein/squirrel …) via a RoBERTa NLI ONNX model.
+Model families
+--------------
+``"ruaccent"`` (default for ``ru``):
+    Homograph-aware neural pipeline derived from RUAccent (Den4ikAI/ruaccent,
+    Apache-2.0).  Resolves context-dependent homographs (замок castle/lock,
+    мука flour/torment, белок protein/squirrel …) via four ONNX models.
     Runtime deps: onnxruntime, numpy, tokenizers (no torch, no transformers).
 
-Neural ONNX (main_accentor): ``ukr``, ``bel``
-Vocabulary + rules (simple_accentor): ``aze_cyr``, ``aze_lat``, ``uzb_cyr``,
-    ``uzb_lat``, ``bak``, ``chv``, ``erz``, ``hye``, ``kat``, ``kaz``,
-    ``kbd``, ``kir``, ``kjh``, ``mdf``, ``sah``, ``tat``, ``tgk``, ``udm``,
-    ``xal``
+``"silero"`` (default for ``ukr``, ``bel``):
+    Neural ONNX pipeline (embedding-bag + MLP heads) exported from
+    silero_stress (MIT).
+
+``"simple"`` (default for 20 other Slavic/Turkic/Caucasian languages):
+    Vocabulary + rules; no ONNX inference.  Languages: ``aze_cyr``,
+    ``aze_lat``, ``uzb_cyr``, ``uzb_lat``, ``bak``, ``chv``, ``erz``,
+    ``hye``, ``kat``, ``kaz``, ``kbd``, ``kir``, ``kjh``, ``mdf``, ``sah``,
+    ``tat``, ``tgk``, ``udm``, ``xal`` (plus ``bel_simple`` alias).
 
 Pass ``bel`` to use the neural accentor; ``bel_simple`` for the vocab path.
 """
 from stressonnx.accentor import (
     Stressor,
+    _SileroStressor,
     SimpleStressor,
     RuAccentStressor,
+    make_stressor,
+    MODEL_REGISTRY,
+    DEFAULT_MODEL,
     RUACCENT_LANGS,
     MAIN_LANGS,
     SIMPLE_LANGS,
+    ALL_LANGS,
 )
 
 _SINGLETONS: dict = {}
 
 
-def stress(text: str, lang: str = "ru") -> str:
+def stress(text: str, lang: str = "ru", model: str | None = None) -> str:
     """Insert stress marks (``+`` before the stressed vowel) into *text*.
 
-    Dispatches to:
+    Parameters
+    ----------
+    text:
+        Input text to accentuate.
+    lang:
+        Language tag (e.g. ``"ru"``, ``"ukr"``, ``"kaz"``).  Defaults to
+        ``"ru"`` for backward compatibility.
+    model:
+        Model-id string — one of ``"ruaccent"``, ``"silero"``, or
+        ``"simple"``.  When *None* (the default), the best model for *lang*
+        is selected automatically via :data:`DEFAULT_MODEL`:
 
-    * ``ru``: RUAccent homograph-aware pipeline (resolves замок/мука/белок …).
-    * ``ukr`` / ``bel``: neural ONNX pipeline (embedding-bag + MLP).
-    * all other supported languages: vocabulary + rule-based pipeline.
+        * ``ru`` → ``"ruaccent"`` (homograph-aware, context-sensitive)
+        * ``ukr`` / ``bel`` → ``"silero"`` (neural ONNX)
+        * all other supported languages → ``"simple"`` (vocab + rules)
 
-    Example::
+    Returns
+    -------
+    str
+        Text with ``+`` inserted before each stressed vowel.
+
+    Examples
+    --------
+    ::
 
         >>> from stressonnx import stress
+        # Russian — homograph-aware (замок castle vs lock)
         >>> stress("старинный замок стоит на горе", "ru")
         'стар+инный з+амок ст+оит на гор+е'
         >>> stress("дверной замок надёжен", "ru")
         'дверн+ой зам+ок надёжен'
-        >>> stress("Привіт світ", "ukr")
+
+        # Explicit model selection
+        >>> stress("Привіт світ", "ukr", model="silero")
         'Прив+іт св+іт'
+        >>> stress("Сәлем Қазақстан", "kaz", model="simple")
+        'Сәл+ем Қазақст+ан'
     """
-    if lang not in _SINGLETONS:
-        if lang in RUACCENT_LANGS:
-            _SINGLETONS[lang] = RuAccentStressor()
-        elif lang in MAIN_LANGS:
-            _SINGLETONS[lang] = Stressor(lang)
-        elif lang in SIMPLE_LANGS:
-            _SINGLETONS[lang] = SimpleStressor(lang)
-        else:
-            raise ValueError(
-                f"Unsupported language {lang!r}.  "
-                f"Homograph-aware langs: {sorted(RUACCENT_LANGS)}.  "
-                f"Neural langs: {sorted(MAIN_LANGS)}.  "
-                f"Rule/vocab langs: {sorted(SIMPLE_LANGS)}."
-            )
-    return _SINGLETONS[lang](text)
+    key = (lang, model)
+    if key not in _SINGLETONS:
+        _SINGLETONS[key] = make_stressor(model=model, lang=lang)
+    return _SINGLETONS[key](text)
 
 
 __all__ = [
     "stress",
     "Stressor",
+    "_SileroStressor",
     "SimpleStressor",
     "RuAccentStressor",
+    "make_stressor",
+    "MODEL_REGISTRY",
+    "DEFAULT_MODEL",
     "RUACCENT_LANGS",
     "MAIN_LANGS",
     "SIMPLE_LANGS",
+    "ALL_LANGS",
 ]
