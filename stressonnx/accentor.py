@@ -144,7 +144,6 @@ class Stressor:
                 repo_id=HF_REPO_ID,
                 filename=f"{lang}/{fname}",
                 local_dir=cache_dir,
-                local_dir_use_symlinks=False,
             )
             # hf_hub_download may nest under lang/ — normalise
             if os.path.basename(downloaded) == fname:
