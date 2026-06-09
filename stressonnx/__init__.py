@@ -32,12 +32,27 @@ notation compatible with ``russian_text_stresser`` and Chatterbox-Multilingual.
 For models trained on the legacy ``+``-before-vowel notation (``"прив+ет"``),
 use :func:`to_plus_notation` or pass ``notation="plus"`` to :func:`stress` /
 :class:`Stressor`.
+
+Script model
+------------
+Every language tag is associated with a :class:`Script` (writing system)
+via :func:`lang_to_script` and :data:`LANG_SCRIPT`.  Each
+:class:`ModelEntry` in :data:`MODEL_REGISTRY` declares ``input_scripts`` —
+the set of writing systems the model accepts.  phoonnx and other callers can
+use this to verify compatibility before dispatching text to stressonnx::
+
+    from stressonnx import lang_to_script, MODEL_REGISTRY, Script
+
+    if lang_to_script("ru") in MODEL_REGISTRY["ruaccent"].input_scripts:
+        # safe to call stress(text, "ru", model="ruaccent")
+        ...
 """
 import re as _re
 
 from stressonnx.accentor import (
     Stressor,
     _SileroStressor,
+    _KubatabaStressor,
     SimpleStressor,
     RuAccentStressor,
     make_stressor,
@@ -47,7 +62,14 @@ from stressonnx.accentor import (
     MAIN_LANGS,
     SIMPLE_LANGS,
     ALL_LANGS,
+    LANG_SCRIPT,
     STRESS_TOKEN,
+    ModelEntry,
+    Script,
+    StressNotation,
+    StressorBackend,
+    lang_to_script,
+    _apply_notation,
 )
 
 _SINGLETONS: dict = {}
@@ -151,9 +173,7 @@ def stress(
     if key not in _SINGLETONS:
         _SINGLETONS[key] = make_stressor(model=model, lang=lang)
     result = _SINGLETONS[key](text)
-    if notation == "plus":
-        return to_plus_notation(result)
-    return result
+    return _apply_notation(result, notation)
 
 
 __all__ = [
@@ -161,6 +181,7 @@ __all__ = [
     "to_plus_notation",
     "Stressor",
     "_SileroStressor",
+    "_KubatabaStressor",
     "SimpleStressor",
     "RuAccentStressor",
     "make_stressor",
@@ -171,4 +192,10 @@ __all__ = [
     "SIMPLE_LANGS",
     "ALL_LANGS",
     "STRESS_TOKEN",
+    "ModelEntry",
+    "Script",
+    "StressNotation",
+    "StressorBackend",
+    "LANG_SCRIPT",
+    "lang_to_script",
 ]

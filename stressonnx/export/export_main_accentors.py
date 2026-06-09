@@ -20,7 +20,7 @@ from silero_stress import load_accentor
 
 # ---------------------------------------------------------------------------
 parser = argparse.ArgumentParser()
-parser.add_argument("--lang", required=True, choices=["ukr", "bel"])
+parser.add_argument("--lang", required=True, choices=["ukr", "bel", "ru"])
 parser.add_argument("--out_dir", default=None,
                     help="Output directory (default: same dir as this script)")
 args = parser.parse_args()
@@ -164,8 +164,10 @@ sess = ort.InferenceSession(onnx_path, providers=["CPUExecutionProvider"])
 
 if lang == "ukr":
     test_words = ["привіт", "світ", "молоко", "замок", "голова", "вода"]
-else:  # bel
+elif lang == "bel":
     test_words = ["прывітанне", "свет", "малако", "замак", "галава", "вада"]
+else:  # ru
+    test_words = ["привет", "свет", "молоко", "замок", "голова", "вода"]
 
 pooled = pool(test_words)
 (o_stress,) = sess.run(None, {"pooled": pooled})

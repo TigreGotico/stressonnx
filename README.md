@@ -2,11 +2,24 @@
 
 Pure-onnxruntime, multi-language word-stress / accentuation library.
 No torch at runtime — only `onnxruntime`, `numpy`, `huggingface_hub`, and
-`tokenizers` (the last is required for `ru` only).
+`tokenizers` (the last is required only for `ru` via the `ruaccent` model).
 
 All models are hosted on
 [TigreGotico/stressonnx-models](https://huggingface.co/TigreGotico/stressonnx-models)
 and downloaded + cached automatically on first use.
+
+---
+
+## Supported languages
+
+| Family | Model id | Languages | Notes |
+|--------|----------|-----------|-------|
+| ruaccent | `"ruaccent"` | `ru` | Default for Russian; homograph-aware |
+| silero | `"silero"` | `ukr`, `bel`, `ru` | Neural ONNX; `ru` is an alternative to ruaccent |
+| kubataba | `"kubataba"` | `ru` | Seq2seq Transformer; sentence-level |
+| simple | `"simple"` | 20 languages | Vocabulary + OOV rules; no ONNX inference |
+
+**Default model per language:** `ru` → `ruaccent`, `ukr`/`bel` → `silero`, all others → `simple`.
 
 ---
 
@@ -17,14 +30,12 @@ after the stressed vowel:
 
 ```
 приве́т   =  п р и в е ́ т
-               ^^^^^
-               е + U+0301
+                     ^
+                  U+0301 (combining acute)
 ```
 
-This matches the convention used by `russian_text_stresser` and models such as
-Chatterbox-Multilingual.  The legacy `+`-before-vowel format (`прив+ет`, used
-internally by silero and ruaccent dictionaries) is exposed as a conversion
-utility for downstream consumers that were trained on it.
+The legacy `+`-before-vowel format (`прив+ет`) is available via `notation="plus"` or
+`to_plus_notation()` for consumers trained on that format.
 
 ---
 
@@ -34,53 +45,46 @@ utility for downstream consumers that were trained on it.
 from stressonnx import stress
 
 # Russian — homograph-aware (замок castle vs lock, мука flour vs torment, …)
-stress("старинный замок стоит на горе", "ru")   # → 'стари́нный за́мок стои́т на горе́'
+stress("старинный замок стоит на горе", "ru")   # → 'стари́нный за́мок сто́ит на горе́'
 stress("дверной замок надёжен", "ru")           # → 'дверно́й замо́к надёжен'
-stress("мука для хлеба", "ru")                  # → 'муко́ для хле́ба'
-stress("мука была невыносима", "ru")            # → 'му́ка была́ невыноси́ма'
 
-# Other languages
-stress("Привіт світ", "ukr")      # → 'Приві́т сві́т'
-stress("Прывітанне свет", "bel")  # → 'Прывіта́нне све́т'
-stress("Salam dünya", "aze_lat")  # → 'Salam дюнья́'
+# Ukrainian and Belarusian — neural ONNX
+stress("Привіт світ", "ukr")         # → 'Приві́т сві́т'
+stress("Прывітанне свет", "bel")     # → 'Прывіта́нне све́т'
+
+# Turkic / Caucasian — vocabulary + rules
+stress("Salam dünya", "aze_lat")     # → 'Salam дюнья́'
+stress("Сәлем Қазақстан", "kaz")    # → 'Сәле́м Қазақста́н'
+
+# Explicit alternative model for Russian
+stress("красивый город", "ru", model="silero")    # → 'краси́вый го́род'
+stress("красивый город", "ru", model="kubataba")  # → 'краси́вый го́род'
+
+# Legacy notation for downstream TTS models trained on + format
+stress("привет", "ru", notation="plus")   # → 'прив+ет'
 ```
 
 ---
 
-## API
+## API reference
 
-### `stress(text, lang="ru", model=None, notation="diacritic") -> str`
+### `stress(text, lang="ru", model=None, notation="diacritic") → str`
 
 Insert stress marks into *text*.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `text` | `str` | Input text. |
-| `lang` | `str` | Language tag (e.g. `"ru"`, `"ukr"`, `"kaz"`). Defaults to `"ru"`. |
-| `model` | `str \| None` | Model id — `"ruaccent"`, `"silero"`, or `"simple"`. `None` selects the default model for `lang` (see [model registry](#model-registry)). |
-| `notation` | `str` | `"diacritic"` (default) — combining acute after stressed vowel. `"plus"` — legacy `+`-before-vowel form for models trained on it. |
+| `lang` | `str` | Language tag (e.g. `"ru"`, `"ukr"`, `"kaz"`). |
+| `model` | `str \| None` | Model id. `None` selects the best model for `lang` automatically. |
+| `notation` | `str \| StressNotation` | `"diacritic"` (default) or `"plus"`. |
 
-```python
-from stressonnx import stress
+Singletons are loaded lazily; subsequent calls for the same `(lang, model)` pair
+reuse the cached backend.
 
-# Default — combining acute
-stress("привет", "ru")                           # → 'приве́т'
+### `to_plus_notation(text) → str`
 
-# Legacy plus notation
-stress("привет", "ru", notation="plus")          # → 'прив+ет'
-
-# Explicit model selection
-stress("Привіт світ", "ukr", model="silero")    # → 'Приві́т сві́т'
-stress("Казан",       "tat", model="simple")    # → 'Каза́н'
-stress("замок",       "ru",  model="ruaccent")  # → 'за́мок' or 'замо́к' (context-dependent)
-```
-
-Singletons are loaded lazily on first call; subsequent calls for the same
-`(lang, model)` pair reuse the cached instance.
-
-### `to_plus_notation(text) -> str`
-
-Convert combining-acute stress notation to the legacy `+`-before-vowel form.
+Convert combining-acute output to the legacy `+`-before-vowel form.
 
 ```python
 from stressonnx import to_plus_notation
@@ -89,115 +93,135 @@ to_plus_notation("приве́т")   # → 'прив+ет'
 to_plus_notation("за́мок")    # → 'з+амок'
 ```
 
-Useful when feeding output into models that were trained on `+`-marked text
-(silero TTS, some ruaccent consumers).  `stress(..., notation="plus")` is a
-one-step shortcut.
-
 ### `Stressor(model=None, lang=None, notation="diacritic", cache_dir=None)`
 
-High-level class.  Accepts the same parameters as `stress()`.
+Stateful wrapper with `.model`, `.lang`, and `.notation` attributes.
 
 ```python
 from stressonnx import Stressor
 
-# Russian (default model: ruaccent)
 s = Stressor(lang="ru")
 s("белок яйца полезен")     # → 'бело́к яйца́ поле́зен'
 
-# Ukrainian — neural
 s = Stressor(model="silero", lang="ukr")
 s("Привіт світ")            # → 'Приві́т сві́т'
 
-# Kazakh — vocab + rules
-s = Stressor(model="simple", lang="kaz")
-s("Сәлем Қазақстан")        # → 'Сәле́м Қазақста́н'
+s = Stressor(lang="kaz")
+s("Сәлем Қазақстан")       # → 'Сәле́м Қазақста́н'
 
-# Legacy plus notation
 s = Stressor(lang="ru", notation="plus")
 s("привет")                 # → 'прив+ет'
 ```
 
-`Stressor` exposes:
-- `s.model` — the model-id string selected at construction.
-- `s.lang` — the language tag.
-- `s.notation` — `"diacritic"` or `"plus"`.
-- `s(text)` — accentuate a string.
+### `make_stressor(model=None, lang=None, cache_dir=None) → StressorBackend`
 
-### `make_stressor(model=None, lang=None, cache_dir=None)`
-
-Factory function: returns a backend stressor instance (always emits the
-combining-acute form).  Useful when you need multiple independent instances or
-want a custom `cache_dir`.
+Low-level factory. Returns a bare backend callable `(text: str) → str`
+that always emits combining-acute output. Useful when you need multiple
+independent instances or a custom `cache_dir`.
 
 ```python
 from stressonnx import make_stressor
 
-s = make_stressor(lang="ukr")        # → _SileroStressor("ukr")
-s = make_stressor(model="simple", lang="kaz")  # → SimpleStressor("kaz")
+s = make_stressor(lang="ukr")
+s = make_stressor(model="simple", lang="kaz")
 ```
 
-### Low-level classes
+### Typed API
 
-| Class | Family | Use |
-|-------|--------|-----|
-| `RuAccentStressor(cache_dir=None)` | ruaccent | Russian homograph-aware pipeline |
-| `_SileroStressor(lang, cache_dir=None)` | silero | Neural ONNX (ukr, bel) |
-| `SimpleStressor(lang, cache_dir=None)` | simple | Vocabulary + rules |
+The following types are exported from `stressonnx` for static typing,
+runtime introspection, and phoonnx integration:
 
-All three are callable: `instance(text) -> str` (combining-acute output).
+```python
+from stressonnx import (
+    ModelEntry, Script, StressNotation, StressorBackend,
+    lang_to_script, LANG_SCRIPT,
+)
+
+# Script — str enum, writing system of the input text
+Script.CYRILLIC   # == "cyrillic"   (ru, ukr, bel, kaz, …)
+Script.LATIN      # == "latin"      (aze_lat, uzb_lat)
+Script.ARMENIAN   # == "armenian"   (hye)
+Script.GEORGIAN   # == "georgian"   (kat)
+
+# lang_to_script — map language tag to writing system
+lang_to_script("ru")      # Script.CYRILLIC
+lang_to_script("aze_lat") # Script.LATIN
+lang_to_script("kat")     # Script.GEORGIAN
+
+# ModelEntry — frozen dataclass with input_scripts field
+entry = MODEL_REGISTRY["ruaccent"]
+entry.langs          # frozenset({'ru'})
+entry.family         # 'ruaccent'
+entry.hf_subdir      # 'ru_ruaccent'
+entry.input_scripts  # frozenset({Script.CYRILLIC})
+entry.description    # '...'
+
+# Guard pattern (used by phoonnx before delegating to stressonnx):
+if lang_to_script(lang) in MODEL_REGISTRY[model_id].input_scripts:
+    text = stress(text, lang, model=model_id)
+
+# StressNotation — str enum, backwards-compatible with string literals
+StressNotation.DIACRITIC   # == "diacritic"
+StressNotation.PLUS        # == "plus"
+
+# StressorBackend — runtime-checkable Protocol
+isinstance(make_stressor(lang="ru"), StressorBackend)  # True
+```
+
+### Low-level backend classes
+
+| Class | Family | Languages |
+|-------|--------|-----------|
+| `RuAccentStressor(cache_dir=None)` | ruaccent | `ru` |
+| `_SileroStressor(lang, cache_dir=None)` | silero | `ukr`, `bel`, `ru` |
+| `_KubatabaStressor(cache_dir=None)` | kubataba | `ru` |
+| `SimpleStressor(lang, cache_dir=None)` | simple | 20 languages |
+
+All are callable: `instance(text) → str` (combining-acute output).
 
 ---
 
 ## Model registry
 
-`MODEL_REGISTRY` maps model-id → metadata.  `DEFAULT_MODEL` maps language
-tag → model-id.
-
 ```python
 from stressonnx import MODEL_REGISTRY, DEFAULT_MODEL
 
-print(MODEL_REGISTRY.keys())   # dict_keys(['ruaccent', 'silero', 'simple'])
-print(DEFAULT_MODEL["ru"])     # 'ruaccent'
-print(DEFAULT_MODEL["ukr"])    # 'silero'
-print(DEFAULT_MODEL["kaz"])    # 'simple'
+list(MODEL_REGISTRY.keys())  # ['ruaccent', 'silero', 'simple', 'kubataba']
+DEFAULT_MODEL["ru"]           # 'ruaccent'
+DEFAULT_MODEL["ukr"]          # 'silero'
+DEFAULT_MODEL["kaz"]          # 'simple'
 ```
 
-### Available models
-
-#### `"ruaccent"` — homograph-aware Russian (default for `ru`)
+### `"ruaccent"` — homograph-aware Russian (default for `ru`)
 
 Four-model ONNX pipeline derived from
-[RUAccent](https://github.com/Den4ikAI/ruaccent) by Den4ikAI
-(Apache-2.0 per upstream `setup.py` and PyPI classifiers).
+[RUAccent](https://github.com/Den4ikAI/ruaccent) (Apache-2.0).
 
-| Stage | Model architecture | Size |
-|-------|--------------------|------|
-| Stress-usage classifier | BERT token classifier | 111 MB |
-| Yo-homograph resolver | DistilBERT token classifier | 14 MB |
-| Omograph resolver | RoBERTa NLI (turbo2) | 343 MB |
-| Accent model | RoFormer char-level | 0.8 MB |
+| Stage | Architecture | Purpose |
+|-------|-------------|---------|
+| Stress-usage classifier | BERT token classifier | STRESS / NO_STRESS per word in context |
+| Yo-homograph resolver | DistilBERT token classifier | Disambiguate е→ё |
+| Omograph resolver | RoBERTa NLI (turbo2) | Pick correct stressed variant from homograph dict |
+| Accent model | RoFormer char-level | Accentuate words not in the accent dictionary |
 
-Runtime deps: `onnxruntime`, `numpy`, `tokenizers` (no torch, no
-transformers).
+### `"silero"` — neural ONNX (`ukr`, `bel`, `ru`)
 
-Model files in HF repo: `ru_ruaccent/` sub-directory.
+Fasttext-style n-gram embedding-bag + MLP classifier exported from
+[silero_stress](https://github.com/snakers4/silero-models) (MIT).
+Supports exceptions dictionaries and skip sets.
 
-#### `"silero"` — neural ONNX (default for `ukr`, `bel`)
+### `"kubataba"` — seq2seq Transformer (`ru`)
 
-Fasttext-style n-gram embedding-bag + MLP heads exported from
-`silero_stress` (MIT).  Supports exceptions dictionaries and skip sets.
+Encoder-decoder Transformer derived from
+[kubataba/Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor).
+Sentence-level; performs best on full phrases rather than isolated words.
 
-| Tag | Language |
-|-----|----------|
-| `ukr` | Ukrainian |
-| `bel` | Belarusian |
+The PyTorch model is exported as two ONNX graphs (`encoder.onnx` +
+`decoder_step.onnx`) with a greedy-decode loop in Python.
 
-Model files per language: `<lang>/` sub-directory in HF repo.
+### `"simple"` — vocabulary + rules (default for 20 other languages)
 
-#### `"simple"` — vocabulary + rules (default for 20 other languages)
-
-Dictionary lookup with per-language OOV positional fallback.  No ONNX
-inference, no runtime dependency beyond `numpy`.
+Dictionary lookup with per-language OOV positional fallback.
 
 | Tag | Language | OOV rule |
 |-----|----------|----------|
@@ -206,11 +230,11 @@ inference, no runtime dependency beyond `numpy`.
 | `uzb_cyr` | Uzbek (Cyrillic) | last vowel |
 | `uzb_lat` | Uzbek (Latin) | last vowel |
 | `bak` | Bashkir | last vowel |
-| `bel_simple` | Belarusian (vocab only) | none (OOV unstressed) |
+| `bel_simple` | Belarusian (vocab only) | none |
 | `chv` | Chuvash | last vowel |
 | `erz` | Erzya | first vowel |
 | `hye` | Armenian | last vowel |
-| `kat` | Georgian | ≤3 vowels→first, else penultimate |
+| `kat` | Georgian | ≤3 vowels → first, else penultimate |
 | `kaz` | Kazakh | last vowel |
 | `kbd` | Kabardino-Balkarian | last vowel |
 | `kir` | Kyrgyz | last vowel |
@@ -222,20 +246,8 @@ inference, no runtime dependency beyond `numpy`.
 | `udm` | Udmurt | last vowel |
 | `xal` | Kalmyk | last vowel |
 
-**Note on Belarusian:** `bel` routes to the neural model (`"silero"`) by
-default.  Use `model="simple"` or the `bel_simple` language alias for the
-vocabulary-only path.
-
----
-
-## Per-language defaults
-
-| Language | Default model | Reasoning |
-|----------|---------------|-----------|
-| `ru` | `"ruaccent"` | Homograph resolution required for Russian |
-| `ukr` | `"silero"` | Neural model available |
-| `bel` | `"silero"` | Neural model available |
-| all `SIMPLE_LANGS` | `"simple"` | Only vocab model exported for these languages |
+> **Belarusian note:** `bel` routes to `"silero"` by default.
+> Use `model="simple"` or the `bel_simple` alias for the vocabulary-only path.
 
 ---
 
@@ -245,9 +257,8 @@ vocabulary-only path.
 pip install stressonnx
 ```
 
-The `tokenizers` package is required for `ru` (included in the package
-dependencies).  `razdel` is an optional dependency that improves sentence
-splitting for Russian; without it, text is treated as a single sentence.
+The `tokenizers` package is included in the default dependencies (required by
+the `ruaccent` model for Russian).
 
 ### Export / dev tools (torch required)
 
@@ -255,43 +266,35 @@ splitting for Russian; without it, text is treated as a single sentence.
 pip install "stressonnx[export]"
 ```
 
-See `stressonnx/export/ADDING_A_LANGUAGE.md` for instructions on adding a
-new language or updating an existing model and uploading artefacts to
-HuggingFace.
+See [`stressonnx/export/ADDING_A_LANGUAGE.md`](stressonnx/export/ADDING_A_LANGUAGE.md)
+for instructions on adding a new language, exporting ONNX artefacts, and
+uploading to HuggingFace.
 
 ---
 
-## HuggingFace model repo
+## HuggingFace model repository
 
 Runtime artefacts: [TigreGotico/stressonnx-models](https://huggingface.co/TigreGotico/stressonnx-models)
-
-Layout:
 
 ```
 TigreGotico/stressonnx-models/
 ├── ru_ruaccent/          ← RUAccent pipeline (4 ONNX models + dicts)
-│   ├── nn_omograph/
-│   ├── nn_accent/
-│   ├── nn_stress_usage/
-│   ├── nn_yo_homograph/
-│   └── dictionary/
-├── ukr/                  ← silero neural (accentor.onnx + embedding.npy + …)
+├── ru_kubataba/          ← kubataba encoder + decoder_step ONNX + vocab
+├── ukr/                  ← silero neural
 ├── bel/                  ← silero neural
-├── kaz/                  ← simple (vocab.gz + meta.json)
-├── tat/                  ← simple
+├── ru/                   ← silero neural (alternative for ru)
+├── kaz/                  ← simple vocab
+├── tat/                  ← simple vocab
 └── …                     ← one directory per simple-accentor language
 ```
 
 ---
 
-## Attribution and licenses
+## Attribution
 
-| Component | Upstream source | License |
-|-----------|----------------|---------|
-| silero neural accentor (`"silero"` model, `ukr`/`bel`) | [silero-models/silero_stress](https://github.com/snakers4/silero-models) | MIT |
-| silero simple accentor (`"simple"` model, 20 langs) | [silero-models/silero_stress](https://github.com/snakers4/silero-models) | MIT |
-| RUAccent (`"ruaccent"` model, `ru`) | [Den4ikAI/ruaccent](https://github.com/Den4ikAI/ruaccent) | Apache-2.0 |
-
-Russian homograph-aware accentuation is powered by
-[RUAccent](https://github.com/Den4ikAI/ruaccent) by Den4ikAI, licensed
-Apache-2.0 per upstream `setup.py` and PyPI classifiers.
+| Component | Upstream | License |
+|-----------|----------|---------|
+| `"ruaccent"` (`ru`) | [Den4ikAI/ruaccent](https://github.com/Den4ikAI/ruaccent) | Apache-2.0 |
+| `"silero"` (`ukr`, `bel`, `ru`) | [snakers4/silero-models](https://github.com/snakers4/silero-models) | MIT |
+| `"simple"` (20 langs) | [snakers4/silero-models](https://github.com/snakers4/silero-models) | MIT |
+| `"kubataba"` (`ru`) | [kubataba/Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor) | MIT |

@@ -44,10 +44,10 @@ def test_ruaccent_stressor_class():
     assert "́" in result
 
 
-def test_ru_not_in_main_langs():
-    """ru must be routed to RuAccentStressor, not the silero-derived Stressor."""
-    from stressonnx import MAIN_LANGS, RUACCENT_LANGS
-    assert "ru" not in MAIN_LANGS
+def test_ru_default_is_ruaccent():
+    """ru must be routed to RuAccentStressor by default, not the silero backend."""
+    from stressonnx import DEFAULT_MODEL, RUACCENT_LANGS
+    assert DEFAULT_MODEL["ru"] == "ruaccent"
     assert "ru" in RUACCENT_LANGS
 
 
