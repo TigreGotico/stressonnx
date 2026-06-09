@@ -56,15 +56,117 @@ import gzip
 import json
 import os
 import re
+from dataclasses import dataclass
+from enum import Enum
+from typing import Protocol, runtime_checkable
 
 import numpy as np
 import onnxruntime as ort
 from huggingface_hub import hf_hub_download
 
 # ---------------------------------------------------------------------------
+# Public data model
+# ---------------------------------------------------------------------------
+
+class Script(str, Enum):
+    """Writing system / input script of the text.
+
+    Mirrors the script taxonomy used in phoonnx's ``Alphabet`` enum so that
+    phoonnx can query which script a stressor accepts before delegating text
+    to stressonnx.
+
+    Inherits :class:`str` so values compare equal to their string form
+    (``Script.CYRILLIC == "cyrillic"``).
+    """
+
+    CYRILLIC = "cyrillic"
+    LATIN = "latin"
+    ARMENIAN = "armenian"
+    GEORGIAN = "georgian"
+
+
+class StressNotation(str, Enum):
+    """Output notation for stress marks.
+
+    ``DIACRITIC`` (default): combining acute U+0301 placed after the stressed
+    vowel — ``"приве́т"``.  Standard Unicode; compatible with
+    ``russian_text_stresser`` and Chatterbox-Multilingual.
+
+    ``PLUS``: legacy ``+``-before-vowel form — ``"прив+ет"``.  Used by some
+    TTS models trained on that format.
+
+    Inherits :class:`str` so string literals ``"diacritic"`` / ``"plus"`` are
+    accepted wherever :class:`StressNotation` is expected (backwards-compat).
+    """
+
+    DIACRITIC = "diacritic"
+    PLUS = "plus"
+
+
+@dataclass(frozen=True)
+class ModelEntry:
+    """Registry entry describing one stress model.
+
+    Attributes
+    ----------
+    langs:
+        Frozenset of language tags supported by this model.
+    family:
+        Internal family string used by :func:`make_stressor` to select the
+        backend class.
+    hf_subdir:
+        Sub-directory inside ``TigreGotico/stressonnx-models`` where the
+        model's runtime artefacts are stored.  ``None`` for families that
+        derive the sub-directory from the language tag at runtime.
+    description:
+        One-line human-readable description.
+    input_scripts:
+        Frozenset of :class:`Script` values describing which writing systems
+        this model accepts.  Used by phoonnx (and other callers) to verify
+        that the input text is in a script the model can handle before
+        dispatching.
+    """
+
+    langs: frozenset
+    family: str
+    hf_subdir: str | None
+    description: str
+    input_scripts: frozenset  # frozenset[Script]
+
+
+@runtime_checkable
+class StressorBackend(Protocol):
+    """Protocol satisfied by all stressor backend classes.
+
+    Every backend must be callable: ``backend(text: str) -> str``, returning
+    text with combining-acute stress marks (U+0301) inserted.
+    """
+
+    def __call__(self, text: str) -> str: ...
+
+
+def _apply_notation(text: str, notation: str | StressNotation) -> str:
+    """Convert *text* from combining-acute to the requested *notation*.
+
+    A no-op when *notation* is ``"diacritic"`` / :attr:`StressNotation.DIACRITIC`.
+    """
+    from stressonnx import to_plus_notation  # avoid circular at module level
+    if notation == StressNotation.PLUS or notation == "plus":
+        return to_plus_notation(text)
+    return text
+
+
+# ---------------------------------------------------------------------------
 # HF repo that hosts all per-language runtime artefacts
 # ---------------------------------------------------------------------------
 HF_REPO_ID = "TigreGotico/stressonnx-models"
+
+# Files for kubataba family
+_KUBATABA_FILES = [
+    "encoder.onnx",
+    "decoder_step.onnx",
+    "vocab.json",
+]
 
 # Files for main_accentor family
 _MAIN_FILES = [
@@ -92,7 +194,7 @@ STRESS_TOKEN = "́"  # combining acute accent — placed AFTER the stressed vowe
 RUACCENT_LANGS = {"ru"}
 
 #: Languages backed by the neural ONNX pipeline (main_accentor).
-MAIN_LANGS = {"ukr", "bel"}
+MAIN_LANGS = {"ukr", "bel", "ru"}
 
 #: Languages backed by vocabulary + rules (simple_accentor).
 SIMPLE_LANGS = {
@@ -107,50 +209,135 @@ SIMPLE_LANGS = {
 ALL_LANGS = RUACCENT_LANGS | MAIN_LANGS | SIMPLE_LANGS
 
 # ---------------------------------------------------------------------------
+# Script routing
+# ---------------------------------------------------------------------------
+
+#: Canonical mapping: language tag → :class:`Script`.
+#: Used by :func:`lang_to_script` and to populate :attr:`ModelEntry.input_scripts`.
+LANG_SCRIPT: dict[str, Script] = {
+    # Cyrillic-script languages
+    "ru":       Script.CYRILLIC,
+    "ukr":      Script.CYRILLIC,
+    "bel":      Script.CYRILLIC,
+    "bel_simple": Script.CYRILLIC,
+    "kaz":      Script.CYRILLIC,
+    "tat":      Script.CYRILLIC,
+    "bak":      Script.CYRILLIC,
+    "chv":      Script.CYRILLIC,
+    "sah":      Script.CYRILLIC,
+    "kir":      Script.CYRILLIC,
+    "kjh":      Script.CYRILLIC,
+    "tgk":      Script.CYRILLIC,
+    "udm":      Script.CYRILLIC,
+    "xal":      Script.CYRILLIC,
+    "kbd":      Script.CYRILLIC,
+    "erz":      Script.CYRILLIC,
+    "mdf":      Script.CYRILLIC,
+    "uzb_cyr":  Script.CYRILLIC,
+    "aze_cyr":  Script.CYRILLIC,
+    # Latin-script languages
+    "aze_lat":  Script.LATIN,
+    "uzb_lat":  Script.LATIN,
+    # Armenian script
+    "hye":      Script.ARMENIAN,
+    # Georgian (Mkhedruli) script
+    "kat":      Script.GEORGIAN,
+}
+
+
+def lang_to_script(lang: str) -> Script:
+    """Return the :class:`Script` for a supported language tag.
+
+    Parameters
+    ----------
+    lang:
+        A language tag from :data:`ALL_LANGS` (e.g. ``"ru"``, ``"aze_lat"``).
+
+    Returns
+    -------
+    Script
+        The writing system used by *lang*.
+
+    Raises
+    ------
+    ValueError
+        If *lang* is not in :data:`LANG_SCRIPT`.
+
+    Examples
+    --------
+    ::
+
+        >>> lang_to_script("ru")
+        <Script.CYRILLIC: 'cyrillic'>
+        >>> lang_to_script("kat")
+        <Script.GEORGIAN: 'georgian'>
+        >>> lang_to_script("aze_lat")
+        <Script.LATIN: 'latin'>
+    """
+    try:
+        return LANG_SCRIPT[lang]
+    except KeyError:
+        raise ValueError(
+            f"Unknown language {lang!r}. Supported: {sorted(LANG_SCRIPT)}"
+        )
+
+
+# Convenience sets — scripts present in each model family
+_CYRILLIC_ONLY = frozenset({Script.CYRILLIC})
+_CYRILLIC_AND_LATIN = frozenset({Script.CYRILLIC, Script.LATIN})
+_ALL_SCRIPTS = frozenset({Script.CYRILLIC, Script.LATIN, Script.ARMENIAN, Script.GEORGIAN})
+
+# ---------------------------------------------------------------------------
 # Model registry
 # ---------------------------------------------------------------------------
 
-#: Registry mapping model-id → metadata dict.
-#:
-#: Keys per entry:
-#:   ``langs``       – frozenset of language tags supported by this model.
-#:   ``family``      – internal family string: ``"ruaccent"``, ``"silero"``,
-#:                     or ``"simple"``.
-#:   ``hf_subdir``   – sub-directory prefix inside ``TigreGotico/stressonnx-models``
-#:                     (``None`` for families that compute the sub-dir from the
-#:                     language tag at runtime).
-#:   ``description`` – one-line human-readable description.
-MODEL_REGISTRY: dict = {
-    "ruaccent": {
-        "langs": frozenset(RUACCENT_LANGS),
-        "family": "ruaccent",
-        "hf_subdir": "ru_ruaccent",
-        "description": (
+#: Registry mapping model-id → :class:`ModelEntry`.
+MODEL_REGISTRY: dict[str, ModelEntry] = {
+    "ruaccent": ModelEntry(
+        langs=frozenset(RUACCENT_LANGS),
+        family="ruaccent",
+        hf_subdir="ru_ruaccent",
+        description=(
             "Homograph-aware Russian accentor (RUAccent by Den4ikAI, "
             "Apache-2.0). Four-model ONNX pipeline: stress-usage classifier, "
             "yo-homograph resolver, omograph resolver, char-level accent model."
         ),
-    },
-    "silero": {
-        "langs": frozenset(MAIN_LANGS),
-        "family": "silero",
-        "hf_subdir": None,  # per-language: <lang>/
-        "description": (
+        input_scripts=_CYRILLIC_ONLY,
+    ),
+    "silero": ModelEntry(
+        langs=frozenset(MAIN_LANGS),
+        family="silero",
+        hf_subdir=None,  # per-language: <lang>/
+        description=(
             "Neural ONNX accentor exported from silero_stress (MIT). "
-            "Fasttext-style n-gram embedding-bag + MLP heads for "
-            "Ukrainian and Belarusian."
+            "Fasttext-style n-gram embedding-bag + MLP heads. "
+            "Supports Ukrainian, Belarusian, and Russian."
         ),
-    },
-    "simple": {
-        "langs": frozenset(SIMPLE_LANGS),
-        "family": "simple",
-        "hf_subdir": None,  # per-language: <lang>/
-        "description": (
+        input_scripts=_CYRILLIC_ONLY,
+    ),
+    "simple": ModelEntry(
+        langs=frozenset(SIMPLE_LANGS),
+        family="simple",
+        hf_subdir=None,  # per-language: <lang>/
+        description=(
             "Vocabulary + rule-based accentor (silero_stress, MIT). "
             "Dictionary lookup with per-language OOV positional fallback. "
-            "Supports 20 languages across Cyrillic/Latin scripts."
+            "Supports 20 languages across Cyrillic, Latin, Armenian, and Georgian scripts."
         ),
-    },
+        input_scripts=_ALL_SCRIPTS,
+    ),
+    "kubataba": ModelEntry(
+        langs=frozenset({"ru"}),
+        family="kubataba",
+        hf_subdir="ru_kubataba",
+        description=(
+            "Char-level encoder-decoder Transformer for Russian stress "
+            "(kubataba/Russian-Stress-Accent-Predictor, MIT). "
+            "12.5M-param seq2seq model trained on literary text. "
+            "Alternative to 'ruaccent'; no homograph disambiguation."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+    ),
 }
 
 #: Default model-id for each language tag.
@@ -164,7 +351,8 @@ DEFAULT_MODEL: dict = {}
 for _lang in RUACCENT_LANGS:
     DEFAULT_MODEL[_lang] = "ruaccent"
 for _lang in MAIN_LANGS:
-    DEFAULT_MODEL[_lang] = "silero"
+    if _lang not in DEFAULT_MODEL:
+        DEFAULT_MODEL[_lang] = "silero"
 for _lang in SIMPLE_LANGS:
     if _lang not in DEFAULT_MODEL:
         DEFAULT_MODEL[_lang] = "simple"
@@ -219,13 +407,13 @@ def make_stressor(
             f"Available models: {sorted(MODEL_REGISTRY.keys())}."
         )
 
-    family = entry["family"]
+    family = entry.family
 
     if family == "ruaccent":
-        if lang is not None and lang not in entry["langs"]:
+        if lang is not None and lang not in entry.langs:
             raise ValueError(
                 f"Model {model!r} does not support language {lang!r}.  "
-                f"Supported: {sorted(entry['langs'])}."
+                f"Supported: {sorted(entry.langs)}."
             )
         return RuAccentStressor(cache_dir=cache_dir)
 
@@ -233,12 +421,12 @@ def make_stressor(
         if lang is None:
             raise ValueError(
                 f"Model {model!r} supports multiple languages "
-                f"({sorted(entry['langs'])}); 'lang' must be specified."
+                f"({sorted(entry.langs)}); 'lang' must be specified."
             )
-        if lang not in entry["langs"]:
+        if lang not in entry.langs:
             raise ValueError(
                 f"Model {model!r} does not support language {lang!r}.  "
-                f"Supported: {sorted(entry['langs'])}."
+                f"Supported: {sorted(entry.langs)}."
             )
         return _SileroStressor(lang=lang, cache_dir=cache_dir)
 
@@ -246,14 +434,22 @@ def make_stressor(
         if lang is None:
             raise ValueError(
                 f"Model {model!r} supports multiple languages "
-                f"({sorted(entry['langs'])}); 'lang' must be specified."
+                f"({sorted(entry.langs)}); 'lang' must be specified."
             )
-        if lang not in entry["langs"]:
+        if lang not in entry.langs:
             raise ValueError(
                 f"Model {model!r} does not support language {lang!r}.  "
-                f"Supported: {sorted(entry['langs'])}."
+                f"Supported: {sorted(entry.langs)}."
             )
         return SimpleStressor(lang=lang, cache_dir=cache_dir)
+
+    if family == "kubataba":
+        if lang is not None and lang not in entry.langs:
+            raise ValueError(
+                f"Model {model!r} does not support language {lang!r}.  "
+                f"Supported: {sorted(entry.langs)}."
+            )
+        return _KubatabaStressor(cache_dir=cache_dir)
 
     raise ValueError(f"Internal error: unknown family {family!r}.")
 
@@ -359,14 +555,14 @@ def _download_files(lang: str, cache_dir: str, filenames: list) -> dict:
 # ===========================================================================
 
 class _SileroStressor:
-    """Internal: lazy-load neural (silero) accentor for ``ukr`` or ``bel``.
+    """Internal: lazy-load neural (silero) accentor for ``ukr``, ``bel``, or ``ru``.
 
     Use :class:`Stressor` (the public wrapper) instead of this class directly.
 
     Parameters
     ----------
     lang:
-        Language tag: ``"ukr"`` or ``"bel"``.
+        Language tag: ``"ukr"``, ``"bel"``, or ``"ru"``.
     cache_dir:
         Override the default cache location
         (``~/.local/share/stressonnx/<lang>``).
@@ -683,19 +879,16 @@ class Stressor:
         # Expose for inspection
         self.lang = getattr(self._backend, "lang", lang)
         self.model = model or DEFAULT_MODEL.get(lang or "")
-        if notation not in ("diacritic", "plus"):
+        try:
+            self.notation = StressNotation(notation)
+        except ValueError:
             raise ValueError(
                 f"notation must be 'diacritic' or 'plus'; got {notation!r}."
             )
-        self.notation = notation
 
     def __call__(self, text: str) -> str:
         """Accentuate *text*; returns the combining-acute form by default."""
-        result = self._backend(text)
-        if self.notation == "plus":
-            from stressonnx import to_plus_notation
-            return to_plus_notation(result)
-        return result
+        return _apply_notation(self._backend(text), self.notation)
 
 
 # ===========================================================================
@@ -1011,18 +1204,7 @@ class RuAccentStressor:
             return
 
         cache = self._cache_dir
-        os.makedirs(cache, exist_ok=True)
-
-        # Download all files
-        for fname in _RUACCENT_FILES:
-            local = os.path.join(cache, fname)
-            if not os.path.exists(local):
-                os.makedirs(os.path.dirname(local), exist_ok=True)
-                hf_hub_download(
-                    repo_id=HF_REPO_ID,
-                    filename=f"ru_ruaccent/{fname}",
-                    local_dir=cache,
-                )
+        _download_files("ru_ruaccent", cache, _RUACCENT_FILES)
 
         try:
             from tokenizers import Tokenizer as _Tokenizer  # type: ignore
@@ -1098,11 +1280,6 @@ class RuAccentStressor:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    @staticmethod
-    def _softmax(x: np.ndarray) -> np.ndarray:
-        e = np.exp(x - x.max(axis=-1, keepdims=True))
-        return e / e.sum(axis=-1, keepdims=True)
-
     def _predict_word_labels(
         self,
         text: str,
@@ -1119,7 +1296,7 @@ class RuAccentStressor:
         if has_tti:
             feed["token_type_ids"] = np.zeros_like(input_ids)
         logits = sess.run(None, feed)[0][0]
-        probs = self._softmax(logits)
+        probs = _softmax(logits)
 
         word_probs: dict = {}
         for i, wid in enumerate(enc.word_ids):
@@ -1146,7 +1323,7 @@ class RuAccentStressor:
                 "token_type_ids": np.zeros_like(input_ids),
             },
         )[0][0]
-        probs = self._softmax(logits)
+        probs = _softmax(logits)
         result = list(word)
         for i, (label_id, score) in enumerate(
             zip(logits.argmax(axis=-1), probs.max(axis=-1))
@@ -1262,3 +1439,101 @@ class RuAccentStressor:
             return text
         outputs = [self._process_sentence(s) for s in sentences]
         return "".join(outputs)
+
+
+# ===========================================================================
+# Kubataba family — char-level encoder-decoder Transformer (Russian)
+# ===========================================================================
+
+_RU_VOWELS_SET = set("аоуыэиеяёюАОУЫЭИЕЯЁЮ")
+
+# The model outputs an apostrophe (') immediately after a stressed vowel.
+# We convert that to combining acute (U+0301) placed after the vowel,
+# which is the standard stressonnx diacritic notation.
+def _apostrophe_to_diacritic(text: str) -> str:
+    out = []
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if ch == "'" and out and out[-1] in _RU_VOWELS_SET:
+            out.append(STRESS_TOKEN)
+        else:
+            out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+class _KubatabaStressor:
+    """Char-level encoder-decoder Transformer for Russian stress (kubataba, MIT).
+
+    Alternative to :class:`RuAccentStressor`.  Simpler pipeline; no homograph
+    disambiguation.  Uses two ONNX graphs (encoder + single decoder step) with
+    the autoregressive greedy loop running in pure Python/numpy.
+
+    Parameters
+    ----------
+    cache_dir:
+        Override the default cache location
+        (``~/.local/share/stressonnx/ru_kubataba``).
+    """
+
+    _MAX_LEN = 256
+
+    def __init__(self, cache_dir: str | None = None) -> None:
+        if cache_dir is None:
+            base = os.path.join(os.path.expanduser("~"), ".local", "share", "stressonnx")
+            cache_dir = os.path.join(base, "ru_kubataba")
+        self._cache_dir = cache_dir
+        self._loaded = False
+
+    def _ensure_loaded(self) -> None:
+        if self._loaded:
+            return
+        data = _download_files("ru_kubataba", self._cache_dir, _KUBATABA_FILES)
+        self._enc_sess = ort.InferenceSession(
+            data["encoder.onnx"], providers=["CPUExecutionProvider"]
+        )
+        self._dec_sess = ort.InferenceSession(
+            data["decoder_step.onnx"], providers=["CPUExecutionProvider"]
+        )
+        with open(data["vocab.json"], encoding="utf-8") as fh:
+            self._vocab: dict = json.load(fh)
+        self._idx2char: dict = {v: k for k, v in self._vocab.items()}
+        self._pad = self._vocab.get("<pad>", 0)
+        self._bos = self._vocab.get("<s>", 1)
+        self._eos = self._vocab.get("</s>", 2)
+        self._unk = self._vocab.get("<unk>", 3)
+        self._loaded = True
+
+    def _encode_text(self, text: str) -> np.ndarray:
+        indices = [self._bos]
+        for ch in text[:254]:
+            indices.append(self._vocab.get(ch, self._unk))
+        indices.append(self._eos)
+        indices += [self._pad] * (self._MAX_LEN - len(indices))
+        return np.array([indices[:self._MAX_LEN]], dtype=np.int64)
+
+    def _decode_tokens(self, tgt: np.ndarray) -> str:
+        chars = []
+        for idx in tgt[0, 1:].tolist():
+            if idx == self._eos:
+                break
+            chars.append(self._idx2char.get(idx, ""))
+        return _apostrophe_to_diacritic("".join(chars))
+
+    def _accent_text(self, text: str) -> str:
+        """Run encoder-decoder inference on a full sentence/phrase."""
+        src = self._encode_text(text)
+        memory = self._enc_sess.run(["memory"], {"src": src})[0]
+        tgt = np.array([[self._bos]], dtype=np.int64)
+        for _ in range(self._MAX_LEN):
+            logits = self._dec_sess.run(["logits"], {"memory": memory, "tgt": tgt})[0]
+            next_tok = int(np.argmax(logits[0]))
+            tgt = np.concatenate([tgt, [[next_tok]]], axis=1)
+            if next_tok == self._eos:
+                break
+        return self._decode_tokens(tgt)
+
+    def __call__(self, text: str) -> str:
+        self._ensure_loaded()
+        return self._accent_text(text)

@@ -18,15 +18,15 @@ from stressonnx import (
 # ---------------------------------------------------------------------------
 
 def test_registry_keys():
-    assert set(MODEL_REGISTRY.keys()) == {"ruaccent", "silero", "simple"}
+    assert set(MODEL_REGISTRY.keys()) == {"ruaccent", "silero", "simple", "kubataba"}
 
 
 def test_registry_families():
     for model_id, entry in MODEL_REGISTRY.items():
-        assert "langs" in entry
-        assert "family" in entry
-        assert "description" in entry
-        assert isinstance(entry["langs"], frozenset)
+        assert hasattr(entry, "langs")
+        assert hasattr(entry, "family")
+        assert hasattr(entry, "description")
+        assert isinstance(entry.langs, frozenset)
 
 
 def test_default_model_covers_all_langs():
