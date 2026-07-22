@@ -110,6 +110,41 @@ def _rule_mdf(word: str, vowels: list) -> Optional[int]:
     return vowels[0]
 
 
+def _rule_tat(word: str, vowels: list) -> Optional[int]:
+    """Tatar: final stress, except before the unstressed suffixes/enclitics
+    Comrie 1997b documents (interrogative -мы/-ме, 2sg -сең, adverbial
+    -ча/-чә).  Only the variants whose retraction the vocabulary itself
+    supports at ≥0.7 are enabled — surface-string matching cannot see
+    morphology, and the remaining variants (e.g. -ма) are dominated by
+    ordinary final-stressed nouns (the алма́ apple / а́лма "don't take"
+    problem).  Same reason the equivalent Kazakh/Kyrgyz/Azerbaijani lists
+    (Kirchner 1998) are documented but NOT applied: measured against those
+    vocabularies, blind retraction loses more than it gains."""
+    for suf in ("чә", "ча", "сең", "ме"):
+        if word.endswith(suf) and len(word) > len(suf) + 1:
+            pre = [i for i in vowels if i < len(word) - len(suf)]
+            if pre:
+                return pre[-1]
+    return vowels[-1]
+
+
+def _rule_sah(word: str, vowels: list) -> Optional[int]:
+    """Yakut/Sakha: stress the last long vowel or diphthong, else the final
+    vowel.  Yakut writes long vowels and diphthongs as vowel digraphs (аа,
+    ыы, уо, иэ …) and they attract stress (Krueger 1962: default final
+    stress, with weight-sensitivity; the curated vocabulary marks the second
+    element of the heavy nucleus — бии́р, буо́лан, эрээ́ри — and this rule
+    scores 0.994 against it vs 0.178 for naive final stress)."""
+    groups: list = []
+    for i in vowels:
+        if groups and i == groups[-1][-1] + 1:
+            groups[-1].append(i)
+        else:
+            groups.append([i])
+    heavy = [g for g in groups if len(g) >= 2]
+    return (heavy[-1] if heavy else groups[-1])[-1]
+
+
 def _rule_kbd(word: str, vowels: list) -> Optional[int]:
     """Kabardian: final syllable, except words ending in the schwa letter э,
     which stress the penult (Jaimoukha, Grammar of the Kabardian-Cherkess
@@ -128,6 +163,8 @@ OOV_RULES: dict = {
     "hye": _rule_hye,
     "tgk": _rule_tgk,
     "mdf": _rule_mdf,
+    "sah": _rule_sah,
+    "tat": _rule_tat,
     "kbd": _rule_kbd,
 }
 

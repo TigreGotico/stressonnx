@@ -2,7 +2,7 @@
 
 Attribution: RUAccent by Den4ikAI (https://github.com/Den4ikAI/ruaccent),
 licensed Apache-2.0 per upstream setup.py classifiers.
-Models: HuggingFace ruaccent/accentuator (turbo2 omograph model).
+Models: HuggingFace ruaccent/accentuator (turbo3.1 omograph model).
 Mirrored to TigreGotico/stressonnx-models under ru_ruaccent/.
 Runtime: onnxruntime + numpy + tokenizers (no torch, no transformers).
 
@@ -148,7 +148,7 @@ class RuAccentStressor:
       per word in context.
     * **yo_homograph** (DistilBERT token classifier) — resolves е→ё substitutions
       for yo-homographs.
-    * **omograph** (RoBERTa NLI classifier, turbo2 variant) — picks the correct
+    * **omograph** (RoBERTa NLI classifier, turbo3.1 variant) — picks the correct
       stressed variant of context-dependent homographs (замок castle/lock,
       мука flour/torment, белок protein/squirrel …).
     * **accent** (RoFormer char-level token classifier) — accentuates words not

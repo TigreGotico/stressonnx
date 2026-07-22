@@ -24,7 +24,8 @@ from stressonnx.notation import _insert_stress
 # ---------------------------------------------------------------------------
 
 def test_guillemets_do_not_block_lookup():
-    assert stress("«замок» — надёжный", "ru") == "«замо́к» — надёжный"
+    # a non-homograph word: this test is about tokenization, not disambiguation
+    assert stress("«город» — красивый", "ru") == "«го́род» — краси́вый"
 
 
 def test_ellipsis_and_em_dash_kaz():

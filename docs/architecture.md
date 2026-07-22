@@ -1,5 +1,7 @@
 # stressonnx — architecture and design
 
+> Per-language linguistic background lives in [languages.md](languages.md).
+
 ## Overview
 
 stressonnx is a pure-onnxruntime word-stress / accentuation library for
@@ -242,7 +244,7 @@ Homograph-aware Russian pipeline.  Four ONNX models loaded lazily from
 |-------|-------------|---------|
 | `nn_stress_usage` | BERT token classifier | STRESS / NO_STRESS per word |
 | `nn_yo_homograph` | DistilBERT token classifier | е→ё restoration (not все/всё disambiguation — see `docs/models.md`) |
-| `nn_omograph` | RoBERTa NLI (turbo2) | Pick stressed variant from homograph dict |
+| `nn_omograph` | RoBERTa NLI (turbo3.1) | Pick stressed variant from homograph dict |
 | `nn_accent` | RoFormer char-level | Accentuate words not in the accent dict, for words with 2+ vowels |
 
 Tokenizers use the `tokenizers` library (HuggingFace fast tokenizer JSON

@@ -322,9 +322,9 @@ _OOV_RULES = {
     "mdf": "mdf",
     "mkd": "antepenult",        # Macedonian fixed antepenultimate (Friedman 2001)
     "ru_simple": "none",        # Russian stress is free/lexical
-    "sah": "last",
+    "sah": "sah",
     "slv": "none",              # Slovene stress is free/lexical (Herrity 2000)
-    "tat": "last", "tgk": "tgk",
+    "tat": "tat", "tgk": "tgk",
     "udm": "last",
     "ukr_simple": "none",       # Ukrainian stress is free/lexical
     "xal": "last",

@@ -11,7 +11,7 @@ subset of target words present in the RUAccent omograph dictionary.
 
 | lang | model | rows | accuracy | homograph rows | homograph acc | cold load (s) | ms/row (warm) |
 |------|-------|------|----------|----------------|---------------|---------------|---------------|
-| ru | ruaccent | 11116 | 0.908 | 724 | 0.742 | 3.5 | 8.7 |
+| ru | ruaccent | 11116 | 0.913 | 724 | 0.818 | 4.0 | 14.0 |
 | ru | silero | 11124 | 0.886 | 724 | 0.377 | 1.3 | 0.1 |
 | ru | kubataba (first 1000 rows) | 910 | 0.884 | 103 | 0.932 | 0.5 | 61.6 |
 | ukr | silero | 12252 | 0.767 | — | — | 1.1 | 0.1 |
@@ -50,7 +50,7 @@ literature cited in `SimpleStressor._accentuate_oov`.
 | kaz | last | 6659 | 0.987 | unstressable-suffix classes (negation -ма etc., Kirchner 1998) not yet modeled |
 | udm | last | 13251 | 0.975 | negated/imperative verbs (initial stress) not detectable without morphology |
 | chv | last full vowel (ӑ/ӗ never stressed) | 22050 | 0.940 | Clark 1998 / Krueger 1961 / Dobrovolsky 1999 |
-| tat | last | 11043 | 0.896 | |
+| tat | final, unstressed suffixes -ча/-чә/-сең/-ме retract (Comrie 1997b) | 11043 | 0.904 | only vocabulary-validated suffix variants enabled |
 | bak | last | 9456 | 0.852 | |
 | aze_cyr / aze_lat | last | 10895 / 10925 | 0.816 | |
 | hye | last non-schwa (ը) | 19794 | 0.777 | Chakmakjian 2024 |
@@ -59,12 +59,16 @@ literature cited in `SimpleStressor._accentuate_oov`.
 | erz | first | 4931 | 0.538 | stress is a tendency, not a rule (Oxford Guide to the Uralic Languages) |
 | kbd | final, unless word-final э → penult | 5648 | 0.404 | paraphrase-level sources only; low confidence |
 | kjh | last | 12032 | 0.280 | no primary source on Khakas stress could be located; Turkic-default kept |
-| sah | last | 85746 | 0.178 | Krueger 1962 says final; the vocabulary systematically disagrees — open item (possibly long-vowel digraph convention) |
+| sah | last heavy nucleus (long vowel/diphthong), else final | 85746 | 0.994 | Yakut long vowels/diphthongs attract stress (Krueger 1962 + weight sensitivity); the old naive final rule scored 0.178 |
 | bel_simple | none | 21968 | — | Belarusian stress is lexical, not positional — no rule is defensible; vocabulary only |
 
-Open items: the sah vocabulary anomaly; suffix-aware refinements for
-kaz/kir/tat/aze (closed unstressable-suffix lists exist in the literature but
-need morphological segmentation to apply).
+Open items: suffix-aware refinements for kaz/kir/aze — the closed
+unstressable-suffix lists (Kirchner 1998) were measured against those
+vocabularies and blind surface-string retraction loses more than it gains
+(vocabulary words ending in the same strings are ordinary final-stressed
+nouns); applying them correctly needs morphological segmentation.  Tatar is
+the exception: four suffix variants passed the ≥0.7 vocabulary-evidence bar
+and are enabled.
 
 ## Wiktionary / dictionary languages (vocabulary-first)
 
@@ -79,3 +83,26 @@ need morphological segmentation to apply).
 
 The ``none``-rule languages score 0.000 on the rule-vs-vocab metric by
 construction (the rule never guesses); their quality is vocabulary coverage.
+
+## Independent Wiktionary-IPA spot-check (simple pipeline)
+
+Full vocabulary+rule pipeline scored against words whose English-Wiktionary
+IPA carries a primary-stress mark and aligns syllable-for-vowel with the
+orthography (`python benchmarks/wiktionary_ipa_gold.py`).  Small,
+lemma-skewed sets — a sanity check independent of the shipped vocabularies,
+not a benchmark.  "OOV" rows isolate the positional rule on words the
+vocabulary does not contain.
+
+| lang | words | accuracy | OOV words | OOV accuracy |
+|------|-------|----------|-----------|--------------|
+| hye | 10486 | 0.982 | 64 | 1.000 |
+| udm | 537 | 0.998 | 335 | 0.997 |
+| chv | 40 | 0.950 | 7 | 0.857 |
+| bak | 1740 | 0.937 | 929 | 0.959 |
+| tat | 34 | 0.941 | 7 | 0.857 |
+| tgk | 439 | 0.936 | 343 | 0.933 |
+| kaz | 1224 | 0.826 | 922 | 0.782 |
+| kat | 7 | 0.714 | 4 | 0.750 |
+
+Notably, the Tajik izafet rule and the Armenian schwa rule hold up better on
+independent lemmas (0.93 / 0.98) than the vocabulary self-scores suggested.

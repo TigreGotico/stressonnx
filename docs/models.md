@@ -1,5 +1,7 @@
 # stressonnx — model reference
 
+> Per-language linguistic background lives in [languages.md](languages.md).
+
 ## Choosing a model
 
 | Situation | Recommendation |
@@ -149,7 +151,7 @@ nn_stress_usage (BERT token classifier, ~111 MB)
       ├──[е-containing tokens]──→ nn_yo_homograph (DistilBERT, ~14 MB)
       │                            — decides whether е should become ё
       │
-      ├──[omograph-dictionary tokens]──→ nn_omograph (RoBERTa NLI turbo2, ~343 MB)
+      ├──[omograph-dictionary tokens]──→ nn_omograph (RoBERTa NLI turbo3.1, ~359 MB)
       │                                    — picks the correct stressed variant
       │                                      from the homograph dictionary
       │

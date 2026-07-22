@@ -48,7 +48,7 @@ sense-dependent pronunciation → a bifonia-style diacritic restorer.**
 
 | Model id | Languages | What it is | Measured quality |
 |----------|-----------|------------|------------------|
-| `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), Apache-2.0) | 0.908 word accuracy, **0.742 on homographs** |
+| `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), Apache-2.0) | 0.913 word accuracy, **0.818 on homographs** |
 | `silero` | `ukr`, `bel` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё | ru 0.886 / ukr 0.767 / bel 0.859 |
 | `kubataba` | `ru` | Char-level seq2seq Transformer ([kubataba](https://huggingface.co/kubataba), MIT); sentence-in, sentence-out | 0.884 (slow: ~60 ms/row) |
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
@@ -203,6 +203,21 @@ came from the RUAccent pronunciation dictionary).
 
 ## Documentation
 
+Pick your entry point:
+
+- **New to all of this?**  The [Why word stress?](#why-word-stress) section
+  above, then [`docs/languages.md`](docs/languages.md) — a plain-language,
+  per-language guide to why stress marking is needed and what we do about it.
+- **Developer integrating stressonnx?**  [Usage](#usage) above, then
+  [`docs/models.md`](docs/models.md) for backend contracts and
+  [`docs/architecture.md`](docs/architecture.md) for the package internals.
+- **Linguist checking our homework?**  [`docs/languages.md`](docs/languages.md)
+  carries the typology and per-rule citations;
+  [`benchmarks/RESULTS.md`](benchmarks/RESULTS.md) the measurements; every
+  OOV rule's source is quoted in `stressonnx/backends/simple.py`.
+
+- [`docs/languages.md`](docs/languages.md) — per-language guide: stress
+  system, why TTS needs it, what stressonnx does, with citations.
 - [`docs/models.md`](docs/models.md) — every backend in depth: pipeline
   stages, per-language rules, quality numbers, contracts.
 - [`docs/architecture.md`](docs/architecture.md) — package layout, the single

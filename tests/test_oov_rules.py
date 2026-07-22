@@ -83,3 +83,26 @@ def test_rules_table_prevails_over_meta():
     s = SimpleStressor("chv")
     s._ensure_loaded()
     assert s._oov_rule == "chv"  # meta.json says "last"; local table wins
+
+
+# Yakut: long vowels / diphthongs (vowel digraphs) attract stress; the mark
+# sits on the second element of the heavy nucleus (Krueger 1962; see
+# _rule_sah).  Words below are vocabulary-attested spellings.
+@pytest.mark.parametrize("word,expected", [
+    ("буолан", "буо́лан"),    # diphthong уо in the first syllable wins
+    ("эрээри", "эрээ́ри"),    # long ээ wins over final short и
+    ("кини", "кини́"),        # no heavy nucleus → final vowel
+])
+def test_yakut_heavy_nucleus(word, expected):
+    assert oov("sah", word) == expected
+
+
+# Tatar: unstressed suffixes/enclitics retract stress (Comrie 1997b); only
+# the vocabulary-validated variants are enabled — see _rule_tat.
+@pytest.mark.parametrize("word,expected", [
+    ("татарча", "тата́рча"),   # adverbial -ча unstressed
+    ("бармыйсың", "бармыйсы́ң"),  # -сың variant NOT enabled (evidence < 0.7)
+    ("китапме", "кита́пме"),   # interrogative -ме unstressed
+])
+def test_tatar_unstressed_suffixes(word, expected):
+    assert oov("tat", word) == expected
