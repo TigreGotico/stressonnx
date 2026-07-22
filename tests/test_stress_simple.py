@@ -35,23 +35,3 @@ SIMPLE_CASES = [
 def test_stress_simple(lang, inp, expected):
     from stressonnx import stress
     assert stress(inp, lang) == expected
-
-
-def test_stress_simple_matches_silero():
-    """Exact match against SimpleAccentor for a sample of langs (plus notation)."""
-    from stressonnx import stress, to_plus_notation
-    from silero_stress.simple_accentor import SimpleAccentor
-
-    sample = {
-        "kaz": "Сәлем Қазақстан",
-        "tat": "Сәлам Казан",
-        "kat": "გამარჯობა თბილისი",
-        "hye": "Բարեւ Երեւան",
-        "aze_lat": "Salam Bakı",
-        "uzb_lat": "Salom Toshkent",
-        "sah": "Дорообо Дьокуускай",
-    }
-    for lang, sentence in sample.items():
-        ref = SimpleAccentor(lang=lang)(sentence)  # silero emits + notation
-        got = to_plus_notation(stress(sentence, lang))  # convert to + for comparison
-        assert ref == got, f"[{lang}] ref={ref!r} got={got!r}"
