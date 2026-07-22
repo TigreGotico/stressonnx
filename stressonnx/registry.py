@@ -101,7 +101,7 @@ HF_REPO_ID = "TigreGotico/stressonnx-models"
 #: fetched from exactly this revision, so releases are reproducible and an
 #: upstream force-push cannot change what users run.  Bump deliberately when
 #: models are uploaded (see export/ADDING_A_LANGUAGE.md).
-HF_REPO_REVISION = "6fdea0dac38badccbcb65c250902b5871264460d"
+HF_REPO_REVISION = "b8ba7afdb78534afa1a7f4794b98d019c3866aef"
 
 # Files for kubataba family
 _KUBATABA_FILES = [
@@ -128,30 +128,27 @@ _SIMPLE_FILES = [
 ]
 
 # ---------------------------------------------------------------------------
-# Language routing tables
+# Language routing tables — built from stressonnx/languages/*.json
 # ---------------------------------------------------------------------------
+from stressonnx.langs import LEGACY_ALIASES, canonicalize_lang, load_languages
+
+LANGUAGES = load_languages()
+
 #: Languages backed by the RUAccent homograph-aware pipeline.
-RUACCENT_LANGS = {"ru"}
+RUACCENT_LANGS = {t for t, spec in LANGUAGES.items() if "ruaccent" in spec["hf"]}
 
 #: Languages backed by the neural ONNX pipeline (main_accentor).
-MAIN_LANGS = {"ukr", "bel", "ru"}
+MAIN_LANGS = {t for t, spec in LANGUAGES.items() if "silero" in spec["hf"]}
 
-#: Languages backed by vocabulary + rules (simple_accentor).
-SIMPLE_LANGS = {
-    "aze_cyr", "aze_lat",
-    "uzb_cyr", "uzb_lat",
-    "bak",
-    "bel_simple",   # alias — same vocab as bel but always rule-path
-    "bul",
-    "chv", "erz", "hye", "kat", "kaz", "kbd", "kir",
-    "kjh", "lav", "mdf", "mkd",
-    "ru_simple",    # alias — RUAccent-dictionary vocab, no neural inference
-    "sah", "slv", "tat", "tgk", "udm",
-    "ukr_simple",   # alias — Wiktionary vocab, no neural inference
-    "xal",
-}
+#: Languages backed by vocabulary + rules (simple_accentor) — every language.
+SIMPLE_LANGS = {t for t, spec in LANGUAGES.items() if "simple" in spec["hf"]}
 
 ALL_LANGS = RUACCENT_LANGS | MAIN_LANGS | SIMPLE_LANGS
+
+
+def hf_dir(lang: str, family: str) -> str:
+    """HF subdirectory holding *family*'s artefacts for canonical *lang*."""
+    return LANGUAGES[lang]["hf"][family]
 
 # ---------------------------------------------------------------------------
 # Script routing
@@ -160,40 +157,12 @@ ALL_LANGS = RUACCENT_LANGS | MAIN_LANGS | SIMPLE_LANGS
 #: Canonical mapping: language tag → :class:`Script`.
 #: Used by :func:`lang_to_script` and to populate :attr:`ModelEntry.input_scripts`.
 LANG_SCRIPT: dict[str, Script] = {
-    # Cyrillic-script languages
-    "ru":       Script.CYRILLIC,
-    "ukr":      Script.CYRILLIC,
-    "bel":      Script.CYRILLIC,
-    "bel_simple": Script.CYRILLIC,
-    "kaz":      Script.CYRILLIC,
-    "tat":      Script.CYRILLIC,
-    "bak":      Script.CYRILLIC,
-    "chv":      Script.CYRILLIC,
-    "sah":      Script.CYRILLIC,
-    "kir":      Script.CYRILLIC,
-    "kjh":      Script.CYRILLIC,
-    "tgk":      Script.CYRILLIC,
-    "udm":      Script.CYRILLIC,
-    "xal":      Script.CYRILLIC,
-    "kbd":      Script.CYRILLIC,
-    "erz":      Script.CYRILLIC,
-    "mdf":      Script.CYRILLIC,
-    "uzb_cyr":  Script.CYRILLIC,
-    "aze_cyr":  Script.CYRILLIC,
-    "bul":      Script.CYRILLIC,
-    "mkd":      Script.CYRILLIC,
-    "ru_simple":  Script.CYRILLIC,
-    "ukr_simple": Script.CYRILLIC,
-    # Latin-script languages
-    "aze_lat":  Script.LATIN,
-    "uzb_lat":  Script.LATIN,
-    "slv":      Script.LATIN,
-    "lav":      Script.LATIN,
-    # Armenian script
-    "hye":      Script.ARMENIAN,
-    # Georgian (Mkhedruli) script
-    "kat":      Script.GEORGIAN,
+    tag: Script(spec["script"]) for tag, spec in LANGUAGES.items()
 }
+# historical tags resolve to the same scripts
+LANG_SCRIPT.update({
+    old: LANG_SCRIPT[new] for old, (new, _model) in LEGACY_ALIASES.items()
+})
 
 
 def lang_to_script(lang: str) -> Script:
@@ -274,18 +243,6 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         ),
         input_scripts=_ALL_SCRIPTS,
     ),
-    "kubataba": ModelEntry(
-        langs=frozenset({"ru"}),
-        family="kubataba",
-        hf_subdir="ru_kubataba",
-        description=(
-            "Char-level encoder-decoder Transformer for Russian stress "
-            "(kubataba/Russian-Stress-Accent-Predictor, MIT). "
-            "12.5M-param seq2seq model trained on literary text. "
-            "Alternative to 'ruaccent'; no homograph disambiguation."
-        ),
-        input_scripts=_CYRILLIC_ONLY,
-    ),
 }
 
 #: Default model-id for each language tag.
@@ -311,26 +268,8 @@ for _lang in SIMPLE_LANGS:
 # "first" → first vowel
 # "none"  → skip (return unchanged)
 # "kat"   → ≤3 vowels → first, else penultimate
-# Per-language OOV stress rule, applied by SimpleStressor._accentuate_oov —
-# see its docstring for the linguistic sources and measured accuracy of each
-# named rule.  This table takes precedence over the exported meta.json.
-_OOV_RULES = {
-    "aze_cyr": "last", "aze_lat": "last",
-    "uzb_cyr": "last", "uzb_lat": "last",
-    "bak": "last", "bel": "none", "bel_simple": "none",
-    "bul": "none",              # Bulgarian stress is free/lexical (Scatton 1984)
-    "chv": "chv", "erz": "first",
-    "hye": "hye", "kat": "kat",
-    "kaz": "last", "kbd": "kbd", "kir": "last",
-    "kjh": "last",
-    "lav": "first",             # Latvian fixed initial stress (Nau 1998)
-    "mdf": "mdf",
-    "mkd": "antepenult",        # Macedonian fixed antepenultimate (Friedman 2001)
-    "ru_simple": "none",        # Russian stress is free/lexical
-    "sah": "sah",
-    "slv": "none",              # Slovene stress is free/lexical (Herrity 2000)
-    "tat": "tat", "tgk": "tgk",
-    "udm": "last",
-    "ukr_simple": "none",       # Ukrainian stress is free/lexical
-    "xal": "last",
-}
+# Per-language OOV stress rule, from the language data files — see
+# SimpleStressor._accentuate_oov for the rule implementations and
+# benchmarks/RESULTS.md for measured accuracy.  Historical tags included.
+_OOV_RULES = {tag: spec["rule"] for tag, spec in LANGUAGES.items()}
+_OOV_RULES.update({old: _OOV_RULES[new] for old, (new, _m) in LEGACY_ALIASES.items()})

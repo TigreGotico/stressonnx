@@ -1,8 +1,9 @@
 """Public Stressor wrapper and the make_stressor factory — model-aware entry points."""
-from stressonnx.backends import _KubatabaStressor, RuAccentStressor, _SileroStressor, SimpleStressor
+from stressonnx.backends import RuAccentStressor, _SileroStressor, SimpleStressor
 from stressonnx.notation import _apply_notation
 from stressonnx.registry import DEFAULT_MODEL, MODEL_REGISTRY, StressNotation
 from stressonnx.errors import UnsupportedLanguageError
+from stressonnx.langs import canonicalize_lang
 
 
 def make_stressor(
@@ -37,6 +38,10 @@ def make_stressor(
     ValueError
         If the combination of *model* and *lang* is unsupported.
     """
+    if lang is not None:
+        lang, forced = canonicalize_lang(lang)
+        if model is None:
+            model = forced  # a legacy *_simple tag forces the simple model
     if model is None:
         if lang is None:
             raise ValueError("At least one of 'model' or 'lang' must be provided.")
@@ -70,8 +75,6 @@ def make_stressor(
         return _SileroStressor(lang=lang, cache_dir=cache_dir)
     if entry.family == "simple":
         return SimpleStressor(lang=lang, cache_dir=cache_dir)
-    if entry.family == "kubataba":
-        return _KubatabaStressor(cache_dir=cache_dir)
     raise ValueError(f"Internal error: unknown family {entry.family!r}.")
 
 
@@ -120,11 +123,18 @@ class Stressor:
         lang: str | None = None,
         cache_dir: str | None = None,
         notation: str = "diacritic",
+        fallback: bool = False,
     ) -> None:
+        canonical = lang
+        if lang is not None:
+            canonical, forced = canonicalize_lang(lang)
+            if model is None:
+                model = forced
         self._backend = make_stressor(model=model, lang=lang, cache_dir=cache_dir)
         # Expose for inspection
-        self.lang = getattr(self._backend, "lang", lang)
-        self.model = model or DEFAULT_MODEL.get(lang or "")
+        self.lang = getattr(self._backend, "lang", canonical)
+        self.model = model or DEFAULT_MODEL.get(canonical or "")
+        self.fallback = fallback
         try:
             self.notation = StressNotation(notation)
         except ValueError:
@@ -133,5 +143,16 @@ class Stressor:
             )
 
     def __call__(self, text: str) -> str:
-        """Accentuate *text*; returns the combining-acute form by default."""
+        """Accentuate *text*; returns the combining-acute form by default.
+
+        With ``fallback=True`` the call degrades down the model priority
+        chain on download/load failures — the same contract as
+        :func:`stressonnx.stress`.
+        """
+        if self.fallback:
+            from stressonnx.pipeline import DEFAULT_PIPELINE
+            return DEFAULT_PIPELINE.stress(
+                text, self.lang, model=self.model,
+                notation=self.notation, fallback=True,
+            )
         return _apply_notation(self._backend(text), self.notation)

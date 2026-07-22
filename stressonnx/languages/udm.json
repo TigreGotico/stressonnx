@@ -1,0 +1,12 @@
+{
+  "name": "Udmurt",
+  "script": "cyrillic",
+  "rule": "last",
+  "hf": {
+    "simple": "udm"
+  },
+  "sources": [
+    "Winkler 2001: fixed final stress (negated verbs/imperatives initial — needs morphology)"
+  ],
+  "tag": "udm"
+}

@@ -23,6 +23,18 @@ _RE_RU_COND = re.compile(r"[^А-Яа-яёЁ]")
 # behavior for "-то" and extends it to the remaining standard clitics.
 _UNSTRESSED_HYPHEN_CLITICS = frozenset({"то", "нибудь", "либо", "таки", "ка"})
 
+#: Per-script vowel supersets used for the vowel-ordinal vocabulary format
+#: ("stress the Nth vowel").  The set per script is the union of every
+#: supported language's vowel inventory plus loanword vowels observed in the
+#: curated vocabularies; the converter in export/convert_vocabs_to_ordinals.py
+#: validates every entry against it and reports anything outside.
+SCRIPT_VOWELS = {
+    "cyrillic": set("аеёиоуыэюя" "іїє" "әөүұ" "ӑӗӳ" "ӥӧ" "ў" "ъ" "ӣӯ" "ӱ"),
+    "latin": set("aeiouy" "áéíóúàèìòùâêîôû" "äëïöü" "åæøœãõ" "āēīōū" "əı"),
+    "armenian": set("աեէըիուօ"),
+    "georgian": set("აეიოუ"),
+}
+
 
 def lower_preserving_length(text: str) -> str:
     """Lowercase *text* without changing its length.

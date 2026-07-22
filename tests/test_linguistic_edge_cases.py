@@ -29,11 +29,11 @@ def test_guillemets_do_not_block_lookup():
 
 
 def test_ellipsis_and_em_dash_kaz():
-    assert stress("Алматы… Астана—Шымкент", "kaz") == "Алматы́… Астана́—Шымке́нт"
+    assert stress("Алматы… Астана—Шымкент", "kk") == "Алматы́… Астана́—Шымке́нт"
 
 
 def test_guillemets_kaz():
-    assert stress("«Сәлем» Қазақстан!", "kaz") == "«Сәле́м» Қазақста́н!"
+    assert stress("«Сәлем» Қазақстан!", "kk") == "«Сәле́м» Қазақста́н!"
 
 
 def test_digits_are_boundaries():
@@ -84,13 +84,13 @@ def test_silero_ru_ambiguous_yo_homograph_skipped():
 # ---------------------------------------------------------------------------
 
 def test_simple_skips_already_stressed():
-    once = stress("Мен қазақша сөйлеймін", "kaz")
-    assert stress(once, "kaz") == once
+    once = stress("Мен қазақша сөйлеймін", "kk")
+    assert stress(once, "kk") == once
 
 
 def test_silero_skips_already_stressed():
-    once = stress("Добрий вечір", "ukr")
-    assert stress(once, "ukr") == once
+    once = stress("Добрий вечір", "uk")
+    assert stress(once, "uk") == once
 
 
 def test_ruaccent_rederives_stress():
@@ -98,14 +98,8 @@ def test_ruaccent_rederives_stress():
     assert stress("Москва́ большая", "ru") == stress("Мо́сква большая", "ru")
 
 
-def test_kubataba_rederives_stress():
-    once = stress("красивый закат над рекой", "ru", model="kubataba")
-    assert once == "краси́вый зака́т над реко́й"
-    assert stress(once, "ru", model="kubataba") == once
-
-
 def test_no_double_marks_any_backend():
-    for lang, model in [("ru", None), ("ru", "silero"), ("ru", "kubataba"), ("kaz", None)]:
+    for lang, model in [("ru", None), ("ru", "silero"), ("kk", None)]:
         text = "красивый город" if lang == "ru" else "Қазақстан"
         once = stress(text, lang, model=model)
         twice = stress(once, lang, model=model)
@@ -117,7 +111,7 @@ def test_no_double_marks_any_backend():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("lang,model", [
-    ("ru", "silero"), ("ukr", None), ("bel", None), ("kaz", None), ("kat", None),
+    ("ru", "silero"), ("uk", None), ("be", None), ("kk", None), ("ka", None),
 ])
 def test_empty_and_punct_only(lang, model):
     assert stress("", lang, model=model) == ""
@@ -140,7 +134,7 @@ def test_uppercase_input_keeps_case():
 
 
 def test_capitalized_word_mark_position():
-    assert stress("Салам", "aze_cyr") == "Сала́м"
+    assert stress("Салам", "az-Cyrl") == "Сала́м"
 
 
 # ---------------------------------------------------------------------------
@@ -155,19 +149,19 @@ def test_ru_homographs_in_context():
 
 
 def test_bel_sentence():
-    assert stress("Я люблю чытаць кнігі", "bel") == "Я́ люблю́ чыта́ць кні́гі"
+    assert stress("Я люблю чытаць кнігі", "be") == "Я́ люблю́ чыта́ць кні́гі"
 
 
 def test_simple_language_sentences():
-    assert stress("Мин татарча сөйләшәм", "tat") == "Ми́н тата́рча сөйләшә́м"
-    assert stress("Салом дунё", "tgk") == "Сало́м дунё́"
-    assert stress("გამარჯობა მეგობრებო", "kat") == "გამა́რჯობა მეგო́ბრებო"
+    assert stress("Мин татарча сөйләшәм", "tt") == "Ми́н тата́рча сөйләшә́м"
+    assert stress("Салом дунё", "tg") == "Сало́м дунё́"
+    assert stress("გამარჯობა მეგობრებო", "ka") == "გამა́რჯობა მეგო́ბრებო"
 
 
 def test_wrong_script_input_left_untouched():
     # Georgian model + Cyrillic input: nothing matches the alphabet → no-op.
     # Callers guard with lang_to_script()/input_scripts (see README).
-    assert stress("Тбилиси и Батуми", "kat") == "Тбилиси и Батуми"
+    assert stress("Тбилиси и Батуми", "ka") == "Тбилиси и Батуми"
 
 
 # ---------------------------------------------------------------------------
@@ -198,17 +192,23 @@ def test_notation_round_trip():
 
 def test_full_default_model_mapping():
     """The complete DEFAULT_MODEL table, frozen: priority ruaccent > silero > simple."""
-    expected = {"ru": "ruaccent", "ukr": "silero", "bel": "silero"}
-    expected.update({lang: "simple" for lang in SIMPLE_LANGS})
+    expected = {"ru": "ruaccent", "uk": "silero", "be": "silero"}
+    expected.update({lang: "simple" for lang in SIMPLE_LANGS if lang not in expected})
     assert DEFAULT_MODEL == expected
 
 
 def test_lang_sets_are_consistent():
     assert RUACCENT_LANGS == {"ru"}
-    assert MAIN_LANGS == {"ru", "ukr", "bel"}
-    assert "bel" not in SIMPLE_LANGS and "bel_simple" in SIMPLE_LANGS
-    assert {"bul", "mkd", "slv", "lav", "ru_simple", "ukr_simple"} <= SIMPLE_LANGS
+    assert MAIN_LANGS == {"ru", "uk", "be"}
+    assert {"be", "ru", "uk"} <= SIMPLE_LANGS
+    assert {"bg", "mk", "sl", "lv"} <= SIMPLE_LANGS
     assert len(SIMPLE_LANGS) == 26
+
+
+def test_legacy_alias_equivalence():
+    assert stress("Мен қазақша сөйлеймін", "kaz") == stress("Мен қазақша сөйлеймін", "kk")
+    from stressonnx.backends.simple import SimpleStressor
+    assert SimpleStressor("bel_simple").lang == SimpleStressor("be").lang
 
 
 # ---------------------------------------------------------------------------

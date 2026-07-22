@@ -1,0 +1,12 @@
+{
+  "name": "Moksha",
+  "script": "cyrillic",
+  "rule": "mdf",
+  "hf": {
+    "simple": "mdf"
+  },
+  "sources": [
+    "Hamari & Ajanki 2022, Oxford Guide to the Uralic Languages §23.2.3"
+  ],
+  "tag": "mdf"
+}

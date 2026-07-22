@@ -47,7 +47,7 @@ How hard that is depends entirely on the language's **stress system**:
 
 ## East Slavic
 
-### Russian (`ru`, alias `ru_simple`)
+### Russian (`ru`)
 
 **Why.**  The hardest case in this library, on all three axes.  Stress is
 free and *mobile* — it moves within a word's inflections (рука́ "hand",
@@ -71,9 +71,9 @@ type it as е, so restoring ё and placing stress are the same problem.
   [silero_stress](https://github.com/snakers4/silero-stress); restores
   unambiguous ё but deliberately leaves ё-homographs (все/всё) untouched.
   **0.914** (homographs 0.381 — it cannot use context).
-- `kubataba` — character-level seq2seq transformer; **0.884**, ~60 ms/row.
-- `ru_simple` — 108,972 unambiguous entries from the RUAccent pronunciation
-  dictionary; no guessing on unknown words (rule `none`), because Russian
+- `simple` (dictionary path, `model="simple"`) — 108,972 unambiguous entries
+  from the RUAccent pronunciation dictionary; no guessing on unknown words
+  (rule `none`), because Russian
   stress placement genuinely cannot be predicted from word shape (the East
   Slavic accentological literature is unanimous that surface stress is
   unpredictable without paradigm/accent-class information).
@@ -84,7 +84,7 @@ type it as е, so restoring ё and placing stress are the same problem.
 [models.md](models.md)); ruaccent re-derives stress from scratch on
 pre-marked input rather than trusting it.
 
-### Ukrainian (`ukr`, alias `ukr_simple`)
+### Ukrainian (`uk`)
 
 **Why.**  Free, mobile stress like Russian, and productive homograph pairs
 (за́мок/замо́к exists here too; обі́д "lunch" vs о́бід "rim").  Ukrainian
@@ -95,11 +95,11 @@ enough to make synthesis sound wrong or say the wrong word.
 **What stressonnx does.**  `silero` neural model (default), measured
 **0.785** on crowdsourced UD-treebank gold — the weakest neural model in the
 library; the export is faithful (parity-locked to upstream), the ceiling is
-the model itself.  `ukr_simple` adds a 49,809-word dictionary path built
+the model itself.  `model="simple"` adds a 49,809-word dictionary path built
 from stress-marked English-Wiktionary headwords, rule `none` (free stress —
 no positional guess is defensible).
 
-### Belarusian (`bel`, alias `bel_simple`)
+### Belarusian (`be`)
 
 **Why.**  Free stress, with an interesting orthographic property: Belarusian
 *writes* its vowel reduction (акание is spelled out — вада́, not вода́), so
@@ -109,8 +109,8 @@ changes with stress position, TTS still needs the stress to read prosody
 and homographs correctly.
 
 **What stressonnx does.**  `silero` neural model (default), **0.873**.
-`bel_simple` is the vocabulary-only fallback (**0.433** — the measured cost
-of dropping the neural model, published so the trade-off is explicit).
+`model="simple"` is the vocabulary-only fallback (**0.433** — the measured
+cost of dropping the neural model, published so the trade-off is explicit).
 Rule `none`: the accentological literature treats Belarusian surface stress
 as lexically governed, so an unknown multi-vowel word is left unmarked
 rather than guessed.
@@ -119,7 +119,7 @@ rather than guessed.
 
 ## South Slavic
 
-### Bulgarian (`bul`)
+### Bulgarian (`bg`)
 
 **Why.**  Free, mobile stress plus Russian-grade vowel reduction: unstressed
 а and ъ merge, unstressed о raises toward [u], unstressed е toward [i]
@@ -134,7 +134,7 @@ mark, never a positional guess.  There is no neural model yet; the
 vocabulary covers the standard lexicon and inflection tables Wiktionary
 marks.
 
-### Macedonian (`mkd`)
+### Macedonian (`mk`)
 
 **Why.**  The mirror image of Bulgarian: stress is **fixed** on the
 antepenultimate syllable (third from the end) in words of three or more
@@ -147,10 +147,10 @@ list of the exceptions, which are mainly recent loanwords (клише́,
 1,667-word vocabulary carries exactly the exceptions — English Wiktionary
 marks stress on Macedonian words *only* when it deviates from the rule, so
 the extraction is an exceptions list by construction.  (This is why the
-scoreboard's rule-vs-own-vocabulary number for mkd is low: the vocabulary
+scoreboard's rule-vs-own-vocabulary number for mk is low: the vocabulary
 contains only the words the rule is not supposed to handle.)
 
-### Slovene (`slv`)
+### Slovene (`sl`)
 
 **Why.**  Free stress, and more: standard descriptions give Slovene a
 **pitch-accent** system where the stressed syllable also carries a tonal
@@ -169,7 +169,7 @@ tone it carries).  Rule `none` for unknown words.
 
 ## Baltic
 
-### Latvian (`lav`)
+### Latvian (`lv`)
 
 **Why.**  Stress is **fixed on the first syllable** with a small set of
 exceptions, mostly borrowings and a few native adverbs (Nau 1998, *Latvian*,
@@ -197,12 +197,12 @@ Vowel quality is stable under stress shift, so the cost of an error is
 rhythm and the occasional exception word — much lower stakes than Russian,
 which is why a rule plus an exception dictionary is a defensible design.
 
-### Kazakh (`kaz`), Kyrgyz (`kir`), Tatar (`tat`), Bashkir (`bak`), Azerbaijani (`aze_cyr`/`aze_lat`), Uzbek (`uzb_cyr`/`uzb_lat`)
+### Kazakh (`kk`), Kyrgyz (`ky`), Tatar (`tt`), Bashkir (`ba`), Azerbaijani (`az-Cyrl`/`az-Latn`), Uzbek (`uz-Cyrl`/`uz-Latn`)
 
 **What stressonnx does.**  Curated vocabularies exported from silero_stress
 (covering common words including the suffix-class exceptions) plus the
-`last` rule for unknown words.  Measured rule-vs-vocabulary accuracy: kir
-0.993, kaz 0.987, tat 0.896, bak 0.852, aze 0.816, uzb 1.000 — the spread
+`last` rule for unknown words.  Measured rule-vs-vocabulary accuracy: ky
+0.993, kk 0.987, tt 0.896, ba 0.852, az 0.816, uz 1.000 — the spread
 reflects how many exception forms each vocabulary happens to contain.
 The closed unstressable-suffix lists (Kazakh -ма/-ме negation, -шА, -ДАй,
 copulas…; Kirchner 1998 via Washington 2006) were measured against the
@@ -211,14 +211,14 @@ vocabularies: blind surface-string retraction loses more than it gains
 morphological segmentation, so they are documented rather than enabled.
 Tatar is the exception: four suffix variants (-ча/-чә adverbial, -сең 2sg,
 -ме interrogative; Comrie 1997b) pass a ≥0.7 vocabulary-evidence bar and
-are enabled in the `tat` rule (0.896 → 0.904).
+are enabled in the `tt` rule (0.896 → 0.904).
 
 **For linguists.**  Azerbaijani imperative/negation initial stress is
 attested in the JIPA Illustration (Ghaffarvand Mokari & Werner 2017); Uzbek
 may share Uyghur's syllable-weight sensitivity (Comrie 1997c) — unconfirmed,
 flagged rather than modeled.
 
-### Chuvash (`chv`)
+### Chuvash (`cv`)
 
 **Why.**  The famous case of **phonologically conditioned** stress: Chuvash
 has two reduced vowels, ӑ and ӗ, that can never carry stress.  Stress falls
@@ -228,7 +228,7 @@ Dobrovolsky 1999, ICPhS).  A naive "stress the last vowel" rule is wrong for
 every word ending in a reduced-vowel suffix — a very large share of running
 text.
 
-**What stressonnx does.**  The dedicated `chv` rule implements the
+**What stressonnx does.**  The dedicated `cv` rule implements the
 full-vowel scan — measured **0.94** against the 22,050-word vocabulary,
 versus 0.60 for the naive final-stress rule.  This is the single largest
 rule improvement in the library.
@@ -258,7 +258,7 @@ rule is an explicitly labeled extrapolation, not a sourced rule.
 
 ## Iranian
 
-### Tajik (`tgk`)
+### Tajik (`tg`)
 
 **Why.**  Persian-type final stress with one high-value exception that is
 **syntactic**: the izafet enclitic -и (linking nouns to modifiers — китоби
@@ -267,7 +267,7 @@ stressed word-final ӣ precisely because readers need to know (Perry 2005,
 *A Tajik Persian Reference Grammar* §1.6).  Getting izafet stress wrong
 makes noun phrases sound broken.
 
-**What stressonnx does.**  The `tgk` rule: final vowel, except word-final
+**What stressonnx does.**  The `tg` rule: final vowel, except word-final
 -и → penult.  0.454 → **0.736** against the vocabulary.  Verbal morphology
 (stress-attracting negation на-?) is flagged unconfirmed in the sources and
 not modeled.
@@ -276,7 +276,7 @@ not modeled.
 
 ## Uralic
 
-### Erzya (`erz`) and Moksha (`mdf`)
+### Erzya (`myv`) and Moksha (`mdf`)
 
 **Why.**  Instrumental studies (Lehiste et al. 2003 for Erzya; Aasmäe et
 al. 2013 for Moksha, both via Hamari & Ajanki 2022, *The Oxford Guide to the
@@ -300,7 +300,7 @@ modeled; the default alone measures 0.975.
 
 ## Caucasus
 
-### Armenian, Eastern (`hye`)
+### Armenian, Eastern (`hy`)
 
 **Why.**  Stress falls on the **last non-schwa syllable**: the vowel ը
 (schwa) can never be stressed, so final-schwa words — including everything
@@ -308,10 +308,10 @@ carrying the definite article -ը — retract stress leftward (Chakmakjian
 2024, Speech Prosody: "stress occurs within the last non-schwa syllable").
 A naive final rule mis-stresses every definite noun.
 
-**What stressonnx does.**  The `hye` rule (final non-schwa scan), 0.743 →
+**What stressonnx does.**  The `hy` rule (final non-schwa scan), 0.743 →
 **0.777**, plus the 8,537-word vocabulary.
 
-### Georgian (`kat`)
+### Georgian (`ka`)
 
 **Why — and a caveat.**  Georgian word stress is **weak and contested**:
 the descriptive literature disagrees three ways (initial: Tschenkeli 1958,
@@ -351,12 +351,12 @@ thinness of the underlying scholarship is worth knowing.
 
 ## What "quality" means here, and its limits
 
-- Neural-model numbers (ru/ukr/bel) are word-level accuracy against
+- Neural-model numbers (ru/uk/be) are word-level accuracy against
   independent crowdsourced gold with a documented annotation-noise ceiling —
   see the scoreboard's note before quoting absolutes.
 - Rule numbers are rule-vs-own-vocabulary accuracy on multi-vowel words —
   they measure how well the *rule* would serve out-of-vocabulary words, and
-  are meaningless for exceptions-only vocabularies (mkd, lav — documented).
+  are meaningless for exceptions-only vocabularies (mk, lv — documented).
 - Languages without any independent gold are locked to their upstream
   reference implementation by CI parity tests instead.
 

@@ -1,0 +1,12 @@
+{
+  "name": "Macedonian",
+  "script": "cyrillic",
+  "rule": "antepenult",
+  "hf": {
+    "simple": "mkd"
+  },
+  "sources": [
+    "Friedman 2001, Macedonian: fixed antepenultimate stress"
+  ],
+  "tag": "mk"
+}

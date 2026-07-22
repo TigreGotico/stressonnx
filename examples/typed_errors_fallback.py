@@ -12,9 +12,9 @@ stressonnx raises two typed exceptions instead of generic ones:
 ``stress(..., fallback=True)`` uses ``ModelDownloadError`` internally: if the
 selected model's files cannot be fetched, it walks down
 ``FALLBACK_PRIORITY`` — ``("ruaccent", "silero", "simple")`` — trying the
-next-best model for the same language, logging a warning at each hop.  A
-``<lang>_simple`` alias counts as ``simple`` support for ``<lang>``, so
-``bel`` falls back to ``bel_simple`` rather than failing outright.
+next-best model for the same language, logging a warning at each hop.  Every
+canonical language has a ``simple`` (rule/vocabulary) path, so ``be`` falls
+back to ``model="simple"`` rather than failing outright.
 """
 from stressonnx import (
     FALLBACK_PRIORITY,
@@ -49,7 +49,6 @@ print(f"FALLBACK_PRIORITY: {FALLBACK_PRIORITY}")
 # (``from stressonnx.download import _download_files``), so every backend
 # module's local binding must be patched — patching
 # ``stressonnx.download._download_files`` alone would not affect them.
-import stressonnx.backends.kubataba as _kubataba_mod
 import stressonnx.backends.ruaccent as _ruaccent_mod
 import stressonnx.backends.silero as _silero_mod
 import stressonnx.backends.simple as _simple_mod
@@ -59,7 +58,7 @@ def _always_fail(hf_subdir, filenames, cache_dir=None, model_id=None):
     raise ModelDownloadError(hf_subdir, f"{hf_subdir}/{filenames[0]}", OSError("offline"))
 
 
-_patched_modules = [_ruaccent_mod, _silero_mod, _simple_mod, _kubataba_mod]
+_patched_modules = [_ruaccent_mod, _silero_mod, _simple_mod]
 _originals = [m._download_files for m in _patched_modules]
 for m in _patched_modules:
     m._download_files = _always_fail
@@ -69,9 +68,9 @@ try:
     except ModelDownloadError as exc:
         print(f"fallback=False: raised immediately -> {exc.model_id!r} / {exc.hf_path!r}")
 
-    # fallback=True walks ruaccent -> silero -> simple; "simple" does not
-    # cover "ru" (only ukr/bel/ru via silero and 20 other langs), so once
-    # silero also fails there is nowhere left to fall to and it raises.
+    # fallback=True walks ruaccent -> silero -> simple; every language
+    # (including ru) has a simple path, but all three backends are patched
+    # to fail here, so the chain is exhausted and it raises.
     stress("привет", "ru", model="ruaccent", fallback=True)
 except ModelDownloadError as exc:
     print(f"  chain exhausted: last failure was {exc.model_id!r}")
@@ -83,5 +82,5 @@ finally:
 # stress() drops to the next model in the chain for the same language.
 print()
 print("Real call with fallback=True (network available):")
-print(" ", stress("Прывітанне свет", "bel", fallback=True))
-print(" ", stress("Прывітанне свет", "bel_simple", fallback=True))
+print(" ", stress("Прывітанне свет", "be", fallback=True))
+print(" ", stress("Прывітанне свет", "be", model="simple", fallback=True))

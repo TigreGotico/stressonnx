@@ -39,14 +39,12 @@ RUSSTRESS_RAW = "https://raw.githubusercontent.com/MashaPo/russtress/master/data
 
 #: (stressonnx lang, russtress file code, model ids to evaluate)
 TARGETS = [
-    ("ru", "ru", ["ruaccent", "silero", "kubataba"]),
-    ("ukr", "uk", ["silero"]),
-    ("bel", "be", ["silero"]),
-    ("bel_simple", "be", ["simple"]),
+    ("ru", "ru", ["ruaccent", "silero"]),
+    ("uk", "uk", ["silero"]),
+    ("be", "be", ["silero", "simple"]),
 ]
 
-# kubataba decodes autoregressively (~1 s/row) — cap its rows, loudly.
-KUBATABA_CAP = 1000
+KUBATABA_CAP = 0  # retained for resume-compat; kubataba is retired
 
 
 def fetch_gold(code: str) -> list:
@@ -125,8 +123,8 @@ def evaluate(lang: str, model: str, gold: list, homograph_words=None):
     stressor("тест" if lang != "ukr" else "тест")
     cold_s = time.perf_counter() - t0
 
-    rows = gold[:KUBATABA_CAP] if model == "kubataba" else gold
-    capped = len(gold) - len(rows)
+    rows = gold
+    capped = 0
 
     total = correct = dropped = 0
     homo_total = homo_correct = 0

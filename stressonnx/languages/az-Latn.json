@@ -1,0 +1,12 @@
+{
+  "name": "Azerbaijani (Latin)",
+  "script": "latin",
+  "rule": "last",
+  "hf": {
+    "simple": "aze_lat"
+  },
+  "sources": [
+    "Ghaffarvand Mokari & Werner 2017, JIPA: final stress"
+  ],
+  "tag": "az-Latn"
+}

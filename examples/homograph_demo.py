@@ -8,10 +8,9 @@ carry different stress depending on grammatical meaning or context:
     белок  →  бе́лок (squirrel genitive)  vs  бело́к (protein / egg white)
     коса   →  коса́ (braid / scythe)  vs  ко́са (sandbank/spit)
 
-All three Russian backends handle these differently:
+The two Russian neural backends handle these differently:
 - ruaccent: sentence-context BERT pipeline → correct disambiguation
 - silero:   word-level MLP → no disambiguation, one-best prediction
-- kubataba: sentence-level seq2seq Transformer → partial disambiguation
 """
 from stressonnx import stress
 
@@ -65,15 +64,6 @@ print("=== silero (neural, word-level, no homograph resolution) ===\n")
 for sent_a, _, sent_b, _, note in HOMOGRAPH_PAIRS:
     out_a = stress(sent_a, "ru", model="silero")
     out_b = stress(sent_b, "ru", model="silero")
-    print(f"  [{note}]")
-    print(f"     {out_a}")
-    print(f"     {out_b}")
-    print()
-
-print("=== kubataba (seq2seq Transformer, sentence-level) ===\n")
-for sent_a, _, sent_b, _, note in HOMOGRAPH_PAIRS:
-    out_a = stress(sent_a, "ru", model="kubataba")
-    out_b = stress(sent_b, "ru", model="kubataba")
     print(f"  [{note}]")
     print(f"     {out_a}")
     print(f"     {out_b}")

@@ -3,8 +3,7 @@ network access or loaded ONNX models.
 
 Covers: _plus_to_diacritic, _ruaccent_norm, _delete_spaces_before_punc,
 _fix_capital, _ruaccent_split_by_words, _ruaccent_split_by_sentences,
-RuAccentStressor._has_punct, RuAccentStressor._count_vowels,
-_apostrophe_to_diacritic.
+RuAccentStressor._has_punct, RuAccentStressor._count_vowels.
 """
 import pytest
 
@@ -215,44 +214,8 @@ def test_count_vowels_yo():
 
 
 # ---------------------------------------------------------------------------
-# _apostrophe_to_diacritic
-# ---------------------------------------------------------------------------
-
-def test_apostrophe_to_diacritic_basic():
-    from stressonnx.notation import _apostrophe_to_diacritic
-    # apostrophe after vowel → combine acute
-    result = _apostrophe_to_diacritic("молоко'")
-    assert "́" in result
-
-
-def test_apostrophe_to_diacritic_mid_word():
-    from stressonnx.notation import _apostrophe_to_diacritic
-    result = _apostrophe_to_diacritic("мо'локо")
-    assert "́" in result
-    assert "'" not in result
-
-
-def test_apostrophe_to_diacritic_no_apostrophe():
-    from stressonnx.notation import _apostrophe_to_diacritic
-    assert _apostrophe_to_diacritic("замок") == "замок"
-
-
-def test_apostrophe_after_consonant_unchanged():
-    from stressonnx.notation import _apostrophe_to_diacritic
-    # apostrophe after non-vowel (consonant) should NOT become a stress mark
-    result = _apostrophe_to_diacritic("кот'")
-    assert "́" not in result
-
-
-# ---------------------------------------------------------------------------
 # make_stressor — offline error paths
 # ---------------------------------------------------------------------------
-
-def test_make_stressor_kubataba_wrong_lang():
-    from stressonnx import make_stressor
-    with pytest.raises(ValueError, match="does not support language"):
-        make_stressor(model="kubataba", lang="ukr")
-
 
 def test_make_stressor_silero_wrong_lang():
     from stressonnx import make_stressor
@@ -260,10 +223,10 @@ def test_make_stressor_silero_wrong_lang():
         make_stressor(model="silero", lang="kaz")
 
 
-def test_make_stressor_simple_wrong_lang():
+def test_make_stressor_ruaccent_wrong_lang():
     from stressonnx import make_stressor
     with pytest.raises(ValueError, match="does not support language"):
-        make_stressor(model="simple", lang="ru")
+        make_stressor(model="ruaccent", lang="uk")
 
 
 def test_stressor_invalid_notation():

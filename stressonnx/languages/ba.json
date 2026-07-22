@@ -1,0 +1,12 @@
+{
+  "name": "Bashkir",
+  "script": "cyrillic",
+  "rule": "last",
+  "hf": {
+    "simple": "bak"
+  },
+  "sources": [
+    "Poppe 1964 via Schiering & van der Hulst 2010: final stress incl. suffixes"
+  ],
+  "tag": "ba"
+}

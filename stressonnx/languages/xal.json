@@ -1,0 +1,12 @@
+{
+  "name": "Kalmyk",
+  "script": "cyrillic",
+  "rule": "last",
+  "hf": {
+    "simple": "xal"
+  },
+  "sources": [
+    "Bläsing, Kalmuck: final stress (understudied)"
+  ],
+  "tag": "xal"
+}

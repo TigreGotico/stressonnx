@@ -1,0 +1,12 @@
+{
+  "name": "Bulgarian",
+  "script": "cyrillic",
+  "rule": "none",
+  "hf": {
+    "simple": "bul"
+  },
+  "sources": [
+    "Scatton 1984, A Reference Grammar of Modern Bulgarian: free/mobile stress"
+  ],
+  "tag": "bg"
+}

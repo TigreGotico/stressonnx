@@ -1,0 +1,12 @@
+{
+  "name": "Kabardian",
+  "script": "cyrillic",
+  "rule": "kbd",
+  "hf": {
+    "simple": "kbd"
+  },
+  "sources": [
+    "Jaimoukha grammar compilation; consistent with Colarusso 1992 (paraphrase-level, low confidence)"
+  ],
+  "tag": "kbd"
+}

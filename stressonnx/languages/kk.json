@@ -1,0 +1,12 @@
+{
+  "name": "Kazakh",
+  "script": "cyrillic",
+  "rule": "last",
+  "hf": {
+    "simple": "kaz"
+  },
+  "sources": [
+    "Kirchner 1998 via Schiering & van der Hulst 2010: Turkic final stress"
+  ],
+  "tag": "kk"
+}

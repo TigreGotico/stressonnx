@@ -19,33 +19,34 @@ from stressonnx.backends.simple import SimpleStressor
 
 
 def make_rule_fn(stressor):
-    """Char-index predictor delegating to the REAL shipped rule logic."""
+    """Vowel-ordinal predictor delegating to the REAL shipped rule logic."""
     from stressonnx.notation import STRESS_TOKEN
+    vowels = stressor._ordinal_vowels
 
     def predict(word):
         out = stressor._accentuate_oov(word)
         mark = out.find(STRESS_TOKEN)
-        return None if mark == -1 else mark - 1
+        if mark == -1:
+            return None
+        return sum(1 for c in out[: mark - 1] if c in vowels)
     return predict
 
 
-def score_rule(vocab: dict, vowels: str, rule, restrict_multi=True):
-    """Accuracy of *rule* (name or callable word→index) over the vocabulary.
+def score_rule(vocab: dict, vowels, rule, restrict_multi=True):
+    """Accuracy of *rule* (callable word→vowel-ordinal) over the vocabulary.
 
     ``restrict_multi``: score only words with ≥2 vowels — monosyllables are
     always stressed on their sole vowel by every rule, so including them
     inflates every score equally.
     """
     n = correct = 0
-    for word, idx in vocab.items():
-        vowel_ids = [i for i, c in enumerate(word) if c in vowels]
-        if len(vowel_ids) < (2 if restrict_multi else 1):
+    for word, ordinal in vocab.items():
+        n_vowels = sum(1 for c in word if c in vowels)
+        if n_vowels < (2 if restrict_multi else 1):
             continue
-        if idx not in vowel_ids:
-            continue  # vocab entry stresses a char outside the vowel set
         pred = rule(word)
         n += 1
-        correct += pred == idx
+        correct += pred == ordinal
     return correct / n if n else float("nan"), n
 
 
@@ -58,7 +59,7 @@ def load(lang: str):
 def load_with_fn(lang: str):
     s = SimpleStressor(lang)
     s._ensure_loaded()
-    return s._vocab, s._vowels, s._oov_rule, make_rule_fn(s)
+    return s._vocab, s._ordinal_vowels, s._oov_rule, make_rule_fn(s)
 
 
 def main():

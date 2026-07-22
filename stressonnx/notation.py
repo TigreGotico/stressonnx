@@ -104,23 +104,4 @@ def _plus_to_diacritic(word: str) -> str:
     return "".join(result)
 
 
-def _apostrophe_to_diacritic(text: str) -> str:
-    """Convert kubataba's apostrophe-after-stressed-vowel output to combining acute.
-
-    The model outputs an apostrophe (') immediately after a stressed vowel.
-    We convert that to combining acute (U+0301) placed after the vowel,
-    which is the standard stressonnx diacritic notation.
-    """
-    out = []
-    i = 0
-    while i < len(text):
-        ch = text[i]
-        if ch == "'" and out and out[-1] in _RU_VOWELS_SET:
-            out.append(STRESS_TOKEN)
-        else:
-            out.append(ch)
-        i += 1
-    return "".join(out)
-
-
 _RU_VOWELS_SET = set("аоуыэиеяёюАОУЫЭИЕЯЁЮ")

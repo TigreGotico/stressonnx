@@ -18,7 +18,7 @@ from stressonnx import (
 # ---------------------------------------------------------------------------
 
 def test_registry_keys():
-    assert set(MODEL_REGISTRY.keys()) == {"ruaccent", "silero", "simple", "kubataba"}
+    assert set(MODEL_REGISTRY.keys()) == {"ruaccent", "silero", "simple"}
 
 
 def test_registry_families():
@@ -40,8 +40,8 @@ def test_default_model_ru():
 
 
 def test_default_model_ukr_bel():
-    assert DEFAULT_MODEL["ukr"] == "silero"
-    assert DEFAULT_MODEL["bel"] == "silero"
+    assert DEFAULT_MODEL["uk"] == "silero"
+    assert DEFAULT_MODEL["be"] == "silero"
 
 
 def test_default_model_simple_langs():
@@ -70,7 +70,7 @@ def test_make_stressor_unknown_model():
 
 def test_make_stressor_model_lang_mismatch():
     with pytest.raises(ValueError, match="does not support language"):
-        make_stressor(model="ruaccent", lang="kaz")
+        make_stressor(model="ruaccent", lang="kk")
 
 
 def test_make_stressor_silero_no_lang():
@@ -85,13 +85,13 @@ def test_make_stressor_simple_no_lang():
 
 def test_make_stressor_simple_returns_simple_stressor():
     from stressonnx.backends.simple import SimpleStressor
-    s = make_stressor(model="simple", lang="kaz")
+    s = make_stressor(model="simple", lang="kk")
     assert isinstance(s, SimpleStressor)
 
 
 def test_make_stressor_silero_returns_silero_stressor():
     from stressonnx.backends.silero import _SileroStressor
-    s = make_stressor(model="silero", lang="ukr")
+    s = make_stressor(model="silero", lang="uk")
     assert isinstance(s, _SileroStressor)
 
 
@@ -110,7 +110,7 @@ def test_make_stressor_default_ru():
 
 def test_make_stressor_default_ukr():
     from stressonnx.backends.silero import _SileroStressor
-    s = make_stressor(lang="ukr")
+    s = make_stressor(lang="uk")
     assert isinstance(s, _SileroStressor)
 
 
@@ -119,12 +119,12 @@ def test_make_stressor_default_ukr():
 # ---------------------------------------------------------------------------
 
 def test_stressor_model_attr_simple():
-    s = Stressor(lang="kaz")
+    s = Stressor(lang="kk")
     assert s.model == "simple"
 
 
 def test_stressor_model_attr_silero():
-    s = Stressor(model="silero", lang="ukr")
+    s = Stressor(model="silero", lang="uk")
     assert s.model == "silero"
 
 
@@ -134,24 +134,24 @@ def test_stressor_model_attr_ruaccent():
 
 
 def test_stressor_lang_attr():
-    s = Stressor(lang="kaz")
-    assert s.lang == "kaz"
+    s = Stressor(lang="kk")
+    assert s.lang == "kk"
 
 
 def test_stressor_callable_simple():
-    s = Stressor(lang="kaz")
+    s = Stressor(lang="kk")
     result = s("Казан")
     assert "́" in result  # combining acute U+0301
 
 
 def test_stressor_callable_silero_ukr():
-    s = Stressor(model="silero", lang="ukr")
+    s = Stressor(model="silero", lang="uk")
     result = s("Привіт")
     assert "́" in result
 
 
 def test_stressor_callable_silero_bel():
-    s = Stressor(model="silero", lang="bel")
+    s = Stressor(model="silero", lang="be")
     result = s("свет")
     assert "́" in result
 
@@ -161,30 +161,30 @@ def test_stressor_callable_silero_bel():
 # ---------------------------------------------------------------------------
 
 def test_stress_model_param_simple():
-    result = stress("Казан", "tat", model="simple")
+    result = stress("Казан", "tt", model="simple")
     assert result == "Каза́н"
 
 
 def test_stress_model_param_silero():
-    result = stress("Привіт", "ukr", model="silero")
+    result = stress("Привіт", "uk", model="silero")
     assert "́" in result
 
 
 def test_stress_model_none_equals_default():
     """stress(text, lang) == stress(text, lang, model=None)."""
-    for lang, text in [("kaz", "Казан"), ("ukr", "Привіт"), ("tat", "Казан")]:
+    for lang, text in [("kk", "Казан"), ("uk", "Привіт"), ("tt", "Казан")]:
         assert stress(text, lang) == stress(text, lang, model=None)
 
 
 def test_stress_backward_compat_no_model():
     """stress(text, lang) without model argument still works."""
-    assert "́" in stress("Привіт", "ukr")
-    assert "́" in stress("Казан", "tat")
+    assert "́" in stress("Привіт", "uk")
+    assert "́" in stress("Казан", "tt")
 
 
 def test_stress_model_wrong_for_lang():
     with pytest.raises(ValueError):
-        stress("text", "kaz", model="ruaccent")
+        stress("text", "kk", model="ruaccent")
 
 
 # ---------------------------------------------------------------------------

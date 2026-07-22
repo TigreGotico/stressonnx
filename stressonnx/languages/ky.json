@@ -1,0 +1,12 @@
+{
+  "name": "Kyrgyz",
+  "script": "cyrillic",
+  "rule": "last",
+  "hf": {
+    "simple": "kir"
+  },
+  "sources": [
+    "Kirchner 1998: final stress"
+  ],
+  "tag": "ky"
+}

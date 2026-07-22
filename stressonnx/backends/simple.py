@@ -16,11 +16,12 @@ import unicodedata
 import re
 from typing import Callable, Optional
 
-from stressonnx._common import lower_preserving_length, tokenize
+from stressonnx._common import SCRIPT_VOWELS, lower_preserving_length, tokenize
 from stressonnx.download import LOG, _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError, UnsupportedLanguageError
 from stressonnx.notation import STRESS_TOKEN, _insert_stress
-from stressonnx.registry import SIMPLE_LANGS, _OOV_RULES, _SIMPLE_FILES
+from stressonnx.langs import canonicalize_lang
+from stressonnx.registry import LANGUAGES, SIMPLE_LANGS, _OOV_RULES, _SIMPLE_FILES, hf_dir
 
 
 def _load_vocab(path: str) -> dict:
@@ -203,13 +204,12 @@ class SimpleStressor:
     """
 
     def __init__(self, lang: str, cache_dir: str | None = None) -> None:
-        # Treat "bel" as main accentor; "bel_simple" routes here.
+        lang, _ = canonicalize_lang(lang)
         if lang not in SIMPLE_LANGS:
             raise UnsupportedLanguageError(lang, SIMPLE_LANGS)
         self.lang = lang
-        # bel_simple shares the bel HF directory (same upstream vocab); the
-        # other *_simple aliases ship their own dedicated vocabularies
-        self._hf_lang = "bel" if lang == "bel_simple" else lang
+        self._hf_lang = hf_dir(lang, "simple")
+        self._ordinal_vowels = SCRIPT_VOWELS[LANGUAGES[lang]["script"]]
         self._cache_dir = cache_dir
         self._loaded = False
         self._load_lock = threading.Lock()
@@ -259,9 +259,18 @@ class SimpleStressor:
 
 
     def _accentuate_vocab(self, clean_word: str, raw_word: str) -> str:
-        # vowels=None: the curated vocab may stress loanword vowels outside
-        # the language's core set (e.g. ю/я in aze_cyr дюнья́)
-        return _insert_stress(raw_word, self._vocab[clean_word])
+        """Vocabulary hit: mark the Nth vowel of the raw word.
+
+        Vocabularies store vowel ordinals counted over the script-wide
+        superset (:data:`SCRIPT_VOWELS`) — orthography-robust where raw
+        character indices were not (case folding, digraphs).
+        """
+        ordinal = self._vocab[clean_word]
+        lower = lower_preserving_length(raw_word)
+        vowel_ids = [i for i, c in enumerate(lower) if c in self._ordinal_vowels]
+        if ordinal >= len(vowel_ids):
+            return raw_word  # raw form diverges from the vocab spelling
+        return _insert_stress(raw_word, vowel_ids[ordinal])
 
     def _accentuate_oov(self, raw_word: str) -> str:
         """Stress an out-of-vocabulary word by the language's positional rule.

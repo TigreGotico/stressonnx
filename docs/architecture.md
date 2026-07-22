@@ -6,7 +6,8 @@
 
 stressonnx is a pure-onnxruntime word-stress / accentuation library for
 Russian, Ukrainian, Belarusian, and 23 other Slavic, Baltic, Turkic, Uralic,
-Caucasian, and Mongolic languages.
+Caucasian, and Mongolic languages, addressed by canonical BCP-47 tags
+(`ru`, `uk`, `be`, `az-Latn`, …).
 
 Runtime dependencies: `onnxruntime`, `numpy`, `huggingface_hub`,
 `tokenizers` (Russian only).  No torch at runtime.
@@ -24,18 +25,20 @@ monolithic file:
 
 | Module | Responsibility |
 |--------|---------------|
-| `stressonnx/registry.py` | `Script`, `StressNotation`, `ModelEntry`, `StressorBackend` Protocol; `MODEL_REGISTRY`, `DEFAULT_MODEL`; language-set constants (`RUACCENT_LANGS`, `MAIN_LANGS`, `SIMPLE_LANGS`, `ALL_LANGS`); `LANG_SCRIPT` + `lang_to_script()`; per-family file lists (`_MAIN_FILES`, `_SIMPLE_FILES`, `_KUBATABA_FILES`); `_OOV_RULES`. |
+| `stressonnx/langs.py` | `load_languages()` — loads every `stressonnx/languages/<tag>.json` spec; `LEGACY_ALIASES` + `canonicalize_lang()` — resolves historical tags to `(canonical_tag, forced_model_or_None)`. |
+| `stressonnx/registry.py` | `Script`, `StressNotation`, `ModelEntry`, `StressorBackend` Protocol; `MODEL_REGISTRY`, `DEFAULT_MODEL`; language-set constants (`RUACCENT_LANGS`, `MAIN_LANGS`, `SIMPLE_LANGS`, `ALL_LANGS`), all built from `stressonnx/languages/*.json`; `LANG_SCRIPT` + `lang_to_script()`; per-family file lists (`_MAIN_FILES`, `_SIMPLE_FILES`); `_OOV_RULES`. |
+| `stressonnx/languages/<tag>.json` | One file per canonical language tag: `script`, `rule` (OOV rule name), `hf` (per-family HF subdirectory), and the linguistic sources behind the rule. The registry is generated from these files at import time. |
 | `stressonnx/download.py` | The single download layer: `_download_files()` resolves model files via `huggingface_hub.hf_hub_download`, honoring the standard HF cache (`HF_HOME`, `HF_HUB_OFFLINE`) or an explicit `cache_dir` override; every fetch is pinned to `HF_REPO_REVISION` (a commit hash) and logged. |
-| `stressonnx/errors.py` | Typed exceptions: `StressonnxError` (base), `UnsupportedLanguageError` (`ValueError` subclass), `ModelDownloadError`. |
+| `stressonnx/errors.py` | Typed exceptions: `StressonnxError` (base), `UnsupportedLanguageError` (`ValueError` subclass), `ModelDownloadError`, `ModelLoadError`. |
 | `stressonnx/notation.py` | `STRESS_TOKEN` (U+0301); `_insert_stress()`, `_apply_notation()`, `_plus_to_diacritic()`, `_apostrophe_to_diacritic()` — all notation/format conversions. |
-| `stressonnx/_common.py` | Small helpers shared by more than one backend: `_softmax`, `_RU_VOWELS`, `_RE_SPLIT` (shared tokenizer boundary regex), `_RE_RU_COND`, `_UNSTRESSED_HYPHEN_CLITICS`. |
-| `stressonnx/stressor.py` | Public entry points: `make_stressor()` (factory) and the `Stressor` class. |
+| `stressonnx/_common.py` | Small helpers shared by more than one backend: `_softmax`, `SCRIPT_VOWELS` (per-script vowel supersets used by the vowel-ordinal vocabulary format), `lower_preserving_length`, `_RE_SPLIT` (shared tokenizer boundary regex), `_RE_RU_COND`, `_UNSTRESSED_HYPHEN_CLITICS`. |
+| `stressonnx/stressor.py` | Public entry points: `make_stressor()` (factory) and the `Stressor` class (accepts `fallback=True`). |
+| `stressonnx/pipeline.py` | `StressPipeline` — an isolated engine instance with its own backend cache and failure policy: `.stress()`, `.stress_batch()`, `.analyze()`, `.warm_up()`; `StressResult`, `StressedWord`; `DEFAULT_PIPELINE`, the shared instance the module-level functions delegate to; `FALLBACK_PRIORITY`. |
 | `stressonnx/backends/ruaccent.py` | `RuAccentStressor` — the `ruaccent` family. |
-| `stressonnx/backends/silero.py` | `_SileroStressor` — the `silero` family (`ukr`, `bel`, `ru`). |
-| `stressonnx/backends/simple.py` | `SimpleStressor` — the `simple` family (26 languages). |
-| `stressonnx/backends/kubataba.py` | `_KubatabaStressor` — the `kubataba` family (`ru` alternative). |
-| `stressonnx/backends/__init__.py` | Re-exports the four backend classes. |
-| `stressonnx/__init__.py` | Assembles the public API: `stress()`, `to_plus_notation()`, and re-exports from every module above. |
+| `stressonnx/backends/silero.py` | `_SileroStressor` — the `silero` family (`ru`, `uk`, `be`). |
+| `stressonnx/backends/simple.py` | `SimpleStressor` — the `simple` family (26 languages, every canonical tag). |
+| `stressonnx/backends/__init__.py` | Re-exports the three backend classes. |
+| `stressonnx/__init__.py` | Assembles the public API: `stress()`, `stress_batch()`, `analyze()`, `warm_up()`, `to_plus_notation()`, and re-exports from every module above. |
 | `stressonnx/accentor.py` | Deprecated compatibility shim — re-exports everything that used to live in this single module so old imports (`from stressonnx.accentor import ...`) keep working. New code should import from `stressonnx` directly; this module carries no logic of its own. |
 
 ### Data flow
@@ -44,8 +47,10 @@ monolithic file:
 stress("замок", "ru", model="ruaccent")
        │
        ▼
-  stress()  ──→  _SINGLETONS cache keyed by (lang, model)
-       │
+  stress()  ──→  DEFAULT_PIPELINE.stress()
+       │              │
+       │              ▼
+       │        _singletons cache keyed by (lang, resolved_model)
        ▼
   make_stressor(model="ruaccent", lang="ru")
        │
@@ -55,18 +60,33 @@ stress("замок", "ru", model="ruaccent")
                                    stressonnx.download._download_files)
 ```
 
-Three layers:
+Module-level `stress()`, `stress_batch()`, `analyze()`, and `warm_up()` are
+thin wrappers over one shared `StressPipeline` instance
+(`stressonnx.pipeline.DEFAULT_PIPELINE`); `StressPipeline()` builds a private
+instance with its own cache and failure policy for callers that want
+isolation (e.g. per-tenant caches, a scoped failure cooldown, or explicit
+disposal).
 
-1. **`stress(text, lang, model=None, notation="diacritic", fallback=False)`**
-   — module-level convenience function.  Singletons keyed by `(lang, model)`.
-   Notation conversion via `_apply_notation()`.  When `fallback=True` and the
-   selected model's files cannot be fetched (`ModelDownloadError`), walks
-   `FALLBACK_PRIORITY` (`"ruaccent"`, `"silero"`, `"simple"`) for the same
-   language, logging a warning at each hop; `bel` falls back to `bel_simple`.
-2. **`Stressor(model=None, lang=None, notation=…)`** — public class.  Wraps
-   the backend returned by `make_stressor()`.  Exposes `.model`, `.lang`, and
-   `.notation` for introspection.
-3. **`make_stressor(model, lang, cache_dir=None)`** — factory.  Consults
+Four layers:
+
+1. **`StressPipeline.stress(text, lang, model=None, notation="diacritic",
+   fallback=False, prefer=None)`** — resolves `lang` via
+   `canonicalize_lang()`, picks a model (explicit `model=`, a `prefer=`
+   capability strategy, or the language's default), and calls the cached
+   backend.  Notation conversion via `_apply_notation()`.  When
+   `fallback=True` and the selected model's files cannot be fetched
+   (`ModelDownloadError`/`ModelLoadError`), walks `FALLBACK_PRIORITY`
+   (`"ruaccent"`, `"silero"`, `"simple"`) for the same language, logging a
+   warning at each hop; every language falls back to `model="simple"`.
+2. **`StressPipeline.analyze(text, lang, ...)`** — calls `.stress()` for the
+   marked string, then aligns the U+0301 marks back onto the original input
+   (`difflib.SequenceMatcher` on yo-neutralized copies) to produce a
+   `StressResult` of `StressedWord` spans with offsets into the untouched
+   input.
+3. **`Stressor(model=None, lang=None, notation=…, fallback=False)`** —
+   public class.  Wraps the backend returned by `make_stressor()`.  Exposes
+   `.model`, `.lang`, and `.notation` for introspection.
+4. **`make_stressor(model, lang, cache_dir=None)`** — factory.  Consults
    `MODEL_REGISTRY`, validates the `(model, lang)` pair, and returns the
    appropriate backend.
 
@@ -123,10 +143,10 @@ if lang_to_script(lang) in MODEL_REGISTRY[model_id].input_scripts:
 
 ```python
 class Script(str, Enum):
-    CYRILLIC = "cyrillic"   # ru, ukr, bel, kaz, tat, bak, …
-    LATIN    = "latin"      # aze_lat, uzb_lat
-    ARMENIAN = "armenian"   # hye
-    GEORGIAN = "georgian"   # kat
+    CYRILLIC = "cyrillic"   # ru, uk, be, kk, tt, ba, …
+    LATIN    = "latin"      # az-Latn, uz-Latn
+    ARMENIAN = "armenian"   # hy
+    GEORGIAN = "georgian"   # ka
 ```
 
 Mirrors the script taxonomy used in phoonnx's `Alphabet` enum.  New
@@ -151,7 +171,7 @@ class StressorBackend(Protocol):
     def __call__(self, text: str) -> str: ...
 ```
 
-All four backend classes satisfy this protocol.  `make_stressor()` return
+All three backend classes satisfy this protocol.  `make_stressor()` return
 type is `StressorBackend`.
 
 ---
@@ -164,10 +184,10 @@ system.  `lang_to_script(lang)` is the public accessor — it raises
 unknown tags.
 
 ```python
-lang_to_script("ru")      # Script.CYRILLIC
-lang_to_script("aze_lat") # Script.LATIN
-lang_to_script("hye")     # Script.ARMENIAN
-lang_to_script("kat")     # Script.GEORGIAN
+lang_to_script("ru")       # Script.CYRILLIC
+lang_to_script("az-Latn")  # Script.LATIN
+lang_to_script("hy")       # Script.ARMENIAN
+lang_to_script("ka")       # Script.GEORGIAN
 ```
 
 ### Relationship to phoonnx
@@ -203,33 +223,26 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         input_scripts=frozenset({Script.CYRILLIC}),
     ),
     "silero": ModelEntry(
-        langs=frozenset({"ukr", "bel", "ru"}),
+        langs=frozenset({"uk", "be", "ru"}),
         family="silero",
         hf_subdir=None,      # per-language: <lang>/
         description="…",
         input_scripts=frozenset({Script.CYRILLIC}),
     ),
     "simple": ModelEntry(
-        langs=frozenset(SIMPLE_LANGS),  # 26 languages incl. the *_simple aliases
+        langs=frozenset(SIMPLE_LANGS),  # all 26 canonical languages
         family="simple",
         hf_subdir=None,
         description="…",
         input_scripts=frozenset({Script.CYRILLIC, Script.LATIN, Script.ARMENIAN, Script.GEORGIAN}),
     ),
-    "kubataba": ModelEntry(
-        langs=frozenset({"ru"}),
-        family="kubataba",
-        hf_subdir="ru_kubataba",
-        description="…",
-        input_scripts=frozenset({Script.CYRILLIC}),
-    ),
 }
 ```
 
-`bel` is served by both `silero` (the default, neural) and `simple` (via the
-`bel_simple` alias, vocabulary-only).  Both are counted in `ALL_LANGS`; only
-`bel` (not `bel_simple`) is a key in `DEFAULT_MODEL`, since `bel_simple` is
-always explicit.
+`be` is served by both `silero` (the default, neural) and `simple` (via
+`model="simple"`, vocabulary-only).  Both are counted in `ALL_LANGS`; only
+the neural entry is the key `DEFAULT_MODEL["be"]` resolves to — the
+`simple` path is always explicit.
 
 ---
 
@@ -255,7 +268,7 @@ symbols are dropped rather than preserved.
 ### `_SileroStressor` — silero family (`stressonnx/backends/silero.py`)
 
 Neural ONNX pipeline exported from silero_stress (MIT).
-Supports `ukr`, `bel`, and `ru`.
+Supports `ru`, `uk`, and `be`.
 
 Pipeline per word:
 1. Tokenise sentence → `(raw_tokens, clean_tokens, prediction_mask)`.
@@ -263,8 +276,8 @@ Pipeline per word:
    matrix).
 3. Run ONNX MLP heads → `stress_logits [N, K]` (+ `yo_logits` for `ru`).
 4. Decode: exceptions dict → skip sets → argmax position → insert U+0301
-   (+ е→ё restoration for `ru`, via `_process_yo_lang`; `ukr`/`bel` use the
-   simpler `_process_ukr_bel` path with no yo logic).
+   (+ е→ё restoration for `ru`, via `_process_yo_lang`; `uk`/`be` use the
+   simpler path with no yo logic).
 
 Single-vowel words are always force-stressed on that vowel, and a word
 already containing U+0301 is returned unchanged (idempotent).
@@ -273,35 +286,15 @@ Files: `accentor.onnx`, `embedding.npy`, `ngram_dict.txt.gz`,
 `exceptions.txt.gz`, `skip_stress_words.txt.gz`, `skip_yo_words.txt.gz`,
 `meta.json` — under `<lang>/` in the HF repo.
 
-### `_KubatabaStressor` — kubataba family (`stressonnx/backends/kubataba.py`)
-
-Sentence-level encoder-decoder Transformer derived from
-[kubataba/Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor).
-
-The PyTorch model uses a character-level vocabulary.
-During ONNX export (see `export/export_kubataba.py`) it is split into:
-
-- **`encoder.onnx`**: `src (1, 256) int64 → memory (1, 256, 256) float32`
-- **`decoder_step.onnx`**: `(memory, tgt) → logits (1, vocab_size) float32`
-
-The autoregressive greedy-decode loop runs in Python.  The critical insight
-that made the export possible: PyTorch's `nn.MultiheadAttention` is
-incompatible with TorchScript and dynamo exporters when sequence length is
-dynamic (`_detect_is_causal_mask` calls `torch.ones(t, t)` with a
-data-dependent `t`).  The decoder step wrapper reimplements the decoder
-forward pass manually using `F.scaled_dot_product_attention` with
-`is_causal=True`, bypassing `nn.Transformer` entirely.
-
-Files: `encoder.onnx`, `decoder_step.onnx`, `vocab.json` — under
-`ru_kubataba/` in the HF repo.
-
 ### `SimpleStressor` — simple family (`stressonnx/backends/simple.py`)
 
-Vocabulary + rule-based pipeline.  No ONNX inference.  Supports 26 languages.
+Vocabulary + rule-based pipeline.  No ONNX inference.  Supports all 26
+canonical languages.
 
 Pipeline per word:
 1. Tokenise sentence (shared boundary regex, hyphen-aware).
-2. Look up clean lowercase token in `vocab` dict → stress character index.
+2. Look up clean lowercase token in `vocab` dict → stressed vowel ordinal,
+   resolved to a character index via `SCRIPT_VOWELS[script]`.
 3. OOV fallback: if the word has exactly one vowel, always stress it;
    otherwise apply the per-language positional rule (`"last"`, `"first"`,
    `"none"`, or `"kat"`).
@@ -309,13 +302,19 @@ Pipeline per word:
 
 A word already containing U+0301 is returned unchanged (idempotent).
 
-`bel_simple` routes here: `SimpleStressor.__init__` strips the `_simple`
-suffix to resolve the HF subdirectory (`bel`), so it downloads the same
-vocab as the `bel` entry but always takes the rule-based path instead of
-dispatching to `_SileroStressor`.
+`stress(text, "be", model="simple")` routes here directly — the `simple`
+family serves every language, including `ru`/`uk`/`be`, without any
+`*_simple` pseudo-language; it downloads the same vocab HF subdir as the
+language's other models.
 
-Files: `vocab.gz`, `meta.json` — under `<lang>/` in HF repo (`<lang>` is
-`bel` for both `bel` and `bel_simple`).
+Files: `vocab.gz`, `meta.json` — under `<lang>/` in the HF repo.  `vocab.gz`
+lines are `word<space>vowel_ordinal` (see `docs/models.md` and
+`export/ADDING_A_LANGUAGE.md`); `meta.json` carries
+`"vocab_format": "vowel_ordinal_v2"`.
+
+A research-only Russian model, a character-level seq2seq Transformer
+(`kubataba`), is exported for reference by `export/export_kubataba.py` but
+has no backend class and is not part of `MODEL_REGISTRY`.
 
 ---
 
@@ -358,19 +357,15 @@ constructs a model path itself.
 │   ├── nn_stress_usage/model.onnx
 │   ├── nn_yo_homograph/model.onnx
 │   └── dictionary/omographs.json.gz  …
-├── ru_kubataba/
-│   ├── encoder.onnx
-│   ├── decoder_step.onnx
-│   └── vocab.json
-├── ukr/
+├── uk/
 │   ├── accentor.onnx
 │   ├── embedding.npy
 │   └── …
 ├── ru/
 │   └── …           ← silero Russian
-├── bel/
-│   └── …            ← shared by both bel (silero) and bel_simple (vocab)
-├── kaz/
+├── be/
+│   └── …            ← shared by both silero (default) and simple (model="simple")
+├── kk/
 │   ├── vocab.gz
 │   └── meta.json
 └── …

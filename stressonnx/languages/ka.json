@@ -1,0 +1,12 @@
+{
+  "name": "Georgian",
+  "script": "georgian",
+  "rule": "antepenult",
+  "hf": {
+    "simple": "kat"
+  },
+  "sources": [
+    "Akhvlediani 1949 / Gudava 1969 / Aronson 1990 (contested: Borise 2020 argues initial)"
+  ],
+  "tag": "ka"
+}

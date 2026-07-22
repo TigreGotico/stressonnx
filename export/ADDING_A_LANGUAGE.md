@@ -20,13 +20,17 @@ you can follow it end-to-end even if this is your first contribution.
   instead (e.g. "stress the last vowel").
 - **`vocab.gz`**: the on-disk vocabulary format used by the `simple` family —
   a gzip-compressed text file, one entry per line, formatted
-  `word<space>index`, where `index` is the character position (0-based,
-  counting from the start of the word) of the letter that should carry the
-  stress mark.  Example line: `привет 4` (the `е` at position 4 is stressed:
-  `прив`**`е`**`т`).
+  `word<space>vowel_ordinal`, where `vowel_ordinal` is "the Nth vowel of the
+  word" (0-based), counted over the per-script vowel superset in
+  `stressonnx/_common.py` (`SCRIPT_VOWELS`) rather than a raw character
+  index — this survives casing and digraph differences that would shift a
+  character offset.  Example line: `привет 1` (the second vowel — 0-based
+  ordinal 1 — is stressed: пр**и**в**е**т → the `е`).
 - **`meta.json`**: a small JSON file shipped alongside `vocab.gz` describing
   the language: its alphabet (`alpha`), which characters count as vowels
-  (`vowels`), and the OOV fallback rule (`oov_rule`).
+  (`vowels`), the OOV fallback rule (`oov_rule`), and
+  `"vocab_format": "vowel_ordinal_v2"`.  The historical character-index
+  format is converted with `export/convert_vocabs_to_ordinals.py`.
 - **ONNX** (Open Neural Network Exchange): a portable file format for trained
   neural networks.  stressonnx runs ONNX models with `onnxruntime` — it never
   needs `torch` (PyTorch) at *runtime*, only at *export* time, to convert an
@@ -37,8 +41,9 @@ you can follow it end-to-end even if this is your first contribution.
 - **HF subdir**: the sub-directory inside the
   [`TigreGotico/stressonnx-models`](https://huggingface.co/TigreGotico/stressonnx-models)
   Hugging Face repository where one model's runtime files live (e.g.
-  `ru_ruaccent/`, `kaz/`).  This is the `hf_subdir` field of a `ModelEntry`
-  in `stressonnx/registry.py`.
+  `ru_ruaccent/`, `kk/`).  This is the `hf_subdir` field of a `ModelEntry`
+  in `stressonnx/registry.py` (built from the `hf` map in each
+  `stressonnx/languages/<tag>.json`).
 - **`silero_stress`**: the upstream MIT-licensed project stressonnx exports
   its `silero` and `simple` model families from.  It ships pre-trained
   accentors and vocabularies for many languages as a Python package.
@@ -53,11 +58,11 @@ you can follow it end-to-end even if this is your first contribution.
 | A neural model you want to export to ONNX (or you're adding a whole new model family) | **Path B: neural / custom ONNX path**. |
 
 **Important:** all 20 upstream `silero_stress` `SimpleAccentor` vocabularies
-are already exported and registered in stressonnx (`aze_cyr`, `aze_lat`,
-`bak`, `bel_simple`, `chv`, `erz`, `hye`, `kat`, `kaz`, `kbd`, `kir`, `kjh`,
-`mdf`, `sah`, `tat`, `tgk`, `udm`, `uzb_cyr`, `uzb_lat`, `xal`).  Adding a new
-simple-accentor language means finding or building a **new** stressed
-wordlist from some other source — running
+are already exported and registered in stressonnx under their canonical
+BCP-47 tags (`az-Cyrl`, `az-Latn`, `ba`, `be`, `cv`, `myv`, `hy`, `ka`, `kk`,
+`kbd`, `ky`, `kjh`, `mdf`, `sah`, `tt`, `tg`, `udm`, `uz-Cyrl`, `uz-Latn`,
+`xal`).  Adding a new simple-accentor language means finding or building a
+**new** stressed wordlist from some other source — running
 `export/export_simple_accentors.py` again for a language already in that
 list will just re-export the same data.
 
@@ -73,25 +78,28 @@ language, each with its stress position marked, but no neural model.
 Build a gzip text file with one entry per line:
 
 ```
-word<space>index
+word<space>vowel_ordinal
 ```
 
-`index` is the 0-based character position of the stressed vowel, counting
-characters (not bytes) from the start of the word.  Lowercase the words —
-lookup in stressonnx is case-insensitive.
+`vowel_ordinal` is the 0-based ordinal of the stressed vowel *among the
+word's vowels only* — "the Nth vowel", not the Nth character — counted over
+the per-script vowel superset in `stressonnx/_common.py` (`SCRIPT_VOWELS`).
+This is what makes the format resilient to case-folding and multi-character
+digraphs that would otherwise shift a raw character index.  Lowercase the
+words — lookup in stressonnx is case-insensitive.
 
 ```python
 import gzip
 
 entries = [
-    ("привет", 4),   # прив-Е-т, е at index 4 is stressed
-    ("мама", 1),     # м-А-ма
+    ("привет", 1),   # пр-И-в-Е-т: и is vowel 0, е is vowel 1 (stressed)
+    ("мама", 0),     # м-А-м-а: first а is vowel 0 (stressed)
     # ... thousands more, one line per known word
 ]
 
 with gzip.open("vocab.gz", "wt", encoding="utf-8") as fh:
-    for word, idx in entries:
-        fh.write(f"{word} {idx}\n")
+    for word, ordinal in entries:
+        fh.write(f"{word} {ordinal}\n")
 ```
 
 ### 2. Write `meta.json`
@@ -103,6 +111,7 @@ with gzip.open("vocab.gz", "wt", encoding="utf-8") as fh:
   "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюя",
   "vowels": "аеиоуыэюя",
   "oov_rule": "last",
+  "vocab_format": "vowel_ordinal_v2",
   "n_vocab": 12345
 }
 ```
@@ -118,7 +127,8 @@ with gzip.open("vocab.gz", "wt", encoding="utf-8") as fh:
   - `"last"` — stress the rightmost vowel (the most common rule; most
     Turkic languages follow this).
   - `"first"` — stress the leftmost vowel.
-  - `"none"` — leave the word unmarked (used by `bel_simple`).
+  - `"none"` — leave the word unmarked (used by Belarusian's `simple` path,
+    i.e. `stress(text, "be", model="simple")`).
   - `"kat"` — Georgian's special rule: ≤3 vowels → first vowel, else
     penultimate vowel.
 
@@ -133,33 +143,37 @@ huggingface-cli upload TigreGotico/stressonnx-models ./xyz/ xyz/
 This uploads `vocab.gz` and `meta.json` to the `xyz/` HF subdir — the same
 name you will use as the language tag.
 
-### 4. Register the language in `stressonnx/registry.py`
+### 4. Register the language
 
-Three edits, all in `stressonnx/registry.py`:
+Add one JSON file, `stressonnx/languages/xyz.json` — the registry
+(`SIMPLE_LANGS`, `ALL_LANGS`, `LANG_SCRIPT`, `MODEL_REGISTRY["simple"].langs`,
+`DEFAULT_MODEL["xyz"]`, `_OOV_RULES`) is built entirely from these files at
+import time, so this one file is the only edit:
 
-```python
-# 1. Add the tag to SIMPLE_LANGS
-SIMPLE_LANGS = {
-    "aze_cyr", "aze_lat", ...,
-    "xyz",   # <-- new
-}
-
-# 2. Add its writing system to LANG_SCRIPT
-LANG_SCRIPT: dict[str, Script] = {
-    ...,
-    "xyz": Script.CYRILLIC,   # or LATIN / ARMENIAN / GEORGIAN
-}
-
-# 3. Add its OOV rule to _OOV_RULES
-_OOV_RULES = {
-    ...,
-    "xyz": "last",
+```json
+{
+  "tag": "xyz",
+  "script": "cyrillic",
+  "rule": "last",
+  "hf": {
+    "simple": "xyz"
+  },
+  "sources": [
+    "Author Year, Title — the descriptive grammar or paper the OOV rule and vowel set come from"
+  ]
 }
 ```
 
-`ALL_LANGS`, `MODEL_REGISTRY["simple"].langs`, and `DEFAULT_MODEL["xyz"]` are
-all derived automatically from `SIMPLE_LANGS` — no further registry edits
-needed.
+- `tag`: the canonical BCP-47 tag (this must match the filename).
+- `script`: one of `"cyrillic"`, `"latin"`, `"armenian"`, `"georgian"`.
+- `rule`: the OOV rule name — `"last"`, `"first"`, `"none"`, or `"kat"`.
+- `hf.simple`: the HF subdirectory holding `vocab.gz`/`meta.json` for this
+  language — normally the same as `tag`.
+
+If `xyz` is a historical tag being renamed to a new canonical form, add the
+old tag to `LEGACY_ALIASES` in `stressonnx/langs.py` instead of registering
+it as its own language — see the `bel_simple`/`ru_simple`/`ukr_simple`-style
+`(canonical_tag, "simple")` entries there for the pattern.
 
 ### 5. Add tests
 
@@ -201,9 +215,11 @@ pytest tests/ -q
 ## Path B: neural / custom ONNX path
 
 Use this path to export a new neural accentor — either extending the
-`silero` family for `ukr`/`bel`/`ru` (unlikely — those three are already
+`silero` family for `uk`/`be`/`ru` (unlikely — those three are already
 covered), or bringing in a genuinely new model architecture (the reference
-implementation for this is `kubataba`, a seq2seq Transformer).
+implementation for this pattern is `export/export_kubataba.py`, a seq2seq
+Transformer export kept as a reference — it has no runtime backend or
+registry entry).
 
 `export/` requires `torch` (only at export time — the runtime library never
 imports it).  Install it with `pip install "stressonnx[export]"`.
@@ -217,7 +233,7 @@ plus supporting numpy/gzip data files.
 
 ```bash
 pip install "stressonnx[export]"
-python export/export_main_accentors.py --lang ukr --out_dir /tmp/ukr
+python export/export_main_accentors.py --lang uk --out_dir /tmp/uk
 ```
 
 The script:
@@ -236,39 +252,42 @@ The script:
 **Upload:**
 
 ```bash
-huggingface-cli upload TigreGotico/stressonnx-models /tmp/ukr/ <lang>/
+huggingface-cli upload TigreGotico/stressonnx-models /tmp/uk/ <lang>/
 ```
 
-**Register** in `stressonnx/registry.py`: add the tag to `MAIN_LANGS`.
-`DEFAULT_MODEL` and `MODEL_REGISTRY["silero"].langs` are derived
-automatically from `MAIN_LANGS`.
+**Register:** add `"silero": "<lang>"` to the language's `hf` map in
+`stressonnx/languages/<lang>.json` (see §4 above).  `MAIN_LANGS`,
+`DEFAULT_MODEL`, and `MODEL_REGISTRY["silero"].langs` are all derived
+automatically from that.
 
 **Test:**
 
 ```python
 from stressonnx import stress
-print(stress("Привіт світ", "ukr"))
+print(stress("Привіт світ", "uk"))
 ```
 
 **Verify end-to-end match** against the original silero output:
 
 ```bash
-python export/verify_e2e.py --lang ukr
+python export/verify_e2e.py --lang uk
 # Should report: EXACT MATCH: N/N = 100.0%
 ```
 
-### B.2 — custom ONNX family (e.g. seq2seq Transformer, like `kubataba`)
+### B.2 — custom ONNX family (e.g. seq2seq Transformer)
 
 Use this when the model architecture does not fit the silero pipeline — for
-example a sentence-to-sentence Transformer.  `kubataba` is the reference
-implementation; read `export/export_kubataba.py` alongside this section.
+example a sentence-to-sentence Transformer.  `export/export_kubataba.py` is
+a reference implementation of this export pattern for a character-level
+seq2seq Transformer; read it alongside this section (it is kept as an
+export-side reference only — it has no runtime backend or registry entry).
 
 **1. Export to ONNX.**  For a seq2seq model with dynamic sequence length,
 PyTorch's standard exporters (TorchScript and dynamo) often fail when the
 model computes data-dependent shapes internally — e.g.
 `nn.MultiheadAttention` building a causal mask of shape `(t, t)` for a
-data-dependent `t`.  The `kubataba` solution: split the model into an
-**encoder** and a **one-step decoder**, and reimplement the decoder forward
+data-dependent `t`.  `export/export_kubataba.py`'s solution: split the model
+into an **encoder** and a **one-step decoder**, and reimplement the decoder forward
 pass manually with `F.scaled_dot_product_attention(is_causal=True)`,
 bypassing `nn.Transformer` (and its problematic `_detect_is_causal_mask`
 call) entirely.
@@ -379,8 +398,8 @@ if family == "mymodel":
 **4. Test:**
 
 - Verify ONNX numerical parity against the original PyTorch model (as
-  `kubataba` does: max |diff| between ONNX and PyTorch logits, and identical
-  argmax on a held-out sentence set).
+  `export/export_kubataba.py` does: max |diff| between ONNX and PyTorch
+  logits, and identical argmax on a held-out sentence set).
 - Add `tests/test_stress_<lang>_<model>.py`.
 - Run `pytest tests/ -q`.
 
@@ -391,8 +410,8 @@ if family == "mymodel":
 - [ ] ONNX artefacts exported and numerically verified (Path B), or
       `vocab.gz` + `meta.json` prepared and validated (Path A)
 - [ ] Files uploaded to `TigreGotico/stressonnx-models/<hf_subdir>/`
-- [ ] For Path A: tag added to `SIMPLE_LANGS`, `LANG_SCRIPT`, `_OOV_RULES`
-      in `stressonnx/registry.py`
+- [ ] For Path A: `stressonnx/languages/<tag>.json` added (`script`, `rule`,
+      `hf`, `sources`)
 - [ ] For Path B: `_<MODEL>_FILES` list + `ModelEntry` added to
       `stressonnx/registry.py`; backend class in `stressonnx/backends/`;
       branch added in `make_stressor()` (`stressonnx/stressor.py`)

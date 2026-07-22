@@ -1,0 +1,12 @@
+{
+  "name": "Khakas",
+  "script": "cyrillic",
+  "rule": "last",
+  "hf": {
+    "simple": "kjh"
+  },
+  "sources": [
+    "UNSOURCED: Turkic-default extrapolation; no primary description located"
+  ],
+  "tag": "kjh"
+}

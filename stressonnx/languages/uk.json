@@ -1,0 +1,13 @@
+{
+  "name": "Ukrainian",
+  "script": "cyrillic",
+  "rule": "none",
+  "hf": {
+    "simple": "ukr_simple",
+    "silero": "ukr"
+  },
+  "sources": [
+    "East Slavic accentology: free mobile stress"
+  ],
+  "tag": "uk"
+}

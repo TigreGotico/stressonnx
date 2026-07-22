@@ -18,7 +18,7 @@ SENTENCES = [
     "привет мир",
 ]
 
-MODELS = ["ruaccent", "silero", "kubataba"]
+MODELS = ["ruaccent", "silero", "simple"]
 
 col = 40
 header = f"{'input':<{col}}" + "".join(f"{m:<{col}}" for m in MODELS)

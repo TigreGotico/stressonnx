@@ -49,24 +49,29 @@ sense-dependent pronunciation → a bifonia-style diacritic restorer.**
 | Model id | Languages | What it is | Measured quality |
 |----------|-----------|------------|------------------|
 | `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), Apache-2.0) | 0.938 word accuracy, **0.820 on homographs** |
-| `silero` | `ukr`, `bel` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё | ru 0.914 / ukr 0.785 / bel 0.873 |
-| `kubataba` | `ru` | Char-level seq2seq Transformer ([kubataba](https://huggingface.co/kubataba), MIT); sentence-in, sentence-out | 0.884 (slow: ~60 ms/row) |
+| `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё | ru 0.914 / uk 0.785 / be 0.873 |
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
 
-¹ `aze_cyr aze_lat uzb_cyr uzb_lat bak bel_simple bul chv erz hye kat kaz
-kbd kir kjh lav mdf mkd ru_simple sah slv tat tgk udm ukr_simple xal` —
-Azerbaijani (both scripts), Uzbek (both scripts), Bashkir, Belarusian
-(rule-path alias), Bulgarian, Chuvash, Erzya, Armenian, Georgian, Kazakh,
-Kabardian, Kyrgyz, Khakas, Latvian, Moksha, Macedonian, Russian
-(dictionary-path alias), Yakut, Slovene, Tatar, Tajik, Udmurt, Ukrainian
-(dictionary-path alias), Kalmyk.  Every language — including ru/ukr/bel —
-has a torch-free, ONNX-free rule/vocabulary path, so `fallback=True` always
+¹ `ru uk be bg mk sl lv hy ka kk ky tt ba cv sah kjh tg udm mdf myv kbd xal
+az-Latn az-Cyrl uz-Latn uz-Cyrl` — Russian, Ukrainian, Belarusian (all
+dictionary-path), Bulgarian, Macedonian, Slovene, Latvian, Armenian,
+Georgian, Kazakh, Kyrgyz, Tatar, Bashkir, Chuvash, Yakut, Khakas, Tajik,
+Udmurt, Moksha, Erzya, Kabardian, Kalmyk, Azerbaijani (both scripts), Uzbek
+(both scripts).  Every language — including ru/uk/be — has a torch-free,
+ONNX-free rule/vocabulary path (`model="simple"`), so `fallback=True` always
 bottoms out in a model that needs nothing but a small vocabulary file.
 
 Numbers come from the committed, reproducible
 [benchmark scoreboard](benchmarks/RESULTS.md) (annotated UD-treebank gold;
 read its noise-ceiling note before quoting absolutes).  Defaults per
-language: `ru → ruaccent`, `ukr/bel → silero`, everything else → `simple`.
+language: `ru → ruaccent`, `uk/be → silero`, everything else → `simple`.
+
+**Legacy tags.**  Historical tags accepted before the switch to BCP-47 —
+`ukr`, `bel`, `kaz`, `kir`, `tat`, `bak`, `chv`, `tgk`, `erz`, `hye`, `kat`,
+`bul`, `mkd`, `slv`, `lav`, `aze_lat`, `aze_cyr`, `uzb_lat`, `uzb_cyr`, and
+the `bel_simple`/`ru_simple`/`ukr_simple` (language, model) pairs — remain
+accepted everywhere a `lang` is expected; they resolve to the canonical tag
+above (the `*_simple` forms additionally force `model="simple"`).
 
 Models are hosted on
 [TigreGotico/stressonnx-models](https://huggingface.co/TigreGotico/stressonnx-models)
@@ -93,19 +98,52 @@ Runtime dependencies: `onnxruntime`, `numpy`, `huggingface_hub`, and
 ## Usage
 
 ```python
-from stressonnx import stress, Stressor, to_plus_notation
+from stressonnx import stress, analyze, Stressor, to_plus_notation
 
 # One-shot function (caches model instances internally)
-stress("Привіт світ", "ukr")                  # 'Приві́т сві́т'
-stress("Сәлем Қазақстан", "kaz")              # 'Сәле́м Қазақста́н'
+stress("Привіт світ", "uk")                   # 'Приві́т сві́т'
+stress("Сәлем Қазақстан", "kk")               # 'Сәле́м Қазақста́н'
 
-# Pick a specific model
+# Pick a specific model, or a capability instead of a model id
 stress("красивый город", "ru", model="silero")    # 'краси́вый го́род'
-stress("красивый город", "ru", model="kubataba")  # 'краси́вый го́род'
+stress("красивый город", "ru", model="simple")    # 'краси́вый го́род'
+stress("красивый город", "ru", prefer="fast")     # 'краси́вый го́род'  (silero)
 
 # Reusable object (same API, explicit lifecycle)
 s = Stressor(lang="ru")
 s("замок стоит на горе")                      # 'за́мок сто́ит на горе́'
+```
+
+### Structured results: `analyze()`
+
+For TTS pipelines that need to reason about individual words rather than a
+marked string, `analyze()` returns a `StressResult`: per-word spans with
+offsets into the **original, untouched input**.
+
+```python
+result = analyze("замок стоит на горе", "ru")
+result.text     # 'за́мок сто́ит на горе́'  (same as stress())
+
+for w in result.words:
+    print(w.text, w.start, w.end, w.stressed_index, w.yo_restored)
+# замок 0 5 1 False
+# стоит 6 11 2 False
+# на 12 14 None False
+# горе 15 19 2 False
+```
+
+`w.stressed_index` is the offset of the stressed vowel *within the word*
+(`None` if the word carries no mark); `w.yo_restored` is `True` when the
+backend rewrote е→ё inside that word.  Because offsets refer to `result.original`
+exactly as passed in, callers never need to re-parse the marked string to
+locate a word.
+
+### Batches: `stress_batch()`
+
+```python
+from stressonnx import stress_batch
+
+stress_batch(["привет", "мир"], "ru")   # ['приве́т', 'мир']
 ```
 
 ### Output notation
@@ -131,7 +169,7 @@ by `ruaccent` from context and deliberately left untouched by `silero`.
 
 - **First call per language downloads models** into the standard Hugging Face
   cache (`~/.cache/huggingface`, relocatable via `HF_HOME`).  Sizes: `ru`
-  ruaccent ≈ 500 MB, silero/kubataba ≈ tens of MB, `simple` languages ≈ 1 MB.
+  ruaccent ≈ 500 MB, silero ≈ tens of MB, `simple` languages ≈ 1 MB.
 - **Warm-up ahead of serving:** call `warm_up(lang)` once at startup so no
   synthesis request ever blocks on a model download; it loads the same
   cached instance later `stress()` calls use.
@@ -167,8 +205,8 @@ sessions are thread-safe for inference).
 
 ### Contracts worth knowing
 
-- `simple`/`silero` **skip** words already carrying U+0301; `ruaccent`/
-  `kubataba` **strip and re-derive** (wrong input marks get corrected).
+- `simple`/`silero` **skip** words already carrying U+0301; `ruaccent`
+  **strips and re-derives** (wrong input marks get corrected).
 - Monosyllables: `simple`/`silero` always stress them; `ruaccent` usually
   leaves bare single-vowel words unmarked.
 - `ruaccent` normalizes its input (drops symbols like `…`, collapses runs of
@@ -254,4 +292,4 @@ Pick your entry point:
 ## License
 
 Apache-2.0.  Model attributions: RUAccent (Den4ikAI, Apache-2.0),
-silero_stress (snakers4, MIT), kubataba (MIT).
+silero_stress (snakers4, MIT).

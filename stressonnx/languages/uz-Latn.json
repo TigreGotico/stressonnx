@@ -1,0 +1,12 @@
+{
+  "name": "Uzbek (Latin)",
+  "script": "latin",
+  "rule": "last",
+  "hf": {
+    "simple": "uzb_lat"
+  },
+  "sources": [
+    "Boeschoten 1998 via Schiering & van der Hulst 2010: final stress"
+  ],
+  "tag": "uz-Latn"
+}

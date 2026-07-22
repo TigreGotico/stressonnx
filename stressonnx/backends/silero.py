@@ -21,7 +21,8 @@ from stressonnx._common import _RE_RU_COND, _RU_VOWELS, _softmax, lower_preservi
 from stressonnx.download import _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError, UnsupportedLanguageError
 from stressonnx.notation import STRESS_TOKEN, _insert_stress
-from stressonnx.registry import MAIN_LANGS, _MAIN_FILES
+from stressonnx.langs import canonicalize_lang
+from stressonnx.registry import MAIN_LANGS, _MAIN_FILES, hf_dir
 
 
 def _load_ngram_dict(path: str) -> dict:
@@ -68,6 +69,7 @@ class _SileroStressor:
     """
 
     def __init__(self, lang: str, cache_dir: str | None = None) -> None:
+        lang, _ = canonicalize_lang(lang)
         if lang not in MAIN_LANGS:
             raise UnsupportedLanguageError(lang, MAIN_LANGS)
         self.lang = lang
@@ -99,7 +101,7 @@ class _SileroStressor:
             self._loaded = True
 
     def _load(self) -> None:
-        data = _download_files(self.lang, _MAIN_FILES, self._cache_dir, model_id="silero")
+        data = _download_files(hf_dir(self.lang, "silero"), _MAIN_FILES, self._cache_dir, model_id="silero")
 
         with open(data["meta.json"]) as fh:
             meta = json.load(fh)

@@ -53,10 +53,10 @@ def test_ru_default_is_ruaccent():
 
 
 def test_ukr_bel_unaffected():
-    """ukr and bel still use the main_accentor (silero) pipeline."""
+    """uk and be still use the main_accentor (silero) pipeline."""
     from stressonnx import MAIN_LANGS
-    assert "ukr" in MAIN_LANGS
-    assert "bel" in MAIN_LANGS
+    assert "uk" in MAIN_LANGS
+    assert "be" in MAIN_LANGS
 
 
 def test_to_plus_notation_roundtrip():

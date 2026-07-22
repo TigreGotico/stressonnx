@@ -124,9 +124,14 @@ def build(lang: str, jsonl_path: str):
                 continue
             idx = stressed_index(plain, marked.lower(), vowels)
             if idx is not None:
-                # keep the first (headword) reading; later duplicates are
-                # inflections or homograph variants we cannot disambiguate
-                vocab.setdefault(plain, idx)
+                # store the vowel ORDINAL over the script superset (v2
+                # vocabulary format), not the character index
+                from stressonnx._common import SCRIPT_VOWELS
+                sup = SCRIPT_VOWELS[
+                    "latin" if plain[0].isascii() or lang in ("slv", "lav") else "cyrillic"
+                ]
+                ordinal = sum(1 for c in plain[:idx] if c in sup)
+                vocab.setdefault(plain, ordinal)
                 break
     return vocab, total
 
@@ -146,6 +151,7 @@ def write(lang: str, vocab: dict, out_dir: str):
                 "vowels": meta["vowels"],
                 "oov_rule": meta["oov_rule"],
                 "n_vocab": len(vocab),
+                "vocab_format": "vowel_ordinal_v2",
                 "source": "English Wiktionary via kaikki.org (wiktextract)",
                 "license": "CC BY-SA 4.0 (Wiktionary contributors)",
             },

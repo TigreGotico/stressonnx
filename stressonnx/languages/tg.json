@@ -1,0 +1,12 @@
+{
+  "name": "Tajik",
+  "script": "cyrillic",
+  "rule": "tgk",
+  "hf": {
+    "simple": "tgk"
+  },
+  "sources": [
+    "Perry 2005, A Tajik Persian Reference Grammar §1.6: final stress, izafet -и unstressed"
+  ],
+  "tag": "tg"
+}

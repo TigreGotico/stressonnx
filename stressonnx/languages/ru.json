@@ -1,0 +1,14 @@
+{
+  "name": "Russian",
+  "script": "cyrillic",
+  "rule": "none",
+  "hf": {
+    "simple": "ru_simple",
+    "silero": "ru",
+    "ruaccent": "ru_ruaccent"
+  },
+  "sources": [
+    "East Slavic accentology: stress is lexical/paradigmatic, not positional"
+  ],
+  "tag": "ru"
+}

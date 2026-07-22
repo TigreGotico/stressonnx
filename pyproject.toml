@@ -34,6 +34,7 @@ export = [
 ]
 test = [
     "pytest",
+    "hypothesis",
 ]
 
 [tool.setuptools.dynamic]
@@ -44,4 +45,4 @@ where = ["."]
 include = ["stressonnx*"]
 
 [tool.setuptools.package-data]
-"stressonnx" = ["py.typed"]
+"stressonnx" = ["py.typed", "languages/*.json"]

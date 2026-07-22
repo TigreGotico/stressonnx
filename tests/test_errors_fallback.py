@@ -31,11 +31,11 @@ def test_unsupported_language_names_lang_and_supported():
 def test_fallback_priority_order():
     assert FALLBACK_PRIORITY == ("ruaccent", "silero", "simple")
     assert _fallback_chain("ru") == [
-        ("ruaccent", "ru"), ("silero", "ru"), ("simple", "ru_simple")
+        ("ruaccent", "ru"), ("silero", "ru"), ("simple", "ru")
     ]
-    assert _fallback_chain("ukr") == [("silero", "ukr"), ("simple", "ukr_simple")]
-    assert _fallback_chain("bel") == [("silero", "bel"), ("simple", "bel_simple")]
-    assert _fallback_chain("kaz") == [("simple", "kaz")]
+    assert _fallback_chain("uk") == [("silero", "uk"), ("simple", "uk")]
+    assert _fallback_chain("be") == [("silero", "be"), ("simple", "be")]
+    assert _fallback_chain("kk") == [("simple", "kk")]
     assert _fallback_chain("xx") == []
 
 
@@ -44,7 +44,7 @@ def test_download_failure_propagates_without_fallback(monkeypatch):
         raise OSError("simulated outage")
 
     monkeypatch.setattr(download, "hf_hub_download", _boom)
-    monkeypatch.setattr(stressonnx, "_SINGLETONS", {})
+    stressonnx._SINGLETONS.clear()
     with pytest.raises(ModelDownloadError) as excinfo:
         stress("привет", "ru")
     assert excinfo.value.model_id == "ruaccent"  # user-facing id, not the HF subdir
@@ -60,7 +60,7 @@ def test_fallback_walks_chain_and_warns(monkeypatch, caplog):
         return real(*args, **kwargs)
 
     monkeypatch.setattr(download, "hf_hub_download", _fail_ruaccent)
-    monkeypatch.setattr(stressonnx, "_SINGLETONS", {})
+    stressonnx._SINGLETONS.clear()
     with caplog.at_level(logging.WARNING, logger="stressonnx"):
         result = stress("красивый город", "ru", fallback=True)
     assert result == "краси́вый го́род"
@@ -72,7 +72,7 @@ def test_fallback_exhaustion_raises(monkeypatch):
         raise OSError("simulated outage")
 
     monkeypatch.setattr(download, "hf_hub_download", _boom)
-    monkeypatch.setattr(stressonnx, "_SINGLETONS", {})
+    stressonnx._SINGLETONS.clear()
     with pytest.raises(ModelDownloadError):
         stress("привет", "ru", fallback=True)
 

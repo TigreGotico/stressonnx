@@ -11,16 +11,22 @@ print(stress("привет мир", "ru"))
 # → приве́т мир
 
 # Ukrainian — neural ONNX (silero)
-print(stress("Привіт світ", "ukr"))
+print(stress("Привіт світ", "uk"))
 # → Приві́т сві́т
 
 # Belarusian — neural ONNX (silero)
-print(stress("Прывітанне свет", "bel"))
+print(stress("Прывітанне свет", "be"))
 # → Прывіта́нне све́т
 
 # Kazakh — vocabulary + rules
-print(stress("Сәлем Қазақстан", "kaz"))
+print(stress("Сәлем Қазақстан", "kk"))
 # → Сәле́м Қазақста́н
+
+# --- prefer=: capability instead of a model id --------------------------------
+
+print(stress("красивый город", "ru", prefer="best"))    # ruaccent
+print(stress("красивый город", "ru", prefer="fast"))    # silero
+print(stress("красивый город", "ru", prefer="smallest"))  # simple
 
 # --- notation ----------------------------------------------------------------
 

@@ -43,7 +43,6 @@ from stressonnx.notation import (  # noqa: F401
     _insert_stress,
     _apply_notation,
     _plus_to_diacritic,
-    _apostrophe_to_diacritic,
     _RU_VOWELS_SET,
 )
 from stressonnx.stressor import Stressor, make_stressor  # noqa: F401
@@ -54,7 +53,6 @@ from stressonnx.backends.silero import (  # noqa: F401
     _load_set,
 )
 from stressonnx.backends.simple import SimpleStressor, _load_vocab  # noqa: F401
-from stressonnx.backends.kubataba import _KubatabaStressor  # noqa: F401
 from stressonnx.backends.ruaccent import (  # noqa: F401
     RuAccentStressor,
     _RUACCENT_FILES,

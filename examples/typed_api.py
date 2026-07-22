@@ -21,14 +21,14 @@ from stressonnx import (
 # --- ModelEntry introspection -----------------------------------------------
 
 print("=== Script enum ===")
-print(f"  CYRILLIC = {Script.CYRILLIC!r}  (ru, ukr, bel, kaz, …)")
-print(f"  LATIN    = {Script.LATIN!r}   (aze_lat, uzb_lat)")
-print(f"  ARMENIAN = {Script.ARMENIAN!r}  (hye)")
-print(f"  GEORGIAN = {Script.GEORGIAN!r}  (kat)")
+print(f"  CYRILLIC = {Script.CYRILLIC!r}  (ru, uk, be, kk, …)")
+print(f"  LATIN    = {Script.LATIN!r}   (az-Latn, uz-Latn)")
+print(f"  ARMENIAN = {Script.ARMENIAN!r}  (hy)")
+print(f"  GEORGIAN = {Script.GEORGIAN!r}  (ka)")
 print()
 
 print("=== lang_to_script ===")
-for lang in ("ru", "ukr", "kat", "hye", "aze_lat", "uzb_lat", "kaz"):
+for lang in ("ru", "uk", "ka", "hy", "az-Latn", "uz-Latn", "kk"):
     print(f"  lang_to_script({lang!r:10}) → {lang_to_script(lang).value}")
 print()
 
@@ -43,7 +43,7 @@ for model_id, entry in MODEL_REGISTRY.items():
     print()
 
 print("=== phoonnx guard pattern ===")
-for lang in ("ru", "ukr", "kat"):
+for lang in ("ru", "uk", "ka"):
     model_id = DEFAULT_MODEL[lang]
     entry = MODEL_REGISTRY[model_id]
     script = lang_to_script(lang)
@@ -59,8 +59,8 @@ print(f"  PLUS value:      {StressNotation.PLUS!r}")
 print(f"  str inheritance: {isinstance(StressNotation.PLUS, str)}")
 
 # Backwards compatibility: string literals still work
-result_str = stress("Казан", "tat", notation="plus")
-result_enum = stress("Казан", "tat", notation=StressNotation.PLUS)
+result_str = stress("Казан", "tt", notation="plus")
+result_enum = stress("Казан", "tt", notation=StressNotation.PLUS)
 assert result_str == result_enum
 print(f"  string literal == enum: {result_str!r} == {result_enum!r}  ✓")
 print()
@@ -70,7 +70,7 @@ print()
 print("=== StressorBackend Protocol ===")
 
 # All make_stressor outputs satisfy the Protocol
-for lang in ("kaz", "ukr"):
+for lang in ("kk", "uk"):
     s = make_stressor(lang=lang)
     assert isinstance(s, StressorBackend), f"make_stressor({lang!r}) not a StressorBackend"
     print(f"  make_stressor({lang!r}) → isinstance StressorBackend ✓")
@@ -85,6 +85,6 @@ assert isinstance(custom, StressorBackend)
 print(f"  custom callable → isinstance StressorBackend ✓")
 
 # Stressor class satisfies it
-s = Stressor(lang="kaz")
+s = Stressor(lang="kk")
 assert isinstance(s, StressorBackend)
-print(f"  Stressor(lang='kaz') → isinstance StressorBackend ✓")
+print(f"  Stressor(lang='kk') → isinstance StressorBackend ✓")
