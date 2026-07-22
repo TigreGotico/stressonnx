@@ -1,12 +1,12 @@
 # Changelog
 
-## [Unreleased](https://github.com/TigreGotico/stressonnx/tree/HEAD)
+## [0.0.2a1](https://github.com/TigreGotico/stressonnx/tree/0.0.2a1) (2026-07-22)
 
-[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/3e2de722178b203a56c5701d943d6a88d7879568...HEAD)
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.1...0.0.2a1)
 
 **Merged pull requests:**
 
-- feat: RUAccent homograph-aware Russian backend [\#2](https://github.com/TigreGotico/stressonnx/pull/2) ([JarbasAl](https://github.com/JarbasAl))
+- fix\(ci\): use token-based PyPI publishing instead of OIDC [\#10](https://github.com/TigreGotico/stressonnx/pull/10) ([JarbasAl](https://github.com/JarbasAl))
 
 
 
