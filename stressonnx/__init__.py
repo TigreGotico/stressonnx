@@ -50,6 +50,9 @@ use this to verify compatibility before dispatching text to stressonnx::
 import re as _re
 
 from stressonnx.accentor import (
+    StressonnxError,
+    UnsupportedLanguageError,
+    ModelDownloadError,
     Stressor,
     _SileroStressor,
     _KubatabaStressor,
@@ -114,11 +117,38 @@ def to_plus_notation(text: str) -> str:
     return "".join(result)
 
 
+import logging as _logging
+
+_LOG = _logging.getLogger("stressonnx")
+
+#: Model priority used when ``stress(..., fallback=True)`` walks down after a
+#: download failure: highest-quality first.  ``kubataba`` is deliberately not
+#: in the chain — it is an explicit-opt-in alternative for ``ru``.
+FALLBACK_PRIORITY = ("ruaccent", "silero", "simple")
+
+
+def _fallback_chain(lang: str) -> list:
+    """``(model, lang)`` pairs able to serve *lang*, best first.
+
+    Follows :data:`FALLBACK_PRIORITY`; a ``<lang>_simple`` alias counts as
+    ``simple`` support for *lang* (e.g. ``bel`` falls back to ``bel_simple``).
+    """
+    chain = []
+    for m in FALLBACK_PRIORITY:
+        langs = MODEL_REGISTRY[m].langs
+        if lang in langs:
+            chain.append((m, lang))
+        elif f"{lang}_simple" in langs:
+            chain.append((m, f"{lang}_simple"))
+    return chain
+
+
 def stress(
     text: str,
     lang: str = "ru",
     model: str | None = None,
     notation: str = "diacritic",
+    fallback: bool = False,
 ) -> str:
     """Insert stress marks into *text*.
 
@@ -142,11 +172,25 @@ def stress(
         acute accent placed after the stressed vowel (``"приве́т"``).
         ``"plus"`` returns the legacy ``+``-before-vowel form (``"прив+ет"``),
         e.g. for models trained on that format.
+    fallback:
+        When *True* and the selected model's files cannot be fetched
+        (:class:`ModelDownloadError`), walk down the documented priority
+        chain (:data:`FALLBACK_PRIORITY`, e.g. ``ru``: ruaccent → silero)
+        with a logged warning per hop, raising only when the chain is
+        exhausted.  Default *False*: the error propagates immediately.
 
     Returns
     -------
     str
         Text with stress marks inserted according to *notation*.
+
+    Raises
+    ------
+    UnsupportedLanguageError
+        If *lang* is not supported (also catchable as ``ValueError``).
+    ModelDownloadError
+        If model files cannot be fetched and *fallback* is *False* (or the
+        fallback chain is exhausted).
 
     Examples
     --------
@@ -169,16 +213,39 @@ def stress(
         >>> stress("Сәлем Қазақстан", "kaz", model="simple")
         'Сәле́м Қазақста́н'
     """
-    key = (lang, model)
-    if key not in _SINGLETONS:
-        _SINGLETONS[key] = make_stressor(model=model, lang=lang)
-    result = _SINGLETONS[key](text)
-    return _apply_notation(result, notation)
+    attempts = [(model, lang)]
+    if fallback:
+        attempts += [p for p in _fallback_chain(lang) if p[0] != model]
+        if model is None and len(attempts) > 1:
+            attempts = attempts[1:]  # (None, lang) resolves to the chain head
+
+    last_error = None
+    for try_model, try_lang in attempts:
+        key = (try_lang, try_model)
+        if key not in _SINGLETONS:
+            _SINGLETONS[key] = make_stressor(model=try_model, lang=try_lang)
+        try:
+            result = _SINGLETONS[key](text)
+        except ModelDownloadError as exc:
+            if not fallback:
+                raise
+            last_error = exc
+            _LOG.warning(
+                "Model %r unavailable for lang %r (%s) — falling back.",
+                try_model, try_lang, exc,
+            )
+            continue
+        return _apply_notation(result, notation)
+    raise last_error
 
 
 __all__ = [
     "stress",
     "to_plus_notation",
+    "StressonnxError",
+    "UnsupportedLanguageError",
+    "ModelDownloadError",
+    "FALLBACK_PRIORITY",
     "Stressor",
     "_SileroStressor",
     "_KubatabaStressor",

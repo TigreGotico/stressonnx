@@ -160,8 +160,11 @@ def test_lang_to_script_georgian():
 
 
 def test_lang_to_script_unknown():
-    from stressonnx import lang_to_script
-    with pytest.raises(ValueError, match="Unknown language"):
+    from stressonnx import lang_to_script, UnsupportedLanguageError
+    # ValueError catch must keep working (UnsupportedLanguageError subclasses it)
+    with pytest.raises(ValueError, match="Unsupported language"):
+        lang_to_script("xx")
+    with pytest.raises(UnsupportedLanguageError):
         lang_to_script("xx")
 
 

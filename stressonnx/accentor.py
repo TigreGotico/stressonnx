@@ -54,6 +54,7 @@ vocabulary-only path.
 """
 import gzip
 import json
+import logging
 import os
 import re
 from dataclasses import dataclass
@@ -63,6 +64,50 @@ from typing import Protocol, runtime_checkable
 import numpy as np
 import onnxruntime as ort
 from huggingface_hub import hf_hub_download
+
+LOG = logging.getLogger("stressonnx")
+
+
+# ---------------------------------------------------------------------------
+# Exceptions
+# ---------------------------------------------------------------------------
+
+class StressonnxError(Exception):
+    """Base class for all stressonnx errors."""
+
+
+class UnsupportedLanguageError(StressonnxError, ValueError):
+    """Raised when a language tag is not supported (by the library or a model).
+
+    Subclasses :class:`ValueError` so callers written against the untyped API
+    keep working.
+    """
+
+    def __init__(self, lang: str, supported) -> None:
+        self.lang = lang
+        self.supported = sorted(supported)
+        super().__init__(
+            f"Unsupported language {lang!r}.  Supported: {self.supported}."
+        )
+
+
+class ModelDownloadError(StressonnxError):
+    """Raised when a model file cannot be fetched from the Hugging Face Hub.
+
+    Wraps the underlying ``huggingface_hub`` exception (available as
+    ``__cause__``) and names the exact repo path that failed so the fix is
+    actionable: upload the missing file to ``TigreGotico/stressonnx-models``
+    or pass a different ``model=``.
+    """
+
+    def __init__(self, model_id: str, hf_path: str, cause: Exception) -> None:
+        self.model_id = model_id
+        self.hf_path = hf_path
+        super().__init__(
+            f"Could not fetch {hf_path!r} from {HF_REPO_ID!r} for model "
+            f"{model_id!r} ({cause}).  Check network/HF_HUB_OFFLINE, upload "
+            f"the missing file, or select another model via model=."
+        )
 
 # ---------------------------------------------------------------------------
 # Public data model
@@ -277,9 +322,7 @@ def lang_to_script(lang: str) -> Script:
     try:
         return LANG_SCRIPT[lang]
     except KeyError:
-        raise ValueError(
-            f"Unknown language {lang!r}. Supported: {sorted(LANG_SCRIPT)}"
-        )
+        raise UnsupportedLanguageError(lang, LANG_SCRIPT) from None
 
 
 # Convenience sets — scripts present in each model family
@@ -395,10 +438,7 @@ def make_stressor(
             raise ValueError("At least one of 'model' or 'lang' must be provided.")
         model = DEFAULT_MODEL.get(lang)
         if model is None:
-            all_supported = sorted(DEFAULT_MODEL.keys())
-            raise ValueError(
-                f"Unsupported language {lang!r}.  Supported: {all_supported}."
-            )
+            raise UnsupportedLanguageError(lang, DEFAULT_MODEL)
 
     entry = MODEL_REGISTRY.get(model)
     if entry is None:
@@ -527,26 +567,53 @@ def _softmax(x: np.ndarray) -> np.ndarray:
 # HF download helpers
 # ---------------------------------------------------------------------------
 
-def _download_files(lang: str, cache_dir: str, filenames: list) -> dict:
-    """Download *filenames* for *lang* into *cache_dir*; return {fname: path}."""
-    os.makedirs(cache_dir, exist_ok=True)
+_LEGACY_CACHE = os.path.join(os.path.expanduser("~"), ".local", "share", "stressonnx")
+_legacy_cache_notified = False
+
+
+def _download_files(hf_subdir: str, filenames: list, cache_dir: str | None = None) -> dict:
+    """Resolve model files for one HF subdir; return ``{relative_name: local_path}``.
+
+    This is the single download layer — every backend obtains its files
+    through the returned dict and never constructs model paths itself.
+
+    With ``cache_dir=None`` (the default) files live in the standard Hugging
+    Face cache: ``hf_hub_download`` handles reuse, ``HF_HOME`` relocation and
+    ``HF_HUB_OFFLINE`` semantics, and models are shared with every other HF
+    consumer on the machine.
+
+    With an explicit ``cache_dir`` the invariant is
+    ``local(f) = cache_dir / hf_subdir / f`` — exactly the tree layout of the
+    HF repo, never ``cache_dir/hf_subdir/hf_subdir/f``.  Existing files are
+    returned without touching the network.
+
+    Raises :class:`ModelDownloadError` (chaining the hub exception) when a
+    file cannot be fetched.
+    """
+    global _legacy_cache_notified
+    if cache_dir is None and not _legacy_cache_notified and os.path.isdir(_LEGACY_CACHE):
+        LOG.info(
+            "Models now live in the standard Hugging Face cache; the old "
+            "tree at %s is no longer used and can be deleted.", _LEGACY_CACHE
+        )
+        _legacy_cache_notified = True
+
     paths = {}
     for fname in filenames:
-        local = os.path.join(cache_dir, fname)
-        if os.path.exists(local):
-            paths[fname] = local
-            continue
-        downloaded = hf_hub_download(
-            repo_id=HF_REPO_ID,
-            filename=f"{lang}/{fname}",
-            local_dir=cache_dir,
-        )
-        # hf_hub_download may nest under lang/ — normalise
-        if os.path.basename(downloaded) == fname:
-            actual = downloaded
-        else:
-            actual = os.path.join(cache_dir, lang, fname)
-        paths[fname] = actual
+        hf_path = f"{hf_subdir}/{fname}"
+        if cache_dir is not None:
+            local = os.path.join(cache_dir, hf_subdir, fname)
+            if os.path.exists(local):
+                paths[fname] = local
+                continue
+        try:
+            paths[fname] = hf_hub_download(
+                repo_id=HF_REPO_ID,
+                filename=hf_path,
+                local_dir=cache_dir,
+            )
+        except Exception as exc:
+            raise ModelDownloadError(hf_subdir, hf_path, exc) from exc
     return paths
 
 
@@ -564,21 +631,14 @@ class _SileroStressor:
     lang:
         Language tag: ``"ukr"``, ``"bel"``, or ``"ru"``.
     cache_dir:
-        Override the default cache location
-        (``~/.local/share/stressonnx/<lang>``).
+        Override the model storage directory (default: the standard
+        Hugging Face cache).
     """
 
     def __init__(self, lang: str, cache_dir: str | None = None) -> None:
         if lang not in MAIN_LANGS:
-            raise ValueError(
-                f"_SileroStressor only supports {sorted(MAIN_LANGS)}; got {lang!r}."
-            )
+            raise UnsupportedLanguageError(lang, MAIN_LANGS)
         self.lang = lang
-        if cache_dir is None:
-            base = os.path.join(
-                os.path.expanduser("~"), ".local", "share", "stressonnx"
-            )
-            cache_dir = os.path.join(base, lang)
         self._cache_dir = cache_dir
         self._loaded = False
 
@@ -586,7 +646,7 @@ class _SileroStressor:
     def _ensure_loaded(self) -> None:
         if self._loaded:
             return
-        data = _download_files(self.lang, self._cache_dir, _MAIN_FILES)
+        data = _download_files(self.lang, _MAIN_FILES, self._cache_dir)
 
         with open(data["meta.json"]) as fh:
             meta = json.load(fh)
@@ -912,24 +972,17 @@ class SimpleStressor:
     def __init__(self, lang: str, cache_dir: str | None = None) -> None:
         # Treat "bel" as main accentor; "bel_simple" routes here.
         if lang not in SIMPLE_LANGS:
-            raise ValueError(
-                f"SimpleStressor supports {sorted(SIMPLE_LANGS)}; got {lang!r}."
-            )
+            raise UnsupportedLanguageError(lang, SIMPLE_LANGS)
         self.lang = lang
         # HF artefacts live under the canonical lang name (strip _simple suffix)
         self._hf_lang = lang.removesuffix("_simple") if lang.endswith("_simple") else lang
-        if cache_dir is None:
-            base = os.path.join(
-                os.path.expanduser("~"), ".local", "share", "stressonnx"
-            )
-            cache_dir = os.path.join(base, lang)
         self._cache_dir = cache_dir
         self._loaded = False
 
     def _ensure_loaded(self) -> None:
         if self._loaded:
             return
-        data = _download_files(self._hf_lang, self._cache_dir, _SIMPLE_FILES)
+        data = _download_files(self._hf_lang, _SIMPLE_FILES, self._cache_dir)
 
         with open(data["meta.json"], encoding="utf-8") as fh:
             meta = json.load(fh)
@@ -1182,16 +1235,11 @@ class RuAccentStressor:
     Parameters
     ----------
     cache_dir:
-        Override the default cache location
-        (``~/.local/share/stressonnx/ru_ruaccent``).
+        Override the model storage directory (default: the standard
+        Hugging Face cache).
     """
 
     def __init__(self, cache_dir: str | None = None) -> None:
-        if cache_dir is None:
-            base = os.path.join(
-                os.path.expanduser("~"), ".local", "share", "stressonnx"
-            )
-            cache_dir = os.path.join(base, "ru_ruaccent")
         self._cache_dir = cache_dir
         self._loaded = False
 
@@ -1203,8 +1251,7 @@ class RuAccentStressor:
         if self._loaded:
             return
 
-        cache = self._cache_dir
-        _download_files("ru_ruaccent", cache, _RUACCENT_FILES)
+        data = _download_files("ru_ruaccent", _RUACCENT_FILES, self._cache_dir)
 
         try:
             from tokenizers import Tokenizer as _Tokenizer  # type: ignore
@@ -1216,61 +1263,46 @@ class RuAccentStressor:
 
         # ONNX sessions
         self._omograph_sess = ort.InferenceSession(
-            os.path.join(cache, "nn_omograph", "model.onnx"),
+            data["nn_omograph/model.onnx"],
             providers=["CPUExecutionProvider"],
         )
         self._accent_sess = ort.InferenceSession(
-            os.path.join(cache, "nn_accent", "model.onnx"),
+            data["nn_accent/model.onnx"],
             providers=["CPUExecutionProvider"],
         )
         self._stress_usage_sess = ort.InferenceSession(
-            os.path.join(cache, "nn_stress_usage", "model.onnx"),
+            data["nn_stress_usage/model.onnx"],
             providers=["CPUExecutionProvider"],
         )
         self._yo_hom_sess = ort.InferenceSession(
-            os.path.join(cache, "nn_yo_homograph", "model.onnx"),
+            data["nn_yo_homograph/model.onnx"],
             providers=["CPUExecutionProvider"],
         )
 
         # Tokenizers (no transformers)
-        self._omograph_tok = _Tokenizer.from_file(
-            os.path.join(cache, "nn_omograph", "tokenizer.json")
-        )
-        self._stress_usage_tok = _Tokenizer.from_file(
-            os.path.join(cache, "nn_stress_usage", "tokenizer.json")
-        )
-        self._yo_hom_tok = _Tokenizer.from_file(
-            os.path.join(cache, "nn_yo_homograph", "tokenizer.json")
-        )
+        self._omograph_tok = _Tokenizer.from_file(data["nn_omograph/tokenizer.json"])
+        self._stress_usage_tok = _Tokenizer.from_file(data["nn_stress_usage/tokenizer.json"])
+        self._yo_hom_tok = _Tokenizer.from_file(data["nn_yo_homograph/tokenizer.json"])
 
         # Char vocab for accent model
-        with open(os.path.join(cache, "nn_accent", "vocab.txt"), encoding="utf-8") as fh:
+        with open(data["nn_accent/vocab.txt"], encoding="utf-8") as fh:
             self._char_vocab = {line.rstrip("\n"): i for i, line in enumerate(fh)}
-        with open(os.path.join(cache, "nn_accent", "config.json"), encoding="utf-8") as fh:
+        with open(data["nn_accent/config.json"], encoding="utf-8") as fh:
             self._accent_id2label = json.load(fh)["id2label"]
 
         # Label maps
-        with open(os.path.join(cache, "nn_stress_usage", "config.json"), encoding="utf-8") as fh:
+        with open(data["nn_stress_usage/config.json"], encoding="utf-8") as fh:
             self._stress_id2label = json.load(fh)["id2label"]
-        with open(os.path.join(cache, "nn_yo_homograph", "config.json"), encoding="utf-8") as fh:
+        with open(data["nn_yo_homograph/config.json"], encoding="utf-8") as fh:
             self._yo_id2label = json.load(fh)["id2label"]
 
         # Dictionaries
-        import gzip as _gzip
-        self._omographs: dict = json.load(
-            _gzip.open(os.path.join(cache, "dictionary", "omographs.json.gz"))
-        )
+        self._omographs: dict = json.load(gzip.open(data["dictionary/omographs.json.gz"]))
         # Extra entry matching RUAccent's hardcoded update
         self._omographs["коса"] = ["к+оса", "кос+а"]
-        self._yo_words: dict = json.load(
-            _gzip.open(os.path.join(cache, "dictionary", "yo_words.json.gz"))
-        )
-        self._yo_homographs: dict = json.load(
-            _gzip.open(os.path.join(cache, "dictionary", "yo_homographs.json.gz"))
-        )
-        self._accents: dict = json.load(
-            _gzip.open(os.path.join(cache, "dictionary", "accents_nn.json.gz"))
-        )
+        self._yo_words: dict = json.load(gzip.open(data["dictionary/yo_words.json.gz"]))
+        self._yo_homographs: dict = json.load(gzip.open(data["dictionary/yo_homographs.json.gz"]))
+        self._accents: dict = json.load(gzip.open(data["dictionary/accents_nn.json.gz"]))
         # Single-vowel mappings from RUAccent
         self._accents.update({"о": "+о", "О": "+О"})
 
@@ -1473,23 +1505,20 @@ class _KubatabaStressor:
     Parameters
     ----------
     cache_dir:
-        Override the default cache location
-        (``~/.local/share/stressonnx/ru_kubataba``).
+        Override the model storage directory (default: the standard
+        Hugging Face cache).
     """
 
     _MAX_LEN = 256
 
     def __init__(self, cache_dir: str | None = None) -> None:
-        if cache_dir is None:
-            base = os.path.join(os.path.expanduser("~"), ".local", "share", "stressonnx")
-            cache_dir = os.path.join(base, "ru_kubataba")
         self._cache_dir = cache_dir
         self._loaded = False
 
     def _ensure_loaded(self) -> None:
         if self._loaded:
             return
-        data = _download_files("ru_kubataba", self._cache_dir, _KUBATABA_FILES)
+        data = _download_files("ru_kubataba", _KUBATABA_FILES, self._cache_dir)
         self._enc_sess = ort.InferenceSession(
             data["encoder.onnx"], providers=["CPUExecutionProvider"]
         )
