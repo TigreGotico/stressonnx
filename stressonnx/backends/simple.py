@@ -62,7 +62,12 @@ class SimpleStressor:
 
         self._vocab: dict = _load_vocab(data["vocab.gz"])
         self._vowels: str = meta["vowels"]
-        self._oov_rule: str = meta.get("oov_rule", _OOV_RULES.get(self.lang, "last"))
+        # The local rule table wins over meta.json: several languages carry
+        # linguistically refined rules (see _accentuate_oov) that the exported
+        # metadata predates.
+        self._oov_rule: str = _OOV_RULES.get(
+            self.lang, meta.get("oov_rule", "last")
+        )
 
         alpha = meta["alpha"]
         alpha_set = "".join(sorted(set(alpha + alpha.upper())))
@@ -98,7 +103,52 @@ class SimpleStressor:
         return _insert_stress(raw_word, self._vocab[clean_word])
 
     def _accentuate_oov(self, raw_word: str) -> str:
-        vowel_ids = [i for i, c in enumerate(raw_word.lower()) if c in self._vowels]
+        """Stress an out-of-vocabulary word by the language's positional rule.
+
+        Each named rule is grounded in the descriptive literature and scored
+        against the language's own vocabulary in
+        ``benchmarks/oov_rules_eval.py`` (accuracy on multi-vowel words):
+
+        ``last`` / ``first`` / ``none``
+            Final-syllable stress (Turkic default: Kirchner 1998, Poppe 1964
+            via Schiering & van der Hulst 2010, "Word accent systems in the
+            languages of Asia"), initial-syllable stress (Mordvinic: "in both
+            languages the stress most commonly falls on the first syllable",
+            Hamari & Ajanki 2022, The Oxford Guide to the Uralic Languages
+            §23.2.3), and no mark (Belarusian: stress is free and lexically
+            governed, not positionally predictable — "nominal stress in
+            Ukrainian, Russian, and Belarusian … seems to be unpredictable").
+        ``chv`` (0.60 → 0.94)
+            "Stress falls on the last syllable with a full vowel, else on the
+            first syllable" — the reduced vowels ӑ/ӗ never carry stress
+            (Clark 1998: 435-436 and Krueger 1961 via Schiering & van der
+            Hulst 2010; independently Dobrovolsky 1999, ICPhS: "If a word has
+            only reduced vowels, stress falls on the first vowel").
+        ``kat`` (0.46 → 1.00)
+            Antepenultimate vowel, initial for shorter words (Akhvlediani
+            1949, Gudava 1969, Aronson 1990).  Georgian stress is weak and
+            contested — Borise 2020 argues fixed initial — but this is the
+            tradition the curated vocabulary follows exactly.
+        ``hye`` (0.74 → 0.78)
+            "Stress occurs within the last non-schwa syllable" (Chakmakjian
+            2024, Speech Prosody) — the schwa ը never carries stress.
+        ``tgk`` (0.45 → 0.74)
+            Final syllable, but unstressed word-final ``-и`` — the izafet
+            enclitic; Perry 2005 (A Tajik Persian Reference Grammar): long ӣ
+            "distinguish[es] accented word-final -i from unstressed final -i,
+            which occurs only … as the syntactic izofat enclitic".
+        ``mdf`` (0.72 → 0.76)
+            First syllable; "stress is often assigned to a non-initial
+            syllable if it contains /a/ (or /æ/) and if there is a high vowel
+            (/i/ or /u/) in the initial syllable" (Hamari & Ajanki 2022).
+        ``kbd`` (0.32 → 0.40)
+            Final syllable, except words ending in the schwa letter э, which
+            stress the penult (Jaimoukha, Grammar of the Kabardian-Cherkess
+            Language; consistent with Colarusso 1992's final-stress default).
+            Low-confidence: sources are paraphrase-level only.
+        """
+        lower = raw_word.lower()
+        vowel_ids = [i for i, c in enumerate(lower) if c in self._vowels]
         if not vowel_ids:
             return raw_word
         rule = self._oov_rule
@@ -110,11 +160,29 @@ class SimpleStressor:
             idx = vowel_ids[0]
         elif rule == "none":
             return raw_word
+        elif rule == "chv":
+            idx = next(
+                (i for i in reversed(vowel_ids) if lower[i] not in "ӑӗ"),
+                vowel_ids[0],
+            )
         elif rule == "kat":
-            if len(vowel_ids) <= 3:
-                idx = vowel_ids[0]
-            else:
+            idx = vowel_ids[-3] if len(vowel_ids) >= 3 else vowel_ids[0]
+        elif rule == "hye":
+            idx = next(
+                (i for i in reversed(vowel_ids) if lower[i] != "ը"),
+                vowel_ids[0],
+            )
+        elif rule == "tgk":
+            if lower[vowel_ids[-1]] == "и" and vowel_ids[-1] == len(lower) - 1:
                 idx = vowel_ids[-2]
+            else:
+                idx = vowel_ids[-1]
+        elif rule == "mdf":
+            idx = vowel_ids[0]
+            if lower[idx] in "иу":
+                idx = next((i for i in vowel_ids[1:] if lower[i] in "ая"), idx)
+        elif rule == "kbd":
+            idx = vowel_ids[-2] if lower.endswith("э") else vowel_ids[-1]
         else:
             idx = vowel_ids[-1]
         return raw_word[:idx + 1] + STRESS_TOKEN + raw_word[idx + 1:]

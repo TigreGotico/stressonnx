@@ -160,7 +160,7 @@ def test_bel_sentence():
 def test_simple_language_sentences():
     assert stress("Мин татарча сөйләшәм", "tat") == "Ми́н тата́рча сөйләшә́м"
     assert stress("Салом дунё", "tgk") == "Сало́м дунё́"
-    assert stress("გამარჯობა მეგობრებო", "kat") == "გამარჯო́ბა მეგო́ბრებო"
+    assert stress("გამარჯობა მეგობრებო", "kat") == "გამა́რჯობა მეგო́ბრებო"
 
 
 def test_wrong_script_input_left_untouched():

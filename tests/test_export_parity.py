@@ -12,7 +12,11 @@ def test_stress_simple_matches_silero():
     sample = {
         "kaz": "Сәлем Қазақстан",
         "tat": "Сәлам Казан",
-        "kat": "გამარჯობა თბილისი",
+        # kat is deliberately absent: for OOV words stressonnx applies the
+        # antepenultimate rule (Akhvlediani/Gudava/Aronson), which the
+        # upstream vocabulary itself follows on 100% of its entries, while
+        # upstream's own OOV fallback contradicts its vocabulary on 55% of
+        # them — see tests/test_oov_rules.py and benchmarks/oov_rules_eval.py.
         "hye": "Բարեւ Երեւան",
         "aze_lat": "Salam Bakı",
         "uzb_lat": "Salom Toshkent",

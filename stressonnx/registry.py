@@ -295,14 +295,17 @@ for _lang in SIMPLE_LANGS:
 # "first" → first vowel
 # "none"  → skip (return unchanged)
 # "kat"   → ≤3 vowels → first, else penultimate
+# Per-language OOV stress rule, applied by SimpleStressor._accentuate_oov —
+# see its docstring for the linguistic sources and measured accuracy of each
+# named rule.  This table takes precedence over the exported meta.json.
 _OOV_RULES = {
     "aze_cyr": "last", "aze_lat": "last",
     "uzb_cyr": "last", "uzb_lat": "last",
     "bak": "last", "bel": "none", "bel_simple": "none",
-    "chv": "last", "erz": "first",
-    "hye": "last", "kat": "kat",
-    "kaz": "last", "kbd": "last", "kir": "last",
-    "kjh": "last", "mdf": "first",
-    "sah": "last", "tat": "last", "tgk": "last",
+    "chv": "chv", "erz": "first",
+    "hye": "hye", "kat": "kat",
+    "kaz": "last", "kbd": "kbd", "kir": "last",
+    "kjh": "last", "mdf": "mdf",
+    "sah": "last", "tat": "last", "tgk": "tgk",
     "udm": "last", "xal": "last",
 }
