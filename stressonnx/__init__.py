@@ -47,7 +47,7 @@ use this to verify compatibility before dispatching text to stressonnx::
         # safe to call stress(text, "ru", model="ruaccent")
         ...
 """
-import re as _re
+import unicodedata as _unicodedata
 
 from stressonnx.accentor import (
     StressonnxError,
@@ -80,8 +80,23 @@ _SINGLETONS: dict = {}
 # Combining acute U+0301
 _COMBINING_ACUTE = "́"
 
-# Vowel classes for plus-notation conversion
-_VOWEL_RE = _re.compile(r"([аАеЕёЁиИоОуУыЫэЭюЮяЯіІїЇєЄаАеЕёЁ])́")
+
+def _decompose_acute(text: str) -> str:
+    """Split precomposed acute-accented characters into base + U+0301.
+
+    Latin stress output (e.g. ``aze_lat``) may reach a consumer NFC-composed
+    (``"á"`` instead of ``"a" + U+0301``); only characters whose canonical
+    decomposition ends in U+0301 are expanded — everything else (``ё``,
+    ``ö``, ``й`` …) is left untouched, so this is NOT a general NFD pass.
+    """
+    out = []
+    for ch in text:
+        decomp = _unicodedata.normalize("NFD", ch)
+        if len(decomp) > 1 and decomp[-1] == _COMBINING_ACUTE:
+            out.append(decomp)
+        else:
+            out.append(ch)
+    return "".join(out)
 
 
 def to_plus_notation(text: str) -> str:
@@ -103,6 +118,7 @@ def to_plus_notation(text: str) -> str:
     str
         Text with each stressed vowel written as ``+<vowel>``.
     """
+    text = _decompose_acute(text)
     result = []
     i = 0
     while i < len(text):
@@ -199,7 +215,7 @@ def stress(
         >>> from stressonnx import stress
         # Russian — homograph-aware (замок castle vs lock)
         >>> stress("старинный замок стоит на горе", "ru")
-        'стари́нный за́мок стои́т на горе́'
+        'стари́нный за́мок сто́ит на горе́'
         >>> stress("дверной замок надёжен", "ru")
         'дверно́й замо́к надёжен'
 

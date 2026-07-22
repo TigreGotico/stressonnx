@@ -38,7 +38,7 @@ Three families
     4. Decode: exceptions dict → skip sets → argmax position → insert '+'.
 
 ``simple_accentor`` (model id ``"simple"``, languages ``aze_cyr``,
-    ``aze_lat``, ``uzb_cyr``, ``uzb_lat``, ``bak``, ``bel``, ``chv``,
+    ``aze_lat``, ``uzb_cyr``, ``uzb_lat``, ``bak``, ``bel_simple``, ``chv``,
     ``erz``, ``hye``, ``kat``, ``kaz``, ``kbd``, ``kir``, ``kjh``, ``mdf``,
     ``sah``, ``tat``, ``tgk``, ``udm``, ``xal``):
     Vocabulary + rule-based pipeline.
@@ -231,6 +231,23 @@ _SIMPLE_FILES = [
 ]
 
 STRESS_TOKEN = "́"  # combining acute accent — placed AFTER the stressed vowel
+
+
+def _insert_stress(raw_word: str, idx: int, vowels: str | None = None) -> str:
+    """Insert :data:`STRESS_TOKEN` after ``raw_word[idx]``, defensively.
+
+    Dictionaries store character indices; an out-of-range entry degrades to
+    "no mark" instead of raising or wrapping around.  When *vowels* is given
+    the indexed character must be one of them; pass *None* for curated
+    vocabularies that legitimately contain loanwords with vowels outside the
+    language's core set (e.g. aze_cyr ``дюнья́``).
+    """
+    if 0 <= idx < len(raw_word) and (vowels is None or raw_word[idx].lower() in vowels):
+        return raw_word[: idx + 1] + STRESS_TOKEN + raw_word[idx + 1:]
+    LOG.debug(
+        "stress index %d not usable in %r — left unstressed", idx, raw_word
+    )
+    return raw_word
 
 # ---------------------------------------------------------------------------
 # Language routing tables
@@ -513,8 +530,22 @@ _OOV_RULES = {
 
 # Russian-specific vowel set used for the full accentuate pipeline.
 _RU_VOWELS = "аоуыэиеяёю"
-_RE_RU_SPLIT = re.compile(r"([\s.,!?;:<>=()/\\]+)")
+
+# Word-boundary characters shared by every tokenizing backend.  Extends the
+# upstream silero_stress set (\s.,!?;:<>=()/\\) with typographic punctuation
+# and digits so that glued tokens («дом», текст—текст, дом5) are split into a
+# clean word plus punctuation instead of falling through to OOV handling.
+# Apostrophes are deliberately NOT boundaries: ' is part of the aze_lat /
+# uzb_lat alphabets and ’ of the bel alphabet.
+_RE_SPLIT = re.compile(r'([\s.,!?;:<>=()/\\«»„“”"…—–%№*@\[\]{}0-9]+)')
 _RE_RU_COND = re.compile(r"[^А-Яа-яёЁ]")
+
+# Russian hyphenated enclitic particles that never carry word stress
+# (кто́-то, како́й-нибудь, кто́-либо, пришёл-таки, скажи́-ка) — the part after
+# the hyphen is masked out of stress prediction.  See e.g. Русская
+# грамматика (АН СССР, 1980) §§ on particles; matches upstream silero_stress
+# behavior for "-то" and extends it to the remaining standard clitics.
+_UNSTRESSED_HYPHEN_CLITICS = frozenset({"то", "нибудь", "либо", "таки", "ка"})
 
 
 # ---------------------------------------------------------------------------
@@ -687,14 +718,16 @@ class _SileroStressor:
     @staticmethod
     def _tokenize_ru(sentence: str):
         tokens, model_inputs, prediction_mask = [], [], []
-        for word in _RE_RU_SPLIT.split(sentence):
+        for word in _RE_SPLIT.split(sentence):
             parts = word.split("-")
             if len(parts) == 1:
                 cur_tokens = parts
                 cur_pred_mask = [True]
             else:
                 cur_tokens = [p + "-" for p in parts[:-1]] + [parts[-1]]
-                cur_pred_mask = [True for _ in parts[:-1]] + [parts[-1] != "то"]
+                cur_pred_mask = [True for _ in parts[:-1]] + [
+                    parts[-1] not in _UNSTRESSED_HYPHEN_CLITICS
+                ]
             cur_inputs = [_RE_RU_COND.sub("", t.lower()) for t in cur_tokens]
             cur_pred_mask = [
                 (len(x) > 0) and bool(m)
@@ -707,7 +740,7 @@ class _SileroStressor:
 
     def _tokenize_simple(self, sentence: str):
         tokens, model_inputs, prediction_mask = [], [], []
-        for word in re.split(r"([\s.,!?;:<>=()/\\]+)", sentence):
+        for word in _RE_SPLIT.split(sentence):
             parts = word.split("-")
             if len(parts) == 1:
                 cur_tokens = parts
@@ -818,13 +851,18 @@ class _SileroStressor:
 
     def _accentuate_exception(self, clean_word: str, raw_word: str) -> str:
         exc_stress, exc_yo = self._exceptions[clean_word]
-        if self._has_yo and exc_yo != -1:
+        if (
+            self._has_yo
+            and exc_yo != -1
+            and 0 <= exc_yo < len(raw_word)
+            and raw_word[exc_yo].lower() == "е"
+        ):
             raw_word = (
                 raw_word[:exc_yo]
                 + ("ё" if raw_word[exc_yo].islower() else "Ё")
                 + raw_word[exc_yo + 1:]
             )
-        return raw_word[:exc_stress + 1] + STRESS_TOKEN + raw_word[exc_stress + 1:]
+        return _insert_stress(raw_word, exc_stress, self._vowels)
 
     # ------------------------------------------------------------------
     # Main entry point
@@ -832,7 +870,91 @@ class _SileroStressor:
 
     def __call__(self, sentence: str) -> str:
         self._ensure_loaded()
+        if self._has_yo:
+            return self._process_yo_lang(sentence)
         return self._process_ukr_bel(sentence)
+
+    def _process_yo_lang(self, sentence: str) -> str:
+        """Decode path for languages with е→ё restoration (``ru``).
+
+        Port of silero_stress's ``Accentor.__call__`` (default flags), with
+        the stress mark adapted from ``+``-before-vowel to combining acute
+        after the vowel.  In Russian orthography ``ё`` is always stressed, so
+        a word that already contains ``ё`` is stressed on it directly, and
+        the model's yo prediction is only applied when it agrees with the
+        predicted stress position.
+        """
+        raw_tokens, clean_tokens, prediction_mask = self._tokenize(sentence)
+        stress_preds, stress_probs, yo_preds, yo_probs = self._predict(clean_tokens)
+
+        out = []
+        for wi, (raw_word, clean_word, need) in enumerate(
+            zip(raw_tokens, clean_tokens, prediction_mask)
+        ):
+            if not need:
+                out.append(raw_word)
+                continue
+
+            raw_lower = raw_word.lower()
+            have_stress = STRESS_TOKEN in raw_word
+            if have_stress:
+                out.append(raw_word)
+                continue
+
+            # skip/yo dictionaries are keyed on the е-spelling
+            base_word = clean_word.replace("ё", "е")
+
+            if "ё" in raw_lower:
+                # ё is inherently stressed — mark each ё the input already has
+                if base_word in self._skip_stress:
+                    out.append(raw_word)
+                    continue
+                yo_char_pos = [i for i, c in enumerate(raw_lower) if c == "ё"]
+                for i, p in enumerate(yo_char_pos):
+                    raw_word = raw_word[: p + i + 1] + STRESS_TOKEN + raw_word[p + i + 1:]
+                out.append(raw_word)
+                continue
+
+            if clean_word in self._exceptions:
+                out.append(self._accentuate_exception(clean_word, raw_word))
+                continue
+
+            stressed_vowel_ids = [int(stress_preds[wi])]
+            set_stress = (
+                stress_probs[wi] > 0.5 and base_word not in self._skip_stress
+            )
+            yo_vowel_ids = [int(yo_preds[wi])]
+            set_yo = yo_probs[wi] > 0.5 and base_word not in self._skip_yo
+
+            stress_positions, yo_positions, num_vowels, first_vowel_pos = (
+                self._get_positions(raw_lower, stressed_vowel_ids, yo_vowel_ids)
+            )
+
+            if num_vowels == 0:
+                out.append(raw_word)
+                continue
+
+            # е→ё restoration: only where the yo prediction lands on the
+            # predicted stress position (ё must carry the stress)
+            if set_yo:
+                for yo_pos in yo_positions:
+                    if yo_pos in stress_positions and raw_lower[yo_pos] == "е":
+                        raw_word = (
+                            raw_word[:yo_pos]
+                            + ("ё" if raw_word[yo_pos].islower() else "Ё")
+                            + raw_word[yo_pos + 1:]
+                        )
+
+            if num_vowels == 1:
+                stress_positions = [first_vowel_pos]
+                set_stress = True
+
+            if set_stress:
+                for i, sp in enumerate(stress_positions):
+                    raw_word = raw_word[: sp + i + 1] + STRESS_TOKEN + raw_word[sp + i + 1:]
+
+            out.append(raw_word)
+        return "".join(out)
 
     def _process_ukr_bel(self, sentence: str) -> str:
         """Decode path for ukr / bel (no yo logic)."""
@@ -917,7 +1039,7 @@ class Stressor:
     --------
     >>> s = Stressor(lang="ru")                # default: ruaccent
     >>> s("старинный замок стоит на горе")
-    'стари́нный за́мок стои́т на горе́'
+    'стари́нный за́мок сто́ит на горе́'
 
     >>> s = Stressor(model="silero", lang="ukr")
     >>> s("Привіт світ")
@@ -1001,7 +1123,7 @@ class SimpleStressor:
 
     def _tokenize(self, sentence: str):
         tokens, model_inputs, prediction_mask = [], [], []
-        for word in re.split(r"([\s.,!?;:<>=()/\\]+)", sentence):
+        for word in _RE_SPLIT.split(sentence):
             parts = word.split("-")
             if len(parts) == 1:
                 cur_tokens = parts
@@ -1020,8 +1142,9 @@ class SimpleStressor:
         return tokens, model_inputs, prediction_mask
 
     def _accentuate_vocab(self, clean_word: str, raw_word: str) -> str:
-        idx = self._vocab[clean_word]
-        return raw_word[:idx + 1] + STRESS_TOKEN + raw_word[idx + 1:]
+        # vowels=None: the curated vocab may stress loanword vowels outside
+        # the language's core set (e.g. ю/я in aze_cyr дюнья́)
+        return _insert_stress(raw_word, self._vocab[clean_word])
 
     def _accentuate_oov(self, raw_word: str) -> str:
         vowel_ids = [i for i, c in enumerate(raw_word.lower()) if c in self._vowels]
@@ -1360,8 +1483,16 @@ class RuAccentStressor:
         for i, (label_id, score) in enumerate(
             zip(logits.argmax(axis=-1), probs.max(axis=-1))
         ):
+            # position 0 is BOS and position len(word)+1 is EOS — a stress
+            # label there must not wrap around onto a real character
+            if not 0 < i <= len(result):
+                continue
             label = self._accent_id2label[str(int(label_id))]
-            if label not in ("NO", "STRESS_SECONDARY") and score >= 0.55:
+            if (
+                label not in ("NO", "STRESS_SECONDARY")
+                and score >= 0.55
+                and lower[i - 1] in _RU_VOWELS
+            ):
                 result[i - 1] = result[i - 1] + STRESS_TOKEN
         return "".join(result)
 
@@ -1422,6 +1553,14 @@ class RuAccentStressor:
         for i, word in enumerate(words):
             if STRESS_TOKEN in word:
                 continue
+            # кто́-то, что́-либо, пришёл-таки: the post-hyphen enclitic
+            # particle never carries word stress
+            if (
+                word.lower() in _UNSTRESSED_HYPHEN_CLITICS
+                and i > 0
+                and words[i - 1] == "-"
+            ):
+                continue
             if i < len(stress_usages) and stress_usages[i] == "STRESS":
                 lower = word.lower()
                 stressed = self._accents.get(lower, lower)
@@ -1441,7 +1580,11 @@ class RuAccentStressor:
                     # Apply insertions in reverse order to keep indices stable.
                     for j, m in reversed(list(enumerate(matches))):
                         vowel_idx = m.start() - j  # position in original word
-                        result_chars.insert(vowel_idx + 1, STRESS_TOKEN)
+                        if (
+                            0 <= vowel_idx < len(word)
+                            and word[vowel_idx].lower() in _RU_VOWELS
+                        ):
+                            result_chars.insert(vowel_idx + 1, STRESS_TOKEN)
                     words[i] = "".join(result_chars)
         return words
 
@@ -1565,4 +1708,7 @@ class _KubatabaStressor:
 
     def __call__(self, text: str) -> str:
         self._ensure_loaded()
-        return self._accent_text(text)
+        # Re-derive semantics: existing marks are stripped (the char-level
+        # model has no vocab entry for U+0301 and would emit garbage), then
+        # stress is predicted from scratch — same contract as RuAccentStressor.
+        return self._accent_text(text.replace(STRESS_TOKEN, ""))
