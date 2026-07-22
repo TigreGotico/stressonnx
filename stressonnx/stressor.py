@@ -3,7 +3,6 @@ from stressonnx.backends import RuAccentStressor, _SileroStressor, SimpleStresso
 from stressonnx.notation import _apply_notation
 from stressonnx.registry import DEFAULT_MODEL, MODEL_REGISTRY, StressNotation
 from stressonnx.errors import UnsupportedLanguageError
-from stressonnx.langs import canonicalize_lang
 
 
 def make_stressor(
@@ -38,10 +37,6 @@ def make_stressor(
     ValueError
         If the combination of *model* and *lang* is unsupported.
     """
-    if lang is not None:
-        lang, forced = canonicalize_lang(lang)
-        if model is None:
-            model = forced  # a legacy *_simple tag forces the simple model
     if model is None:
         if lang is None:
             raise ValueError("At least one of 'model' or 'lang' must be provided.")
@@ -100,7 +95,7 @@ class Stressor:
     notation:
         Output notation.  ``"diacritic"`` (default) places the combining
         acute accent (U+0301) after each stressed vowel (``"приве́т"``).
-        ``"plus"`` emits the legacy ``+``-before-vowel form (``"прив+ет"``).
+        ``"plus"`` emits the ``+``-before-vowel form (``"прив+ет"``).
 
     Examples
     --------
@@ -125,15 +120,10 @@ class Stressor:
         notation: str = "diacritic",
         fallback: bool = False,
     ) -> None:
-        canonical = lang
-        if lang is not None:
-            canonical, forced = canonicalize_lang(lang)
-            if model is None:
-                model = forced
         self._backend = make_stressor(model=model, lang=lang, cache_dir=cache_dir)
         # Expose for inspection
-        self.lang = getattr(self._backend, "lang", canonical)
-        self.model = model or DEFAULT_MODEL.get(canonical or "")
+        self.lang = getattr(self._backend, "lang", lang)
+        self.model = model or DEFAULT_MODEL.get(lang or "")
         self.fallback = fallback
         try:
             self.notation = StressNotation(notation)

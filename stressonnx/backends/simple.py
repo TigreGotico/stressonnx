@@ -20,7 +20,6 @@ from stressonnx._common import SCRIPT_VOWELS, lower_preserving_length, tokenize
 from stressonnx.download import LOG, _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError, UnsupportedLanguageError
 from stressonnx.notation import STRESS_TOKEN, _insert_stress
-from stressonnx.langs import canonicalize_lang
 from stressonnx.registry import LANGUAGES, SIMPLE_LANGS, _OOV_RULES, _SIMPLE_FILES, hf_dir
 
 
@@ -95,13 +94,12 @@ def _rule_chv(word: str, vowels: list) -> Optional[int]:
 def _rule_antepenult(word: str, vowels: list) -> Optional[int]:
     """Antepenultimate vowel, initial for shorter words.
 
-    Georgian (rule name ``kat``): Akhvlediani 1949, Gudava 1969, Aronson
-    1990 — the tradition the curated vocabulary follows exactly (Georgian
-    stress is weak and contested; Borise 2020 argues fixed initial).
-    Macedonian (rule name ``antepenult``): fixed antepenultimate stress,
-    first syllable in shorter words (Friedman 2001, "Macedonian"); words
-    with exceptional stress are in the vocabulary, which is exactly the set
-    Wiktionary marks with an explicit accent."""
+    Georgian: Akhvlediani 1949, Gudava 1969, Aronson 1990 — the tradition
+    the curated vocabulary follows exactly (Georgian stress is weak and
+    contested; Borise 2020 argues fixed initial).  Macedonian: fixed
+    antepenultimate stress, first syllable in shorter words (Friedman 2001,
+    "Macedonian"); words with exceptional stress are in the vocabulary,
+    which is exactly the set Wiktionary marks with an explicit accent."""
     return vowels[-3] if len(vowels) >= 3 else vowels[0]
 
 
@@ -178,7 +176,6 @@ OOV_RULES: dict = {
     "first": _rule_first,
     "none": _rule_none,
     "chv": _rule_chv,
-    "kat": _rule_antepenult,
     "antepenult": _rule_antepenult,
     "hye": _rule_hye,
     "tgk": _rule_tgk,
@@ -204,7 +201,6 @@ class SimpleStressor:
     """
 
     def __init__(self, lang: str, cache_dir: str | None = None) -> None:
-        lang, _ = canonicalize_lang(lang)
         if lang not in SIMPLE_LANGS:
             raise UnsupportedLanguageError(lang, SIMPLE_LANGS)
         self.lang = lang

@@ -343,7 +343,7 @@ index, so the vocabulary survives casing and digraph differences that would
 shift a character offset.  `meta.json` records `"vocab_format":
 "vowel_ordinal_v2"`.  See `export/ADDING_A_LANGUAGE.md` for the full format
 and `export/convert_vocabs_to_ordinals.py` for the converter from the
-historical character-index format.
+character-index encoding.
 
 **Wiktionary / dictionary languages.**  Several languages are
 vocabulary-first additions with no upstream neural model: Bulgarian (`bg`),

@@ -16,7 +16,6 @@ import time
 from dataclasses import dataclass
 
 from stressonnx.errors import ModelDownloadError, ModelLoadError
-from stressonnx.langs import canonicalize_lang
 from stressonnx.notation import STRESS_TOKEN, _apply_notation
 from stressonnx.registry import DEFAULT_MODEL, MODEL_REGISTRY
 from stressonnx.stressor import make_stressor
@@ -127,9 +126,6 @@ class StressPipeline:
     # ------------------------------------------------------------------
 
     def _resolve(self, lang: str, model: str | None, prefer: str | None):
-        lang, forced = canonicalize_lang(lang)
-        if model is None:
-            model = forced
         if model is None and prefer is not None:
             try:
                 order = _PREFER_ORDERS[prefer]

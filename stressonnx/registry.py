@@ -39,11 +39,11 @@ class StressNotation(str, Enum):
     vowel — ``"приве́т"``.  Standard Unicode; compatible with
     ``russian_text_stresser`` and Chatterbox-Multilingual.
 
-    ``PLUS``: legacy ``+``-before-vowel form — ``"прив+ет"``.  Used by some
-    TTS models trained on that format.
+    ``PLUS``: ``+``-before-vowel form — ``"прив+ет"``.  Used by some TTS
+    models trained on that format.
 
-    Inherits :class:`str` so string literals ``"diacritic"`` / ``"plus"`` are
-    accepted wherever :class:`StressNotation` is expected (backwards-compat).
+    Inherits :class:`str` so plain string literals ``"diacritic"`` /
+    ``"plus"`` are accepted wherever :class:`StressNotation` is expected.
     """
 
     DIACRITIC = "diacritic"
@@ -103,13 +103,6 @@ HF_REPO_ID = "TigreGotico/stressonnx-models"
 #: models are uploaded (see export/ADDING_A_LANGUAGE.md).
 HF_REPO_REVISION = "b8ba7afdb78534afa1a7f4794b98d019c3866aef"
 
-# Files for kubataba family
-_KUBATABA_FILES = [
-    "encoder.onnx",
-    "decoder_step.onnx",
-    "vocab.json",
-]
-
 # Files for main_accentor family
 _MAIN_FILES = [
     "accentor.onnx",
@@ -130,7 +123,7 @@ _SIMPLE_FILES = [
 # ---------------------------------------------------------------------------
 # Language routing tables — built from stressonnx/languages/*.json
 # ---------------------------------------------------------------------------
-from stressonnx.langs import LEGACY_ALIASES, canonicalize_lang, load_languages
+from stressonnx.langs import load_languages
 
 LANGUAGES = load_languages()
 
@@ -159,10 +152,6 @@ def hf_dir(lang: str, family: str) -> str:
 LANG_SCRIPT: dict[str, Script] = {
     tag: Script(spec["script"]) for tag, spec in LANGUAGES.items()
 }
-# historical tags resolve to the same scripts
-LANG_SCRIPT.update({
-    old: LANG_SCRIPT[new] for old, (new, _model) in LEGACY_ALIASES.items()
-})
 
 
 def lang_to_script(lang: str) -> Script:
@@ -245,11 +234,8 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
     ),
 }
 
-#: Default model-id for each language tag.
-#:
-#: Languages that appear in multiple families (``bel``) map to their
-#: highest-quality (neural) model.  Access the alternative with
-#: ``model="simple"`` or the ``bel_simple`` alias.
+#: Default model-id for each language tag: the highest-quality model that
+#: serves the language (ruaccent > silero > simple).
 DEFAULT_MODEL: dict = {}
 # Build defaults: RUACCENT_LANGS → ruaccent, MAIN_LANGS → silero,
 # SIMPLE_LANGS → simple (do not overwrite a higher-priority entry).
@@ -270,6 +256,5 @@ for _lang in SIMPLE_LANGS:
 # "kat"   → ≤3 vowels → first, else penultimate
 # Per-language OOV stress rule, from the language data files — see
 # SimpleStressor._accentuate_oov for the rule implementations and
-# benchmarks/RESULTS.md for measured accuracy.  Historical tags included.
+# benchmarks/RESULTS.md for measured accuracy.
 _OOV_RULES = {tag: spec["rule"] for tag, spec in LANGUAGES.items()}
-_OOV_RULES.update({old: _OOV_RULES[new] for old, (new, _m) in LEGACY_ALIASES.items()})

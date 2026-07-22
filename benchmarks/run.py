@@ -44,7 +44,6 @@ TARGETS = [
     ("be", "be", ["silero", "simple"]),
 ]
 
-KUBATABA_CAP = 0  # retained for resume-compat; kubataba is retired
 
 
 def fetch_gold(code: str) -> list:
@@ -232,7 +231,7 @@ def main():
     for r in results:
         homo = f"{r['homo_acc']:.3f}" if r["homo_acc"] is not None else "—"
         homo_n = r["homo_n"] or "—"
-        note = f" (first {KUBATABA_CAP} rows)" if r["capped"] else ""
+        note = ""
         lines.append(
             f"| {r['lang']} | {r['model']}{note} | {r['n']} | {r['accuracy']:.3f} "
             f"| {homo_n} | {homo} | {r['cold_load_s']:.1f} | {r['ms_per_row']:.1f} |"

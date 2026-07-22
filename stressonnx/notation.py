@@ -43,7 +43,7 @@ def _decompose_acute(text: str) -> str:
 
 
 def to_plus_notation(text: str) -> str:
-    """Convert combining-acute stress notation to legacy ``+``-before-vowel.
+    """Convert combining-acute stress notation to ``+``-before-vowel.
 
     ``"приве́т"`` → ``"прив+ет"``
 

@@ -18,10 +18,10 @@ BEL_CASES = [
 @pytest.mark.parametrize("inp,expected", UKR_CASES)
 def test_stress_ukr(inp, expected):
     from stressonnx import stress
-    assert stress(inp, "ukr") == expected
+    assert stress(inp, "uk") == expected
 
 
 @pytest.mark.parametrize("inp,expected", BEL_CASES)
 def test_stress_bel(inp, expected):
     from stressonnx import stress
-    assert stress(inp, "bel") == expected
+    assert stress(inp, "be") == expected

@@ -14,10 +14,6 @@ LOG = logging.getLogger("stressonnx")
 # HF download helpers
 # ---------------------------------------------------------------------------
 
-_LEGACY_CACHE = os.path.join(os.path.expanduser("~"), ".local", "share", "stressonnx")
-_legacy_cache_notified = False
-
-
 def _download_files(hf_subdir: str, filenames: list, cache_dir: str | None = None,
                     model_id: str | None = None) -> dict:
     """Resolve model files for one HF subdir; return ``{relative_name: local_path}``.
@@ -44,14 +40,6 @@ def _download_files(hf_subdir: str, filenames: list, cache_dir: str | None = Non
     the HF subdir.  Raises :class:`ModelDownloadError` (chaining the hub
     exception) when a file cannot be fetched.
     """
-    global _legacy_cache_notified
-    if cache_dir is None and not _legacy_cache_notified and os.path.isdir(_LEGACY_CACHE):
-        LOG.info(
-            "Models now live in the standard Hugging Face cache; the old "
-            "tree at %s is no longer used and can be deleted.", _LEGACY_CACHE
-        )
-        _legacy_cache_notified = True
-
     display_id = model_id or hf_subdir
     paths = {}
     fetched = 0

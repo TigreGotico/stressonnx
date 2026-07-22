@@ -25,7 +25,7 @@ monolithic file:
 
 | Module | Responsibility |
 |--------|---------------|
-| `stressonnx/langs.py` | `load_languages()` — loads every `stressonnx/languages/<tag>.json` spec; `LEGACY_ALIASES` + `canonicalize_lang()` — resolves historical tags to `(canonical_tag, forced_model_or_None)`. |
+| `stressonnx/langs.py` | `load_languages()` — loads every `stressonnx/languages/<tag>.json` spec into the registry tables. |
 | `stressonnx/registry.py` | `Script`, `StressNotation`, `ModelEntry`, `StressorBackend` Protocol; `MODEL_REGISTRY`, `DEFAULT_MODEL`; language-set constants (`RUACCENT_LANGS`, `MAIN_LANGS`, `SIMPLE_LANGS`, `ALL_LANGS`), all built from `stressonnx/languages/*.json`; `LANG_SCRIPT` + `lang_to_script()`; per-family file lists (`_MAIN_FILES`, `_SIMPLE_FILES`); `_OOV_RULES`. |
 | `stressonnx/languages/<tag>.json` | One file per canonical language tag: `script`, `rule` (OOV rule name), `hf` (per-family HF subdirectory), and the linguistic sources behind the rule. The registry is generated from these files at import time. |
 | `stressonnx/download.py` | The single download layer: `_download_files()` resolves model files via `huggingface_hub.hf_hub_download`, honoring the standard HF cache (`HF_HOME`, `HF_HUB_OFFLINE`) or an explicit `cache_dir` override; every fetch is pinned to `HF_REPO_REVISION` (a commit hash) and logged. |
@@ -39,7 +39,6 @@ monolithic file:
 | `stressonnx/backends/simple.py` | `SimpleStressor` — the `simple` family (26 languages, every canonical tag). |
 | `stressonnx/backends/__init__.py` | Re-exports the three backend classes. |
 | `stressonnx/__init__.py` | Assembles the public API: `stress()`, `stress_batch()`, `analyze()`, `warm_up()`, `to_plus_notation()`, and re-exports from every module above. |
-| `stressonnx/accentor.py` | Deprecated compatibility shim — re-exports everything that used to live in this single module so old imports (`from stressonnx.accentor import ...`) keep working. New code should import from `stressonnx` directly; this module carries no logic of its own. |
 
 ### Data flow
 
@@ -70,8 +69,7 @@ disposal).
 Four layers:
 
 1. **`StressPipeline.stress(text, lang, model=None, notation="diacritic",
-   fallback=False, prefer=None)`** — resolves `lang` via
-   `canonicalize_lang()`, picks a model (explicit `model=`, a `prefer=`
+   fallback=False, prefer=None)`** — picks a model (explicit `model=`, a `prefer=`
    capability strategy, or the language's default), and calls the cached
    backend.  Notation conversion via `_apply_notation()`.  When
    `fallback=True` and the selected model's files cannot be fetched
@@ -157,10 +155,10 @@ writing systems can be added here when new language families are registered.
 ```python
 class StressNotation(str, Enum):
     DIACRITIC = "diacritic"   # combining acute U+0301 after stressed vowel
-    PLUS      = "plus"        # legacy + before stressed vowel
+    PLUS      = "plus"        # + before the stressed vowel
 ```
 
-Inheriting `str` keeps backward compatibility: `notation="plus"` still
+Inheriting `str` means plain string literals work: `notation="plus"`
 accepted wherever `StressNotation` is expected.
 
 ### `StressorBackend` (runtime-checkable Protocol)

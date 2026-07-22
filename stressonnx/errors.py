@@ -9,8 +9,8 @@ class StressonnxError(Exception):
 class UnsupportedLanguageError(StressonnxError, ValueError):
     """Raised when a language tag is not supported (by the library or a model).
 
-    Subclasses :class:`ValueError` so callers written against the untyped API
-    keep working.
+    An unsupported tag is an invalid argument value, so this is also a
+    :class:`ValueError`.
     """
 
     def __init__(self, lang: str, supported) -> None:

@@ -21,7 +21,7 @@ from stressonnx.registry import _OOV_RULES, HF_REPO_REVISION
 
 def test_dotted_capital_i_keeps_mark_on_vowel():
     """'İ'.lower() is two code points; indices must not shift (İstanbul bug)."""
-    s = SimpleStressor("aze_lat")
+    s = SimpleStressor("az-Latn")
     s._ensure_loaded()
     out = s._accentuate_oov("İstanbul")
     mark = out.find("́")
@@ -30,7 +30,7 @@ def test_dotted_capital_i_keeps_mark_on_vowel():
 
 def test_unknown_notation_raises():
     with pytest.raises(ValueError, match="notation"):
-        stress("Қазақстан", "kaz", notation="pluss")
+        stress("Қазақстан", "kk", notation="pluss")
 
 
 def test_every_simple_lang_has_registered_rule():
@@ -48,7 +48,7 @@ def test_corrupt_cache_engages_fallback(tmp_path, monkeypatch):
     (tmp_path / "kaz" / "meta.json").write_text(
         '{"alpha": "аб", "vowels": "а", "oov_rule": "last"}'
     )
-    s = SimpleStressor("kaz", cache_dir=str(tmp_path))
+    s = SimpleStressor("kk", cache_dir=str(tmp_path))
     with pytest.raises(ModelLoadError) as excinfo:
         s._ensure_loaded()
     assert isinstance(excinfo.value, StressonnxError)
@@ -104,7 +104,7 @@ def test_failure_cooldown_prevents_immediate_retry(monkeypatch):
 
 
 def test_precomposed_acute_input_not_double_marked():
-    s = SimpleStressor("aze_lat")
+    s = SimpleStressor("az-Latn")
     s._ensure_loaded()
     pre = unicodedata.normalize("NFC", "Bakı́")  # precomposed stressed input
     out = s(pre)
@@ -113,7 +113,7 @@ def test_precomposed_acute_input_not_double_marked():
 
 def test_concurrent_first_load_is_consistent():
     """Racing threads on one instance must both see a fully loaded backend."""
-    s = SimpleStressor("tat")
+    s = SimpleStressor("tt")
     results = []
 
     def worker():

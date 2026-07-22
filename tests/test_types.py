@@ -79,7 +79,7 @@ def test_stressor_backend_importable():
 
 def test_make_stressor_returns_backend():
     from stressonnx import make_stressor, StressorBackend
-    s = make_stressor(model="simple", lang="kaz")
+    s = make_stressor(model="simple", lang="kk")
     assert isinstance(s, StressorBackend)
 
 
@@ -104,7 +104,7 @@ def test_non_callable_does_not_satisfy_protocol():
 
 def test_stressor_class_satisfies_protocol():
     from stressonnx import Stressor, StressorBackend
-    s = Stressor(lang="kaz")
+    s = Stressor(lang="kk")
     assert isinstance(s, StressorBackend)
 
 
@@ -139,24 +139,24 @@ def test_script_is_str():
 
 def test_lang_to_script_cyrillic():
     from stressonnx import lang_to_script, Script
-    for lang in ("ru", "ukr", "bel", "kaz", "tat"):
+    for lang in ("ru", "uk", "be", "kk", "tt"):
         assert lang_to_script(lang) == Script.CYRILLIC, lang
 
 
 def test_lang_to_script_latin():
     from stressonnx import lang_to_script, Script
-    assert lang_to_script("aze_lat") == Script.LATIN
-    assert lang_to_script("uzb_lat") == Script.LATIN
+    assert lang_to_script("az-Latn") == Script.LATIN
+    assert lang_to_script("uz-Latn") == Script.LATIN
 
 
 def test_lang_to_script_armenian():
     from stressonnx import lang_to_script, Script
-    assert lang_to_script("hye") == Script.ARMENIAN
+    assert lang_to_script("hy") == Script.ARMENIAN
 
 
 def test_lang_to_script_georgian():
     from stressonnx import lang_to_script, Script
-    assert lang_to_script("kat") == Script.GEORGIAN
+    assert lang_to_script("ka") == Script.GEORGIAN
 
 
 def test_lang_to_script_unknown():

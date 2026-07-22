@@ -66,13 +66,6 @@ Numbers come from the committed, reproducible
 read its noise-ceiling note before quoting absolutes).  Defaults per
 language: `ru → ruaccent`, `uk/be → silero`, everything else → `simple`.
 
-**Legacy tags.**  Historical tags accepted before the switch to BCP-47 —
-`ukr`, `bel`, `kaz`, `kir`, `tat`, `bak`, `chv`, `tgk`, `erz`, `hye`, `kat`,
-`bul`, `mkd`, `slv`, `lav`, `aze_lat`, `aze_cyr`, `uzb_lat`, `uzb_cyr`, and
-the `bel_simple`/`ru_simple`/`ukr_simple` (language, model) pairs — remain
-accepted everywhere a `lang` is expected; they resolve to the canonical tag
-above (the `*_simple` forms additionally force `model="simple"`).
-
 Models are hosted on
 [TigreGotico/stressonnx-models](https://huggingface.co/TigreGotico/stressonnx-models)
 and downloaded automatically on first use (see *Offline & failure behavior*).
@@ -150,7 +143,7 @@ stress_batch(["привет", "мир"], "ru")   # ['приве́т', 'мир']
 
 All backends emit the **combining acute accent** (U+0301) *after* the
 stressed vowel — `приве́т` is `п р и в е U+0301 т`.  For TTS models trained on
-the legacy `+`-before-vowel format:
+the `+`-before-vowel format:
 
 ```python
 stress("привет", "ru", notation="plus")   # 'прив+ет'

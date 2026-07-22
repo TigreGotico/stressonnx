@@ -220,7 +220,7 @@ def test_count_vowels_yo():
 def test_make_stressor_silero_wrong_lang():
     from stressonnx import make_stressor
     with pytest.raises(ValueError, match="does not support language"):
-        make_stressor(model="silero", lang="kaz")
+        make_stressor(model="silero", lang="kk")
 
 
 def test_make_stressor_ruaccent_wrong_lang():
@@ -232,4 +232,4 @@ def test_make_stressor_ruaccent_wrong_lang():
 def test_stressor_invalid_notation():
     from stressonnx import Stressor
     with pytest.raises(ValueError, match="notation"):
-        Stressor(lang="kaz", notation="invalid")
+        Stressor(lang="kk", notation="invalid")

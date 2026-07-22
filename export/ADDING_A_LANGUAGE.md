@@ -29,7 +29,7 @@ you can follow it end-to-end even if this is your first contribution.
 - **`meta.json`**: a small JSON file shipped alongside `vocab.gz` describing
   the language: its alphabet (`alpha`), which characters count as vowels
   (`vowels`), the OOV fallback rule (`oov_rule`), and
-  `"vocab_format": "vowel_ordinal_v2"`.  The historical character-index
+  `"vocab_format": "vowel_ordinal_v2"`.  A character-index
   format is converted with `export/convert_vocabs_to_ordinals.py`.
 - **ONNX** (Open Neural Network Exchange): a portable file format for trained
   neural networks.  stressonnx runs ONNX models with `onnxruntime` — it never
@@ -170,9 +170,6 @@ import time, so this one file is the only edit:
 - `hf.simple`: the HF subdirectory holding `vocab.gz`/`meta.json` for this
   language — normally the same as `tag`.
 
-If `xyz` is a historical tag being renamed to a new canonical form, add the
-old tag to `LEGACY_ALIASES` in `stressonnx/langs.py` instead of registering
-it as its own language — see the `bel_simple`/`ru_simple`/`ukr_simple`-style
 `(canonical_tag, "simple")` entries there for the pattern.
 
 ### 5. Add tests

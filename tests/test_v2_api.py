@@ -9,14 +9,7 @@ from stressonnx import (
     stress,
     stress_batch,
 )
-from stressonnx.langs import canonicalize_lang, load_languages
-
-
-def test_canonicalize():
-    assert canonicalize_lang("ru") == ("ru", None)
-    assert canonicalize_lang("kaz") == ("kk", None)
-    assert canonicalize_lang("bel_simple") == ("be", "simple")
-    assert canonicalize_lang("xx") == ("xx", None)  # unknown passes through
+from stressonnx.langs import load_languages
 
 
 def test_language_files_complete():

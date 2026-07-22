@@ -47,8 +47,6 @@ def test_default_uses_standard_hf_cache():
     assert os.path.isfile(path)
     hf_home = os.environ.get("HF_HOME", os.path.join(os.path.expanduser("~"), ".cache", "huggingface"))
     assert os.path.realpath(path).startswith(os.path.realpath(hf_home))
-    legacy = os.path.join(os.path.expanduser("~"), ".local", "share", "stressonnx")
-    assert not path.startswith(legacy)
 
 
 def test_download_failure_raises_typed_error(monkeypatch, tmp_path):

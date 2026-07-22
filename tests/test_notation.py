@@ -84,41 +84,41 @@ def test_to_plus_mixed_script():
 
 def test_stress_diacritic_default():
     from stressonnx import stress
-    result = stress("Казан", "tat")
+    result = stress("Казан", "tt")
     assert "́" in result
     assert "+" not in result
 
 
 def test_stress_notation_diacritic_explicit():
     from stressonnx import stress
-    result = stress("Казан", "tat", notation="diacritic")
+    result = stress("Казан", "tt", notation="diacritic")
     assert "́" in result
 
 
 def test_stress_notation_plus():
     from stressonnx import stress
-    result = stress("Казан", "tat", notation="plus")
+    result = stress("Казан", "tt", notation="plus")
     assert "+" in result
     assert "́" not in result
 
 
 def test_stress_notation_enum_plus():
     from stressonnx import stress, StressNotation
-    result = stress("Казан", "tat", notation=StressNotation.PLUS)
+    result = stress("Казан", "tt", notation=StressNotation.PLUS)
     assert "+" in result
 
 
 def test_stress_notation_enum_diacritic():
     from stressonnx import stress, StressNotation
-    result = stress("Казан", "tat", notation=StressNotation.DIACRITIC)
+    result = stress("Казан", "tt", notation=StressNotation.DIACRITIC)
     assert "́" in result
 
 
 def test_stress_diacritic_plus_roundtrip():
     """plus form of stress() == to_plus_notation(diacritic form)."""
     from stressonnx import stress, to_plus_notation
-    diacritic = stress("Казан", "tat", notation="diacritic")
-    plus_direct = stress("Казан", "tat", notation="plus")
+    diacritic = stress("Казан", "tt", notation="diacritic")
+    plus_direct = stress("Казан", "tt", notation="plus")
     assert to_plus_notation(diacritic) == plus_direct
 
 
@@ -128,13 +128,13 @@ def test_stress_diacritic_plus_roundtrip():
 
 def test_stressor_notation_default():
     from stressonnx import Stressor
-    s = Stressor(lang="kaz")
+    s = Stressor(lang="kk")
     assert s.notation == "diacritic"
 
 
 def test_stressor_notation_plus():
     from stressonnx import Stressor
-    s = Stressor(lang="kaz", notation="plus")
+    s = Stressor(lang="kk", notation="plus")
     result = s("Казан")
     assert "+" in result
     assert "́" not in result
@@ -142,6 +142,6 @@ def test_stressor_notation_plus():
 
 def test_stressor_notation_enum():
     from stressonnx import Stressor, StressNotation
-    s = Stressor(lang="kaz", notation=StressNotation.PLUS)
+    s = Stressor(lang="kk", notation=StressNotation.PLUS)
     result = s("Казан")
     assert "+" in result

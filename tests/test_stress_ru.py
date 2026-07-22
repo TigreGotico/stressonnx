@@ -70,7 +70,7 @@ def test_to_plus_notation_roundtrip():
 
 
 def test_notation_plus_kwarg():
-    """stress(..., notation='plus') returns legacy + form."""
+    """stress(..., notation='plus') returns the + form."""
     from stressonnx import stress
     result = stress("привет", "ru", notation="plus")
     assert "+" in result

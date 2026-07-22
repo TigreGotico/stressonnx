@@ -25,7 +25,7 @@ def oov(lang, word):
     ("кӑнтӑр", "кӑ́нтӑр"),     # all vowels reduced → first (kắndăr 'south')
 ])
 def test_chuvash_reduced_vowel_rule(word, expected):
-    assert oov("chv", word) == expected
+    assert oov("cv", word) == expected
 
 
 # Georgian: antepenultimate for words of 3+ syllables, initial otherwise
@@ -35,7 +35,7 @@ def test_chuvash_reduced_vowel_rule(word, expected):
     ("წიგნი", "წი́გნი"),                # 2 vowels → initial
 ])
 def test_georgian_antepenultimate(word, expected):
-    assert oov("kat", word) == expected
+    assert oov("ka", word) == expected
 
 
 # Eastern Armenian: "stress occurs within the last non-schwa syllable"
@@ -45,7 +45,7 @@ def test_georgian_antepenultimate(word, expected):
     ("մարդիկ", "մարդի́կ"),  # plain final stress
 ])
 def test_armenian_schwa_skip(word, expected):
-    assert oov("hye", word) == expected
+    assert oov("hy", word) == expected
 
 
 # Tajik: final stress; word-final -и is the unstressed izafet enclitic,
@@ -56,7 +56,7 @@ def test_armenian_schwa_skip(word, expected):
     ("китоб", "кито́б"),
 ])
 def test_tajik_izafet(word, expected):
-    assert oov("tgk", word) == expected
+    assert oov("tg", word) == expected
 
 
 # Moksha: first syllable, but "stress is often assigned to a non-initial
@@ -80,9 +80,9 @@ def test_kabardian_final_schwa(word, expected):
 
 
 def test_rules_table_prevails_over_meta():
-    s = SimpleStressor("chv")
+    s = SimpleStressor("cv")
     s._ensure_loaded()
-    assert s._oov_rule == "chv"  # meta.json says "last"; local table wins
+    assert s._oov_rule == "chv"  # meta.json says "last"; the language file wins
 
 
 # Yakut: long vowels / diphthongs (vowel digraphs) attract stress; the mark
@@ -105,4 +105,4 @@ def test_yakut_heavy_nucleus(word, expected):
     ("китапме", "кита́пме"),   # interrogative -ме unstressed
 ])
 def test_tatar_unstressed_suffixes(word, expected):
-    assert oov("tat", word) == expected
+    assert oov("tt", word) == expected

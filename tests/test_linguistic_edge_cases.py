@@ -205,15 +205,6 @@ def test_lang_sets_are_consistent():
     assert len(SIMPLE_LANGS) == 26
 
 
-def test_legacy_alias_equivalence():
-    assert stress("Мен қазақша сөйлеймін", "kaz") == stress("Мен қазақша сөйлеймін", "kk")
-    from stressonnx.backends.simple import SimpleStressor
-    assert SimpleStressor("bel_simple").lang == SimpleStressor("be").lang
-
-
-# ---------------------------------------------------------------------------
-# Defensive insertion guard
-# ---------------------------------------------------------------------------
 
 def test_insert_stress_bounds_and_vowel_guard():
     assert _insert_stress("дом", 1, "аоу") == "до́м"

@@ -11,18 +11,19 @@ Model families
     мука flour/torment, белок protein/squirrel …) via four ONNX models.
     Runtime deps: onnxruntime, numpy, tokenizers (no torch, no transformers).
 
-``"silero"`` (default for ``ukr``, ``bel``):
+``"silero"`` (default for ``uk``, ``be``):
     Neural ONNX pipeline (embedding-bag + MLP heads) exported from
     silero_stress (MIT).
 
 ``"simple"`` (default for the other rule/vocabulary languages):
-    Vocabulary + rules; no ONNX inference.  Languages: ``aze_cyr``,
-    ``aze_lat``, ``uzb_cyr``, ``uzb_lat``, ``bak``, ``bul``, ``chv``,
-    ``erz``, ``hye``, ``kat``, ``kaz``, ``kbd``, ``kir``, ``kjh``, ``lav``,
-    ``mdf``, ``mkd``, ``sah``, ``slv``, ``tat``, ``tgk``, ``udm``, ``xal``
-    (plus the ``bel_simple``, ``ru_simple``, ``ukr_simple`` aliases).
+    Vocabulary + rules; no ONNX inference.  Languages: ``az-Cyrl``,
+    ``az-Latn``, ``uz-Cyrl``, ``uz-Latn``, ``ba``, ``bg``, ``cv``,
+    ``myv``, ``hy``, ``ka``, ``kk``, ``kbd``, ``ky``, ``kjh``, ``lv``,
+    ``mdf``, ``mk``, ``sah``, ``sl``, ``tat``, ``tgk``, ``udm``, ``xal``
+    and the dictionary path for ``ru``/``uk``/``be``.
 
-Pass ``bel`` to use the neural accentor; ``bel_simple`` for the vocab path.
+For ``ru``/``uk``/``be`` the neural models are the defaults; pass
+``model="simple"`` for the pure dictionary path.
 
 Output notation
 ---------------
@@ -30,7 +31,7 @@ All backends emit the **combining acute accent** (U+0301) placed immediately
 after the stressed vowel: ``"приве́т"``.  This is the standard Unicode stress
 notation compatible with ``russian_text_stresser`` and Chatterbox-Multilingual.
 
-For models trained on the legacy ``+``-before-vowel notation (``"прив+ет"``),
+For models trained on the ``+``-before-vowel notation (``"прив+ет"``),
 use :func:`to_plus_notation` or pass ``notation="plus"`` to :func:`stress` /
 :class:`Stressor`.
 
@@ -71,7 +72,6 @@ from stressonnx.registry import (
     StressorBackend,
     lang_to_script,
 )
-from stressonnx.langs import canonicalize_lang
 from stressonnx.notation import STRESS_TOKEN, _apply_notation, to_plus_notation
 from stressonnx.backends import _SileroStressor, SimpleStressor, RuAccentStressor
 from stressonnx.stressor import Stressor, make_stressor
@@ -89,8 +89,7 @@ _RECENT_FAILURES = DEFAULT_PIPELINE._failures
 
 
 def _fallback_chain(lang: str) -> list:
-    """``(model, lang)`` pairs able to serve canonical *lang*, best first."""
-    lang, _forced = canonicalize_lang(lang)
+    """``(model, lang)`` pairs able to serve *lang*, best first."""
     return DEFAULT_PIPELINE._chain(lang)
 
 
@@ -108,8 +107,7 @@ def stress(
     ``StressPipeline().stress(...)`` gives you the same behavior with a
     private cache.  Parameters:
 
-    - ``lang``: BCP-47 tag (``"ru"``, ``"uk"``, ``"az-Latn"`` …); the
-      historical tags remain accepted.
+    - ``lang``: BCP-47 tag (``"ru"``, ``"uk"``, ``"az-Latn"`` …).
     - ``model``: explicit model id (``"ruaccent"``, ``"silero"``,
       ``"simple"``) — default: the best model for *lang*.
     - ``prefer``: capability strategy instead of a model id — ``"best"``

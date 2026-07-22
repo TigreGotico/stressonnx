@@ -9,21 +9,22 @@ def test_stress_simple_matches_silero():
     from stressonnx import stress, to_plus_notation
     from silero_stress.simple_accentor import SimpleAccentor
 
+    # (stressonnx tag, silero_stress code).  Georgian is deliberately
+    # absent: for OOV words stressonnx applies the antepenultimate rule
+    # (Akhvlediani/Gudava/Aronson), which the upstream vocabulary itself
+    # follows on 100% of its entries, while upstream's own OOV fallback
+    # contradicts its vocabulary on 55% of them — see tests/test_oov_rules.py
+    # and benchmarks/oov_rules_eval.py.
     sample = {
-        "kaz": "Сәлем Қазақстан",
-        "tat": "Сәлам Казан",
-        # kat is deliberately absent: for OOV words stressonnx applies the
-        # antepenultimate rule (Akhvlediani/Gudava/Aronson), which the
-        # upstream vocabulary itself follows on 100% of its entries, while
-        # upstream's own OOV fallback contradicts its vocabulary on 55% of
-        # them — see tests/test_oov_rules.py and benchmarks/oov_rules_eval.py.
-        "hye": "Բարեւ Երեւան",
-        "aze_lat": "Salam Bakı",
-        "uzb_lat": "Salom Toshkent",
-        "sah": "Дорообо Дьокуускай",
+        ("kk", "kaz"): "Сәлем Қазақстан",
+        ("tt", "tat"): "Сәлам Казан",
+        ("hy", "hye"): "Բարեւ Երեւան",
+        ("az-Latn", "aze_lat"): "Salam Bakı",
+        ("uz-Latn", "uzb_lat"): "Salom Toshkent",
+        ("sah", "sah"): "Дорообо Дьокуускай",
     }
-    for lang, sentence in sample.items():
-        ref = SimpleAccentor(lang=lang)(sentence)  # silero emits + notation
+    for (lang, ref_code), sentence in sample.items():
+        ref = SimpleAccentor(lang=ref_code)(sentence)  # silero emits + notation
         got = to_plus_notation(stress(sentence, lang))  # convert to + for comparison
         assert ref == got, f"[{lang}] ref={ref!r} got={got!r}"
 

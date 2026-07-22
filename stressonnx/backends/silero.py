@@ -21,7 +21,6 @@ from stressonnx._common import _RE_RU_COND, _RU_VOWELS, _softmax, lower_preservi
 from stressonnx.download import _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError, UnsupportedLanguageError
 from stressonnx.notation import STRESS_TOKEN, _insert_stress
-from stressonnx.langs import canonicalize_lang
 from stressonnx.registry import MAIN_LANGS, _MAIN_FILES, hf_dir
 
 
@@ -69,7 +68,6 @@ class _SileroStressor:
     """
 
     def __init__(self, lang: str, cache_dir: str | None = None) -> None:
-        lang, _ = canonicalize_lang(lang)
         if lang not in MAIN_LANGS:
             raise UnsupportedLanguageError(lang, MAIN_LANGS)
         self.lang = lang
