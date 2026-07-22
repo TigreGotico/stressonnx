@@ -402,6 +402,243 @@ per token:
                     "none"   → unstressed (no mark inserted)
 ```
 
+### Per-language OOV rules
+
+Every rule is a named function in `stressonnx/backends/simple.py`
+(`OOV_RULES`) whose docstring carries its linguistic source, and every rule
+is scored against the language's own curated vocabulary in
+[benchmarks/RESULTS.md](../benchmarks/RESULTS.md) (reproduce with
+`python benchmarks/oov_rules_eval.py`).  Highlights:
+
+| Language(s) | Rule | Source | Accuracy |
+|---|---|---|---|
+| kaz kir tat bak aze uzb kjh sah udm xal | final vowel | Turkic/Permic final-stress default (Kirchner 1998, Poppe 1964, Krueger 1962, Winkler 2001) | 0.82–1.00 (sah is an open item, see scoreboard) |
+| chv | last **full** vowel — reduced ӑ/ӗ never stressed; all-reduced words stress the first syllable | Clark 1998, Krueger 1961, Dobrovolsky 1999 (ICPhS) | 0.94 |
+| kat | antepenultimate vowel, initial for shorter words | Akhvlediani 1949, Gudava 1969, Aronson 1990 (Georgian stress is weak and contested — Borise 2020 argues fixed initial) | 1.00 |
+| hye | last non-schwa vowel (ը never stressed) | Chakmakjian 2024 (Speech Prosody) | 0.78 |
+| tgk | final vowel, except unstressed word-final izafet -и (stressed final /i/ is written ӣ) | Perry 2005, *A Tajik Persian Reference Grammar* | 0.74 |
+| erz mdf | first vowel; Moksha retracts off an initial high vowel to a following а/я syllable | Hamari & Ajanki 2022, *Oxford Guide to the Uralic Languages* §23.2.3 | 0.54 / 0.76 |
+| kbd | final vowel, penult when the word ends in the schwa letter э | Jaimoukha; consistent with Colarusso 1992 (low confidence) | 0.40 |
+| bel_simple | no mark — Belarusian stress is lexical, not positional | East Slavic accentology literature | vocabulary only |
+
+Single-vowel OOV words are always stressed on their sole vowel regardless of
+rule (upstream `SimpleAccentor` semantics) — including for `bel_simple`.
+
+### Limitations
+
+- **Large download.** ~470 MB is unsuitable for edge devices.
+- **Russian only.**  The pipeline is monolingual by design.
+- **Context window.** Works best on short-to-medium sentences.  Very long
+  inputs (>512 subword tokens) are truncated internally by the BERT
+  tokenizer.
+- **Proper nouns and neologisms** not in the accent dictionary fall through
+  to `nn_accent`, which is character-level and may produce suboptimal results
+  for foreign-origin words.
+- **Poetry / non-standard stress** (for expressive effect) is not handled.
+- **Monosyllables** are frequently left unmarked (see the monosyllable table
+  above) — the dictionary/model path only runs for words with 2+ vowels.
+- **Not layout-preserving.**  Aggressive input normalization drops symbols
+  like `…` and does not guarantee whitespace is round-tripped exactly.
+- **Idempotency:** re-running on already-marked text strips and re-derives
+  rather than skipping (see the idempotency table above).
+
+---
+
+## `"silero"` — neural ONNX
+
+**Default for `ukr`, `bel`.  Available for `ru`.**
+
+### Architecture
+
+Fasttext-style n-gram embedding-bag + MLP classification heads.
+Derived from [silero_stress](https://github.com/snakers4/silero-models) (MIT).
+
+```
+Input word
+      │
+      ▼
+Tokenise → character n-grams (1–3 chars)
+      │
+      ▼
+N-gram → embedding row lookup → mean-pool → pooled vector  (NumPy)
+      │
+      ▼
+accentor.onnx  (MLP stress_clf head, + yo_clf head for ru)
+      │
+      ▼
+argmax over character positions → stress index (+ yo index for ru)
+      │
+      ▼
+Insert U+0301 at that position (+ е→ё restoration for ru)
+```
+
+Exceptions and skip-lists are consulted before the ONNX call:
+`exceptions.txt.gz` (word → explicit stress index, plus an explicit yo index
+for `ru`) and `skip_stress_words.txt.gz` / `skip_yo_words.txt.gz` (words that
+should not receive a stress mark or a ё rewrite respectively — e.g.
+monosyllables, clitics).
+
+The original PyTorch model uses `nn.EmbeddingBag` with mode `"mean"`.
+Since `onnxruntime` does not support `EmbeddingBag` directly, the export
+splits the computation:
+- The embedding matrix is saved as `embedding.npy` and the n-gram pool is
+  computed in NumPy.
+- Only the MLP head(s) (linear + activation + linear) are exported as
+  `accentor.onnx`.
+
+### е→ё handling for Russian
+
+The Russian silero pipeline **does restore е→ё**: it runs a second MLP head
+(`yo_logits`) alongside the stress head and rewrites `е` to `ё` when the
+predicted yo-position coincides with the predicted stress position (`ё` is
+always stressed in Russian orthography, so it only rewrites where that
+constraint holds).  What it does **not** do is resolve **yo-homographs** —
+words that are ambiguous purely because of the е/ё distinction, such as
+`все` ("everyone") vs `всё` ("everything").  Both stay written as `все`;
+neither `silero` nor `ruaccent` (see above) disambiguates this specific
+pair — the upstream homograph-resolution model that would be needed has not
+been exported.
+
+### Why Ukrainian and Belarusian use this model
+
+Both languages have **free stress** similar to Russian.  The silero neural
+model covers a large vocabulary and provides reasonable generalisation to OOV
+words via character n-gram features.
+
+Ukrainian specifics:
+- Vowels і, и, е, є, а, о, у, ю, я are all potentially stressed.
+- No е/ё distinction to disambiguate.
+- Fewer systematic homograph pairs than Russian.
+
+Belarusian specifics:
+- **Akane**: unstressed /o/ merges phonetically with /a/; stress is needed to
+  pronounce words correctly.
+- Stress is not marked in standard orthography.
+- Fewer neural training resources than Russian → silero neural model is the
+  best available quality without a full BERT pipeline; see the benchmark
+  table above — silero (0.859 accuracy) is dramatically better here than the
+  `bel_simple` vocabulary fallback (0.417).
+
+### Why silero is also available for Russian
+
+The silero Russian model exists and is accurate for unambiguous words.  It is
+a valid alternative when:
+- The ~470 MB ruaccent download is impractical.
+- The application does not need homograph disambiguation (e.g., spelling
+  pronunciation or read-aloud of unambiguous text).
+- Fast cold-start is required (silero ru downloads ~5 MB).
+
+It will assign the same stress to both readings of `замок`; for TTS of
+mixed-context text this is audible.  See `benchmarks/RESULTS.md`: on
+Russian, `ruaccent` scores 0.742 homograph accuracy against `silero`'s 0.377.
+
+### Limitations
+
+- **No homograph disambiguation** for Russian.  One-best prediction per word.
+- **No yo-homograph disambiguation.**  е→ё restoration runs, but
+  `все`/`всё`-style ambiguity is left as-is (see above).
+- **Word-level context only.**  The n-gram features are character-level; the
+  model has no access to surrounding words.
+- **Vocabulary coverage** is finite.  Neologisms and foreign words rely on
+  n-gram generalisation, which degrades for non-Cyrillic stems.
+- The **Ukrainian and Belarusian models are verified to match the original**
+  silero outputs exactly (see `export/verify_e2e.py`).  The Russian model
+  is verified numerically at export (max |diff| < 1e-3).
+
+---
+
+## `"kubataba"` — seq2seq Transformer
+
+**Alternative for `ru`.**
+
+### Architecture
+
+Character-level encoder-decoder Transformer trained on Russian literary
+texts with explicit stress marks.  Derived from
+[kubataba/Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor)
+(MIT).
+
+```
+Input sentence (character sequence, max 256 chars)
+      │
+      ▼
+CharacterEmbedding  (char → d_model=256)
+      │
+      ▼
+encoder.onnx  (4-layer Transformer encoder)
+      → memory: float32[1, 256, 256]
+      │
+      ▼
+Greedy decode loop (Python):
+  tgt = [BOS]
+  while not EOS and len < max_len:
+    decoder_step.onnx(memory, tgt) → logits[1, vocab_size]
+    next_token = argmax(logits[-1])
+    tgt.append(next_token)
+      │
+      ▼
+Decode token sequence → output text with U+0301 stress marks
+```
+
+The decoder implements all four decoder layers manually using
+`F.scaled_dot_product_attention` to avoid ONNX export incompatibilities with
+PyTorch's `nn.MultiheadAttention` (which internally creates data-dependent
+causal masks incompatible with the TorchScript and dynamo exporters).
+
+### Why a seq2seq model for Russian
+
+A seq2seq model can, in principle, capture **cross-word context** without
+requiring a separate disambiguation pipeline: the encoder reads the whole
+sentence, and the decoder produces each stressed character attending to the
+full context.  This makes it architecturally interesting as a single-model
+alternative to the ruaccent multi-stage pipeline.
+
+### Limitations
+
+- **Sentence-level input required.**  The model is trained on sentence pairs,
+  not isolated words.  Single words fed in isolation produce degraded output.
+- **Slower inference** than silero or simple: autoregressive decode is
+  sequential; O(output_len) ONNX session calls per sentence.
+- **No explicit homograph dictionary.**  Disambiguation depends entirely on
+  what the model learned during training.  Performance on rare homograph pairs
+  is unpredictable.
+- **Maximum input length: 256 characters.**  Sentences longer than this are
+  truncated at the encoder.
+- **Research quality.**  This model is provided as an alternative, not as the
+  recommended production choice.  Use `"ruaccent"` for production Russian TTS.
+- **Numerical precision:** float32 ONNX; verified max |diff| = 2.16×10⁻⁴
+  vs the original PyTorch model (argmax identical on all tested sentences).
+- **Monosyllable and idempotency behavior is model-dependent** — there is no
+  explicit rule for either case; see the tables above.
+
+---
+
+## `"simple"` — vocabulary + rules
+
+**Default for 20 Turkic, Caucasian, and minority Slavic/Uralic languages.**
+
+### Architecture
+
+Word-level dictionary with a per-language OOV positional fallback.
+No ONNX inference; no neural computation at runtime.
+
+```
+Input sentence
+      │
+      ▼
+Tokenise: split on whitespace + punctuation, preserve hyphens
+      │
+per token:
+      ├──[in vocab]──→ stress_char_idx from dictionary → insert U+0301
+      │
+      └──[OOV]──→ if exactly 1 vowel, always stress it; otherwise apply the
+                    per-language positional rule:
+                    "last"   → rightmost vowel
+                    "first"  → leftmost vowel
+                    "kat"    → ≤3 vowels → first, else penultimate
+                    "none"   → unstressed (no mark inserted)
+```
+
 ### Per-language linguistic motivation
 
 **Azerbaijani (`aze_cyr`, `aze_lat`)**

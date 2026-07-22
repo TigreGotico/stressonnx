@@ -6,7 +6,7 @@ carry different stress depending on grammatical meaning or context:
     замок  →  за́мок (castle)  vs  замо́к (lock)
     мука   →  му́ка (torment)  vs  мука́ (flour)
     белок  →  бе́лок (squirrel genitive)  vs  бело́к (protein / egg white)
-    коса   →  ко́са (scythe / braid)  vs  коса́ (sandbank)
+    коса   →  коса́ (braid / scythe)  vs  ко́са (sandbank/spit)
 
 All three Russian backends handle these differently:
 - ruaccent: sentence-context BERT pipeline → correct disambiguation
@@ -39,11 +39,14 @@ HOMOGRAPH_PAIRS = [
         "белок: protein vs squirrel (genitive)",
     ),
     (
+        # Dictionary stress: коса́ 'scythe' and 'braid' (Зализняк).  A ✗ here
+        # is a genuine model miss, kept for honesty — see benchmarks/RESULTS.md
+        # for the measured homograph accuracy.
         "острая коса лежала на лугу",
-        "о́страя ко́са лежа́ла на лугу́",
+        "о́страя коса́ лежа́ла на лугу́",
         "коса русалки длинная",
-        "ко́са руса́лки дли́нная",
-        "коса: scythe vs braid",
+        "коса́ руса́лки дли́нная",
+        "коса: scythe / braid (both коса́)",
     ),
 ]
 
