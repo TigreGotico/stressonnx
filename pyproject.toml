@@ -39,6 +39,7 @@ version = {attr = "version.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["."]
+include = ["stressonnx*"]
 
 [tool.setuptools.package-data]
-"stressonnx" = ["**/*"]
+"stressonnx" = ["py.typed"]
