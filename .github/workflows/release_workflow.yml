@@ -6,11 +6,16 @@ on:
     types: [closed]
     branches: [dev]
 
+# one release at a time; never cancel a publish mid-flight
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pull-requests: write
   issues: read
-  id-token: write
+  id-token: write   # prepared for PyPI trusted publishing
 
 jobs:
   publish_alpha:

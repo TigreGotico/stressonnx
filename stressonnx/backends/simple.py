@@ -9,23 +9,42 @@ Vocabulary + rule-based pipeline.
 3. OOV fall-back: language-specific positional rule (last/first/none/kat).
 4. Insert '+' at the determined character index.
 """
+import threading
 import gzip
 import json
+import unicodedata
 import re
 from typing import Callable, Optional
 
-from stressonnx._common import tokenize
-from stressonnx.download import _download_files
-from stressonnx.errors import UnsupportedLanguageError
+from stressonnx._common import lower_preserving_length, tokenize
+from stressonnx.download import LOG, _download_files
+from stressonnx.errors import ModelDownloadError, ModelLoadError, UnsupportedLanguageError
 from stressonnx.notation import STRESS_TOKEN, _insert_stress
 from stressonnx.registry import SIMPLE_LANGS, _OOV_RULES, _SIMPLE_FILES
 
 
 def _load_vocab(path: str) -> dict:
-    """Load SimpleAccentor vocab: word → stress char index."""
-    with gzip.open(path, "rb") as fh:
-        lines = [x.decode().strip() for x in fh.readlines()]
-    return {x.rsplit(maxsplit=1)[0]: int(x.rsplit(maxsplit=1)[1]) for x in lines if x}
+    """Load a SimpleAccentor vocab (word → stress char index).
+
+    Malformed lines are skipped and counted instead of aborting the whole
+    language — vocabularies are regenerated from external sources and one
+    bad row must not take a language down.
+    """
+    vocab: dict = {}
+    bad = 0
+    with gzip.open(path, "rt", encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                word, idx = line.rsplit(None, 1)
+                vocab[word] = int(idx)
+            except ValueError:
+                bad += 1
+    if bad:
+        LOG.warning("%s: skipped %d malformed vocabulary line(s)", path, bad)
+    return vocab
 
 
 # ---------------------------------------------------------------------------
@@ -193,11 +212,32 @@ class SimpleStressor:
         self._hf_lang = "bel" if lang == "bel_simple" else lang
         self._cache_dir = cache_dir
         self._loaded = False
+        self._load_lock = threading.Lock()
 
     def _ensure_loaded(self) -> None:
+        """Thread-safe lazy load (double-checked locking).
+
+        Download failures surface as :class:`ModelDownloadError`; anything
+        that fails while parsing or building sessions from files already on
+        disk is wrapped in :class:`ModelLoadError` so the fallback chain can
+        engage on a corrupt cache too.  ``self._loaded`` flips only after
+        every attribute is fully initialized.
+        """
         if self._loaded:
             return
-        data = _download_files(self._hf_lang, _SIMPLE_FILES, self._cache_dir)
+        with self._load_lock:
+            if self._loaded:
+                return
+            try:
+                self._load()
+            except (ModelDownloadError, ModelLoadError):
+                raise
+            except Exception as exc:
+                raise ModelLoadError('simple', exc) from exc
+            self._loaded = True
+
+    def _load(self) -> None:
+        data = _download_files(self._hf_lang, _SIMPLE_FILES, self._cache_dir, model_id="simple")
 
         with open(data["meta.json"], encoding="utf-8") as fh:
             meta = json.load(fh)
@@ -217,7 +257,6 @@ class SimpleStressor:
         escaped = re.escape(alpha_set)
         self._re_cond = re.compile(f"[^{escaped}]")
 
-        self._loaded = True
 
     def _accentuate_vocab(self, clean_word: str, raw_word: str) -> str:
         # vowels=None: the curated vocab may stress loanword vowels outside
@@ -232,14 +271,14 @@ class SimpleStressor:
         :data:`OOV_RULES` decides — see each rule's docstring for its
         linguistic source and benchmarks/RESULTS.md for measured accuracy.
         """
-        lower = raw_word.lower()
+        lower = lower_preserving_length(raw_word)
         vowel_ids = [i for i, c in enumerate(lower) if c in self._vowels]
         if not vowel_ids:
             return raw_word
         if len(vowel_ids) == 1:
             idx = vowel_ids[0]
         else:
-            rule = OOV_RULES.get(self._oov_rule, _rule_last)
+            rule = OOV_RULES[self._oov_rule]  # unknown names fail loudly
             idx = rule(lower, vowel_ids)
             if idx is None:
                 return raw_word
@@ -253,7 +292,7 @@ class SimpleStressor:
             if not need:
                 out.append(raw_word)
                 continue
-            if STRESS_TOKEN in raw_word:
+            if STRESS_TOKEN in unicodedata.normalize("NFD", raw_word):
                 out.append(raw_word)
                 continue
             if clean_word in self._vocab:

@@ -18,10 +18,10 @@ Full accuracy numbers (not just relative quality claims) live in
 
 | lang | model | accuracy | homograph accuracy |
 |------|-------|----------|--------------------|
-| ru | ruaccent | 0.908 | 0.742 |
-| ru | silero | 0.886 | 0.377 |
-| bel | silero | 0.859 | — |
-| bel_simple | simple | 0.417 | — |
+| ru | ruaccent | 0.938 | 0.820 |
+| ru | silero | 0.914 | 0.381 |
+| bel | silero | 0.873 | — |
+| bel_simple | simple | 0.433 | — |
 
 `ruaccent` beats `silero` on both plain accuracy and (by a wide margin)
 homograph accuracy for Russian — the much larger download buys real
@@ -281,8 +281,8 @@ Belarusian specifics:
 - Stress is not marked in standard orthography.
 - Fewer neural training resources than Russian → silero neural model is the
   best available quality without a full BERT pipeline; see the benchmark
-  table above — silero (0.859 accuracy) is dramatically better here than the
-  `bel_simple` vocabulary fallback (0.417).
+  table above — silero (0.873 accuracy) is dramatically better here than the
+  `bel_simple` vocabulary fallback (0.433).
 
 ### Why silero is also available for Russian
 
@@ -295,7 +295,7 @@ a valid alternative when:
 
 It will assign the same stress to both readings of `замок`; for TTS of
 mixed-context text this is audible.  See `benchmarks/RESULTS.md`: on
-Russian, `ruaccent` scores 0.742 homograph accuracy against `silero`'s 0.377.
+Russian, `ruaccent` scores 0.820 homograph accuracy against `silero`'s 0.381.
 
 ### Limitations
 
@@ -531,8 +531,8 @@ Belarusian specifics:
 - Stress is not marked in standard orthography.
 - Fewer neural training resources than Russian → silero neural model is the
   best available quality without a full BERT pipeline; see the benchmark
-  table above — silero (0.859 accuracy) is dramatically better here than the
-  `bel_simple` vocabulary fallback (0.417).
+  table above — silero (0.873 accuracy) is dramatically better here than the
+  `bel_simple` vocabulary fallback (0.433).
 
 ### Why silero is also available for Russian
 
@@ -545,7 +545,7 @@ a valid alternative when:
 
 It will assign the same stress to both readings of `замок`; for TTS of
 mixed-context text this is audible.  See `benchmarks/RESULTS.md`: on
-Russian, `ruaccent` scores 0.742 homograph accuracy against `silero`'s 0.377.
+Russian, `ruaccent` scores 0.820 homograph accuracy against `silero`'s 0.381.
 
 ### Limitations
 
@@ -745,7 +745,7 @@ OOV last-vowel rule holds for standard forms.
 
 **Belarusian simple (`bel_simple`)**
 Same language as `bel` but using vocabulary-only lookup without neural
-inference — a lower-accuracy fallback (0.417 vs. `silero`'s 0.859, see the
+inference — a lower-accuracy fallback (0.433 vs. `silero`'s 0.873, see the
 benchmark table above), meant for offline environments where ONNX inference
 is unavailable, or as an explicit fallback target.  Its OOV rule is `"none"`,
 but that rule only applies to **multi-vowel** OOV words: a **single-vowel**

@@ -1,12 +1,14 @@
 """Kubataba family — char-level encoder-decoder Transformer (Russian)."""
+import threading
 import json
 
 import numpy as np
 import onnxruntime as ort
 
 from stressonnx.download import _download_files
+from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.notation import STRESS_TOKEN, _apostrophe_to_diacritic
-from stressonnx.registry import _KUBATABA_FILES
+from stressonnx.registry import MODEL_REGISTRY, _KUBATABA_FILES
 
 
 class _KubatabaStressor:
@@ -28,11 +30,32 @@ class _KubatabaStressor:
     def __init__(self, cache_dir: str | None = None) -> None:
         self._cache_dir = cache_dir
         self._loaded = False
+        self._load_lock = threading.Lock()
 
     def _ensure_loaded(self) -> None:
+        """Thread-safe lazy load (double-checked locking).
+
+        Download failures surface as :class:`ModelDownloadError`; anything
+        that fails while parsing or building sessions from files already on
+        disk is wrapped in :class:`ModelLoadError` so the fallback chain can
+        engage on a corrupt cache too.  ``self._loaded`` flips only after
+        every attribute is fully initialized.
+        """
         if self._loaded:
             return
-        data = _download_files("ru_kubataba", _KUBATABA_FILES, self._cache_dir)
+        with self._load_lock:
+            if self._loaded:
+                return
+            try:
+                self._load()
+            except (ModelDownloadError, ModelLoadError):
+                raise
+            except Exception as exc:
+                raise ModelLoadError('kubataba', exc) from exc
+            self._loaded = True
+
+    def _load(self) -> None:
+        data = _download_files(MODEL_REGISTRY['kubataba'].hf_subdir, _KUBATABA_FILES, self._cache_dir, model_id="kubataba")
         self._enc_sess = ort.InferenceSession(
             data["encoder.onnx"], providers=["CPUExecutionProvider"]
         )
@@ -46,7 +69,6 @@ class _KubatabaStressor:
         self._bos = self._vocab.get("<s>", 1)
         self._eos = self._vocab.get("</s>", 2)
         self._unk = self._vocab.get("<unk>", 3)
-        self._loaded = True
 
     def _encode_text(self, text: str) -> np.ndarray:
         indices = [self._bos]

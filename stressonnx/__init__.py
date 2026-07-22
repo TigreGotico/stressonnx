@@ -48,12 +48,14 @@ use this to verify compatibility before dispatching text to stressonnx::
         # safe to call stress(text, "ru", model="ruaccent")
         ...
 """
-import unicodedata as _unicodedata
+import logging as _logging
+import time as _time
 
 from stressonnx.errors import (
     StressonnxError,
     UnsupportedLanguageError,
     ModelDownloadError,
+    ModelLoadError,
 )
 from stressonnx.registry import (
     MODEL_REGISTRY,
@@ -69,67 +71,21 @@ from stressonnx.registry import (
     StressorBackend,
     lang_to_script,
 )
-from stressonnx.notation import STRESS_TOKEN, _apply_notation
+from stressonnx.notation import STRESS_TOKEN, _apply_notation, to_plus_notation
 from stressonnx.backends import _SileroStressor, _KubatabaStressor, SimpleStressor, RuAccentStressor
 from stressonnx.stressor import Stressor, make_stressor
 
+#: Backend instance cache, keyed on the RESOLVED (lang, model) pair — the
+#: default model for a language and the same model requested explicitly share
+#: one entry (and one set of loaded ONNX sessions).
 _SINGLETONS: dict = {}
 
-# Combining acute U+0301
-_COMBINING_ACUTE = "́"
-
-
-def _decompose_acute(text: str) -> str:
-    """Split precomposed acute-accented characters into base + U+0301.
-
-    Latin stress output (e.g. ``aze_lat``) may reach a consumer NFC-composed
-    (``"á"`` instead of ``"a" + U+0301``); only characters whose canonical
-    decomposition ends in U+0301 are expanded — everything else (``ё``,
-    ``ö``, ``й`` …) is left untouched, so this is NOT a general NFD pass.
-    """
-    out = []
-    for ch in text:
-        decomp = _unicodedata.normalize("NFD", ch)
-        if len(decomp) > 1 and decomp[-1] == _COMBINING_ACUTE:
-            out.append(decomp)
-        else:
-            out.append(ch)
-    return "".join(out)
-
-
-def to_plus_notation(text: str) -> str:
-    """Convert combining-acute stress notation to legacy ``+``-before-vowel.
-
-    ``"приве́т"`` → ``"прив+ет"``
-
-    Useful for models that were trained on ``+``-marked text.  Operates on any
-    script — it simply moves every U+0301 (combining acute) from after its base
-    character to a ``+`` before it.
-
-    Parameters
-    ----------
-    text:
-        Text containing U+0301 combining-acute stress marks.
-
-    Returns
-    -------
-    str
-        Text with each stressed vowel written as ``+<vowel>``.
-    """
-    text = _decompose_acute(text)
-    result = []
-    i = 0
-    while i < len(text):
-        ch = text[i]
-        if i + 1 < len(text) and text[i + 1] == _COMBINING_ACUTE:
-            result.append("+")
-            result.append(ch)
-            i += 2  # skip the combining acute
-        else:
-            result.append(ch)
-            i += 1
-    return "".join(result)
-
+#: Failed (lang, model) pairs → (monotonic time, exception).  A pair that
+#: just failed is not retried for _FAILURE_COOLDOWN_S seconds; the cached
+#: typed error is re-raised (or the fallback chain moves on) instead of
+#: re-attempting a large download on every synthesis call during an outage.
+_RECENT_FAILURES: dict = {}
+_FAILURE_COOLDOWN_S = 30.0
 
 import logging as _logging
 
@@ -188,7 +144,8 @@ def stress(
         e.g. for models trained on that format.
     fallback:
         When *True* and the selected model's files cannot be fetched
-        (:class:`ModelDownloadError`), walk down the documented priority
+        (:class:`ModelDownloadError`) or loaded from a corrupt cache
+        (:class:`ModelLoadError`), walk down the documented priority
         chain (:data:`FALLBACK_PRIORITY`, e.g. ``ru``: ruaccent → silero)
         with a logged warning per hop, raising only when the chain is
         exhausted.  Default *False*: the error propagates immediately.
@@ -234,13 +191,26 @@ def stress(
             attempts = attempts[1:]  # (None, lang) resolves to the chain head
 
     last_error = None
+    now = _time.monotonic()
     for try_model, try_lang in attempts:
-        key = (try_lang, try_model)
+        # resolve the default so implicit and explicit requests share one
+        # cached backend instance
+        resolved = try_model if try_model is not None else DEFAULT_MODEL.get(try_lang)
+        key = (try_lang, resolved)
+
+        recent = _RECENT_FAILURES.get(key)
+        if recent is not None and now - recent[0] < _FAILURE_COOLDOWN_S:
+            last_error = recent[1]
+            if not fallback:
+                raise last_error
+            continue
+
         if key not in _SINGLETONS:
             _SINGLETONS[key] = make_stressor(model=try_model, lang=try_lang)
         try:
             result = _SINGLETONS[key](text)
-        except ModelDownloadError as exc:
+        except (ModelDownloadError, ModelLoadError) as exc:
+            _RECENT_FAILURES[key] = (_time.monotonic(), exc)
             if not fallback:
                 raise
             last_error = exc
@@ -249,16 +219,37 @@ def stress(
                 try_model, try_lang, exc,
             )
             continue
+        _RECENT_FAILURES.pop(key, None)
         return _apply_notation(result, notation)
     raise last_error
 
 
+def warm_up(lang: str, model: str | None = None) -> None:
+    """Download and load the model for *lang* ahead of the first request.
+
+    Call once at service startup so no synthesis request ever blocks on a
+    model download (the ``ru`` default is ≈500 MB cold).  Uses the same
+    cached instances as :func:`stress`, so the warmed model is the one later
+    calls hit.  Raises the same typed errors as :func:`stress`.
+    """
+    resolved = model if model is not None else DEFAULT_MODEL.get(lang)
+    key = (lang, resolved)
+    if key not in _SINGLETONS:
+        _SINGLETONS[key] = make_stressor(model=model, lang=lang)
+    backend = _SINGLETONS[key]
+    ensure = getattr(backend, "_ensure_loaded", None)
+    if ensure is not None:
+        ensure()
+
+
 __all__ = [
     "stress",
+    "warm_up",
     "to_plus_notation",
     "StressonnxError",
     "UnsupportedLanguageError",
     "ModelDownloadError",
+    "ModelLoadError",
     "FALLBACK_PRIORITY",
     "Stressor",
     "_SileroStressor",

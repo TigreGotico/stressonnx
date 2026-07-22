@@ -1,8 +1,6 @@
 """Deprecated module kept for backward compatibility — import from stressonnx instead."""
 import warnings
 
-from huggingface_hub import hf_hub_download  # noqa: F401 — re-exported for monkeypatch compat
-
 from stressonnx.errors import (  # noqa: F401
     StressonnxError,
     UnsupportedLanguageError,

@@ -74,7 +74,7 @@ def test_ruaccent_consumes_dict_no_hand_joined_paths():
     """
     import inspect
 
-    src = inspect.getsource(RuAccentStressor._ensure_loaded)
+    src = inspect.getsource(RuAccentStressor._load)
     assert "os.path.join" not in src
     assert 'data["' in src
 

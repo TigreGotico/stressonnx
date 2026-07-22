@@ -17,6 +17,7 @@ Pipeline:
    character-level RoFormer ONNX accent model.
 Runtime deps: onnxruntime, numpy, tokenizers (no torch, no transformers).
 """
+import threading
 import gzip
 import json
 import re
@@ -26,6 +27,8 @@ import onnxruntime as ort
 
 from stressonnx._common import _RU_VOWELS, _UNSTRESSED_HYPHEN_CLITICS, _softmax
 from stressonnx.download import _download_files
+from stressonnx.registry import MODEL_REGISTRY
+from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.notation import STRESS_TOKEN, _plus_to_diacritic
 
 # Files to download for the ru_ruaccent variant
@@ -175,16 +178,37 @@ class RuAccentStressor:
     def __init__(self, cache_dir: str | None = None) -> None:
         self._cache_dir = cache_dir
         self._loaded = False
+        self._load_lock = threading.Lock()
 
     # ------------------------------------------------------------------
     # Lazy loading
     # ------------------------------------------------------------------
 
     def _ensure_loaded(self) -> None:
+        """Thread-safe lazy load (double-checked locking).
+
+        Download failures surface as :class:`ModelDownloadError`; anything
+        that fails while parsing or building sessions from files already on
+        disk is wrapped in :class:`ModelLoadError` so the fallback chain can
+        engage on a corrupt cache too.  ``self._loaded`` flips only after
+        every attribute is fully initialized.
+        """
         if self._loaded:
             return
+        with self._load_lock:
+            if self._loaded:
+                return
+            try:
+                self._load()
+            except (ModelDownloadError, ModelLoadError):
+                raise
+            except Exception as exc:
+                raise ModelLoadError('ruaccent', exc) from exc
+            self._loaded = True
 
-        data = _download_files("ru_ruaccent", _RUACCENT_FILES, self._cache_dir)
+    def _load(self) -> None:
+
+        data = _download_files(MODEL_REGISTRY['ruaccent'].hf_subdir, _RUACCENT_FILES, self._cache_dir, model_id="ruaccent")
 
         try:
             from tokenizers import Tokenizer as _Tokenizer  # type: ignore
@@ -238,7 +262,6 @@ class RuAccentStressor:
         # Single-vowel mappings from RUAccent
         self._accents.update({"о": "+о", "О": "+О"})
 
-        self._loaded = True
 
     # ------------------------------------------------------------------
     # Internal helpers

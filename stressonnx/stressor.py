@@ -51,51 +51,28 @@ def make_stressor(
             f"Available models: {sorted(MODEL_REGISTRY.keys())}."
         )
 
-    family = entry.family
+    # One validation for every family: a given lang must be one the model
+    # serves, and multi-language families cannot infer the language.
+    if lang is not None and lang not in entry.langs:
+        raise ValueError(
+            f"Model {model!r} does not support language {lang!r}.  "
+            f"Supported: {sorted(entry.langs)}."
+        )
+    if lang is None and len(entry.langs) > 1:
+        raise ValueError(
+            f"Model {model!r} supports multiple languages "
+            f"({sorted(entry.langs)}); 'lang' must be specified."
+        )
 
-    if family == "ruaccent":
-        if lang is not None and lang not in entry.langs:
-            raise ValueError(
-                f"Model {model!r} does not support language {lang!r}.  "
-                f"Supported: {sorted(entry.langs)}."
-            )
+    if entry.family == "ruaccent":
         return RuAccentStressor(cache_dir=cache_dir)
-
-    if family == "silero":
-        if lang is None:
-            raise ValueError(
-                f"Model {model!r} supports multiple languages "
-                f"({sorted(entry.langs)}); 'lang' must be specified."
-            )
-        if lang not in entry.langs:
-            raise ValueError(
-                f"Model {model!r} does not support language {lang!r}.  "
-                f"Supported: {sorted(entry.langs)}."
-            )
+    if entry.family == "silero":
         return _SileroStressor(lang=lang, cache_dir=cache_dir)
-
-    if family == "simple":
-        if lang is None:
-            raise ValueError(
-                f"Model {model!r} supports multiple languages "
-                f"({sorted(entry.langs)}); 'lang' must be specified."
-            )
-        if lang not in entry.langs:
-            raise ValueError(
-                f"Model {model!r} does not support language {lang!r}.  "
-                f"Supported: {sorted(entry.langs)}."
-            )
+    if entry.family == "simple":
         return SimpleStressor(lang=lang, cache_dir=cache_dir)
-
-    if family == "kubataba":
-        if lang is not None and lang not in entry.langs:
-            raise ValueError(
-                f"Model {model!r} does not support language {lang!r}.  "
-                f"Supported: {sorted(entry.langs)}."
-            )
+    if entry.family == "kubataba":
         return _KubatabaStressor(cache_dir=cache_dir)
-
-    raise ValueError(f"Internal error: unknown family {family!r}.")
+    raise ValueError(f"Internal error: unknown family {entry.family!r}.")
 
 
 class Stressor:

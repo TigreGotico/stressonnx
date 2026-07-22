@@ -97,6 +97,12 @@ class StressorBackend(Protocol):
 # ---------------------------------------------------------------------------
 HF_REPO_ID = "TigreGotico/stressonnx-models"
 
+#: Pinned commit of the model repository.  Every file of every bundle is
+#: fetched from exactly this revision, so releases are reproducible and an
+#: upstream force-push cannot change what users run.  Bump deliberately when
+#: models are uploaded (see export/ADDING_A_LANGUAGE.md).
+HF_REPO_REVISION = "6fdea0dac38badccbcb65c250902b5871264460d"
+
 # Files for kubataba family
 _KUBATABA_FILES = [
     "encoder.onnx",
@@ -227,7 +233,6 @@ def lang_to_script(lang: str) -> Script:
 
 # Convenience sets — scripts present in each model family
 _CYRILLIC_ONLY = frozenset({Script.CYRILLIC})
-_CYRILLIC_AND_LATIN = frozenset({Script.CYRILLIC, Script.LATIN})
 _ALL_SCRIPTS = frozenset({Script.CYRILLIC, Script.LATIN, Script.ARMENIAN, Script.GEORGIAN})
 
 # ---------------------------------------------------------------------------

@@ -107,7 +107,15 @@ def predicted_vowel_ordinal(stressed_window: str, token_index: int):
     mark = token.find(STRESS_TOKEN)
     if mark == -1:
         return None, len(tokens)
-    ordinal = sum(1 for c in token[:mark - 1] if _is_vowelish(c))
+    # the marked vowel is the nearest vowel letter BEFORE the mark — after
+    # NFD a combining diacritic (ё → е + U+0308) can sit between them, so
+    # walk back instead of assuming mark-1 is the vowel
+    stressed_at = next(
+        (i for i in range(mark - 1, -1, -1) if _is_vowelish(token[i])), None
+    )
+    if stressed_at is None:
+        return None, len(tokens)
+    ordinal = sum(1 for c in token[:stressed_at] if _is_vowelish(c))
     return ordinal, len(tokens)
 
 

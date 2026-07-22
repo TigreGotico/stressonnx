@@ -400,3 +400,11 @@ if family == "mymodel":
       (`__call__(self, text: str) -> str`)
 - [ ] Tests added and passing (`pytest tests/ -q`)
 - [ ] `docs/models.md` updated with the new language/model
+
+## After uploading to the model repo
+
+Runtime downloads are pinned to a commit: after any upload to
+`TigreGotico/stressonnx-models`, update `HF_REPO_REVISION` in
+`stressonnx/registry.py` to the new commit hash (shown by
+`HfApi().repo_info("TigreGotico/stressonnx-models").sha`) — otherwise the
+library keeps serving the previous revision by design.

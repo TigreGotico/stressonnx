@@ -11,12 +11,12 @@ subset of target words present in the RUAccent omograph dictionary.
 
 | lang | model | rows | accuracy | homograph rows | homograph acc | cold load (s) | ms/row (warm) |
 |------|-------|------|----------|----------------|---------------|---------------|---------------|
-| ru | ruaccent | 11116 | 0.913 | 724 | 0.818 | 4.0 | 14.0 |
-| ru | silero | 11124 | 0.886 | 724 | 0.377 | 1.3 | 0.1 |
-| ru | kubataba (first 1000 rows) | 910 | 0.884 | 103 | 0.932 | 0.5 | 61.6 |
-| ukr | silero | 12252 | 0.767 | — | — | 1.1 | 0.1 |
-| bel | silero | 2902 | 0.859 | — | — | 1.3 | 0.1 |
-| bel_simple | simple | 2902 | 0.417 | — | — | 0.3 | 0.0 |
+| ru | ruaccent | 11116 | 0.938 | 724 | 0.820 | 1.8 | 20.8 |
+| ru | silero | 11124 | 0.914 | 724 | 0.381 | 0.2 | 0.2 |
+| ru | kubataba (first 1000 rows) | 910 | 0.884 | 103 | 0.932 | 0.2 | 155.8 |
+| ukr | silero | 12252 | 0.785 | — | — | 0.2 | 0.2 |
+| bel | silero | 2902 | 0.873 | — | — | 0.1 | 0.2 |
+| bel_simple | simple | 2902 | 0.433 | — | — | 0.0 | 0.0 |
 
 **Annotation-noise ceiling:** on Russian targets covered by the RUAccent
 pronunciation dictionary with a single unambiguous stress, the gold
@@ -33,7 +33,6 @@ The 20 `simple`-model languages ship curated vocabularies exported from
 silero_stress; no independent stress-annotated corpus is publicly
 available for them, so no accuracy row is reported (the parity test in
 `tests/test_export_parity.py` locks them to the upstream reference).
-
 ## OOV positional rules (simple model)
 
 Accuracy of each language's out-of-vocabulary rule measured against its own

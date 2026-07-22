@@ -24,6 +24,19 @@ _RE_RU_COND = re.compile(r"[^А-Яа-яёЁ]")
 _UNSTRESSED_HYPHEN_CLITICS = frozenset({"то", "нибудь", "либо", "таки", "ка"})
 
 
+def lower_preserving_length(text: str) -> str:
+    """Lowercase *text* without changing its length.
+
+    Stress indices are computed on the lowercased word and then spliced into
+    the original — which requires ``len(lower) == len(original)``.  Plain
+    ``str.lower()`` breaks that for the Turkic dotted capital İ (U+0130 →
+    ``i`` + combining dot, two code points), live in the aze_lat / uzb_lat /
+    tat alphabets.  Any character whose lowercase form expands keeps only
+    the first code point of that form.
+    """
+    return "".join(c.lower() if len(c.lower()) == 1 else c.lower()[0] for c in text)
+
+
 def _softmax(x: np.ndarray) -> np.ndarray:
     x = x - x.max(axis=1, keepdims=True)
     e = np.exp(x)

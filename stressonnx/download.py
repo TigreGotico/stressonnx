@@ -1,11 +1,12 @@
 """Single download layer: resolve model files from the HuggingFace Hub cache."""
 import logging
 import os
+import time
 
 from huggingface_hub import hf_hub_download
 
 from stressonnx.errors import ModelDownloadError
-from stressonnx.registry import HF_REPO_ID
+from stressonnx.registry import HF_REPO_ID, HF_REPO_REVISION
 
 LOG = logging.getLogger("stressonnx")
 
@@ -17,11 +18,15 @@ _LEGACY_CACHE = os.path.join(os.path.expanduser("~"), ".local", "share", "stress
 _legacy_cache_notified = False
 
 
-def _download_files(hf_subdir: str, filenames: list, cache_dir: str | None = None) -> dict:
+def _download_files(hf_subdir: str, filenames: list, cache_dir: str | None = None,
+                    model_id: str | None = None) -> dict:
     """Resolve model files for one HF subdir; return ``{relative_name: local_path}``.
 
     This is the single download layer — every backend obtains its files
-    through the returned dict and never constructs model paths itself.
+    through the returned dict and never constructs model paths itself.  All
+    files of a bundle are fetched from the pinned :data:`HF_REPO_REVISION`,
+    so a bundle can never mix repository revisions and an upstream
+    force-push cannot silently change what users run.
 
     With ``cache_dir=None`` (the default) files live in the standard Hugging
     Face cache: ``hf_hub_download`` handles reuse, ``HF_HOME`` relocation and
@@ -30,11 +35,14 @@ def _download_files(hf_subdir: str, filenames: list, cache_dir: str | None = Non
 
     With an explicit ``cache_dir`` the invariant is
     ``local(f) = cache_dir / hf_subdir / f`` — exactly the tree layout of the
-    HF repo, never ``cache_dir/hf_subdir/hf_subdir/f``.  Existing files are
-    returned without touching the network.
+    HF repo, never ``cache_dir/hf_subdir/hf_subdir/f``.  Existing non-empty
+    files are returned without touching the network (``hf_hub_download``
+    writes via atomic rename, so a partially transferred file never lands at
+    the final path; the emptiness check guards external truncation).
 
-    Raises :class:`ModelDownloadError` (chaining the hub exception) when a
-    file cannot be fetched.
+    *model_id* names the user-facing model in error messages; it defaults to
+    the HF subdir.  Raises :class:`ModelDownloadError` (chaining the hub
+    exception) when a file cannot be fetched.
     """
     global _legacy_cache_notified
     if cache_dir is None and not _legacy_cache_notified and os.path.isdir(_LEGACY_CACHE):
@@ -44,20 +52,32 @@ def _download_files(hf_subdir: str, filenames: list, cache_dir: str | None = Non
         )
         _legacy_cache_notified = True
 
+    display_id = model_id or hf_subdir
     paths = {}
+    fetched = 0
+    t0 = time.monotonic()
     for fname in filenames:
         hf_path = f"{hf_subdir}/{fname}"
         if cache_dir is not None:
             local = os.path.join(cache_dir, hf_subdir, fname)
-            if os.path.exists(local):
+            if os.path.exists(local) and os.path.getsize(local) > 0:
                 paths[fname] = local
                 continue
         try:
+            if fetched == 0:
+                LOG.info("Resolving model files for %s (%s@%s) …",
+                         display_id, HF_REPO_ID, HF_REPO_REVISION[:12])
+            fetched += 1
             paths[fname] = hf_hub_download(
                 repo_id=HF_REPO_ID,
                 filename=hf_path,
+                revision=HF_REPO_REVISION,
                 local_dir=cache_dir,
             )
         except Exception as exc:
-            raise ModelDownloadError(hf_subdir, hf_path, exc) from exc
+            raise ModelDownloadError(display_id, hf_path, exc,
+                                     repo_id=HF_REPO_ID) from exc
+    if fetched:
+        LOG.info("Model files for %s ready (%d file(s), %.1fs).",
+                 display_id, fetched, time.monotonic() - t0)
     return paths

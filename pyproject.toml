@@ -14,11 +14,13 @@ classifiers = [
 ]
 authors = [{name = "JarbasAI", email = "jarbasai@mailfence.com"}]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"  # PEP 604 unions in evaluated positions; CI matrix floor
 dependencies = [
     "numpy",
     "onnxruntime",
     "huggingface_hub",
+    # used only by the ruaccent backend, but ru is the default language —
+    # kept as a hard dependency so the default path works out of the box
     "tokenizers",
 ]
 

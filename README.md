@@ -48,8 +48,8 @@ sense-dependent pronunciation → a bifonia-style diacritic restorer.**
 
 | Model id | Languages | What it is | Measured quality |
 |----------|-----------|------------|------------------|
-| `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), Apache-2.0) | 0.913 word accuracy, **0.818 on homographs** |
-| `silero` | `ukr`, `bel` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё | ru 0.886 / ukr 0.767 / bel 0.859 |
+| `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), Apache-2.0) | 0.938 word accuracy, **0.820 on homographs** |
+| `silero` | `ukr`, `bel` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё | ru 0.914 / ukr 0.785 / bel 0.873 |
 | `kubataba` | `ru` | Char-level seq2seq Transformer ([kubataba](https://huggingface.co/kubataba), MIT); sentence-in, sentence-out | 0.884 (slow: ~60 ms/row) |
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
 
@@ -132,8 +132,9 @@ by `ruaccent` from context and deliberately left untouched by `silero`.
 - **First call per language downloads models** into the standard Hugging Face
   cache (`~/.cache/huggingface`, relocatable via `HF_HOME`).  Sizes: `ru`
   ruaccent ≈ 500 MB, silero/kubataba ≈ tens of MB, `simple` languages ≈ 1 MB.
-- **Warm-up ahead of serving:** call `stress("тест", lang)` once at startup so
-  no download ever happens mid-synthesis.
+- **Warm-up ahead of serving:** call `warm_up(lang)` once at startup so no
+  synthesis request ever blocks on a model download; it loads the same
+  cached instance later `stress()` calls use.
 - **Fully offline:** after a warm run, set `HF_HUB_OFFLINE=1` — cached models
   keep working, network is never touched.
 - **Typed failures:**
@@ -150,7 +151,19 @@ except ModelDownloadError as e:               # names the exact missing HF path
 ```
 
 `fallback=True` degrades down the quality chain with a logged warning per
-hop; the default (`False`) raises immediately.
+hop (it also engages on `ModelLoadError` — a corrupt cache — not just
+failed downloads); the default (`False`) raises immediately.  A failed
+(lang, model) pair is not retried for 30 s, so an outage never triggers a
+download attempt per call.
+
+**Supply-chain pinning:** model files are fetched from a commit-pinned
+revision of the HF repo (`HF_REPO_REVISION` in `stressonnx/registry.py`),
+so releases are reproducible and upstream changes never reach users
+implicitly.
+
+**Thread safety:** `stress()` and the backends use double-checked locking
+for lazy loads; calling from multiple threads is supported (onnxruntime
+sessions are thread-safe for inference).
 
 ### Contracts worth knowing
 

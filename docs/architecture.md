@@ -25,7 +25,7 @@ monolithic file:
 | Module | Responsibility |
 |--------|---------------|
 | `stressonnx/registry.py` | `Script`, `StressNotation`, `ModelEntry`, `StressorBackend` Protocol; `MODEL_REGISTRY`, `DEFAULT_MODEL`; language-set constants (`RUACCENT_LANGS`, `MAIN_LANGS`, `SIMPLE_LANGS`, `ALL_LANGS`); `LANG_SCRIPT` + `lang_to_script()`; per-family file lists (`_MAIN_FILES`, `_SIMPLE_FILES`, `_KUBATABA_FILES`); `_OOV_RULES`. |
-| `stressonnx/download.py` | The single download layer: `_download_files()` resolves model files via `huggingface_hub.hf_hub_download`, honoring the standard HF cache (`HF_HOME`, `HF_HUB_OFFLINE`) or an explicit `cache_dir` override. |
+| `stressonnx/download.py` | The single download layer: `_download_files()` resolves model files via `huggingface_hub.hf_hub_download`, honoring the standard HF cache (`HF_HOME`, `HF_HUB_OFFLINE`) or an explicit `cache_dir` override; every fetch is pinned to `HF_REPO_REVISION` (a commit hash) and logged. |
 | `stressonnx/errors.py` | Typed exceptions: `StressonnxError` (base), `UnsupportedLanguageError` (`ValueError` subclass), `ModelDownloadError`. |
 | `stressonnx/notation.py` | `STRESS_TOKEN` (U+0301); `_insert_stress()`, `_apply_notation()`, `_plus_to_diacritic()`, `_apostrophe_to_diacritic()` — all notation/format conversions. |
 | `stressonnx/_common.py` | Small helpers shared by more than one backend: `_softmax`, `_RU_VOWELS`, `_RE_SPLIT` (shared tokenizer boundary regex), `_RE_RU_COND`, `_UNSTRESSED_HYPHEN_CLITICS`. |

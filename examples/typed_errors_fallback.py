@@ -55,7 +55,7 @@ import stressonnx.backends.silero as _silero_mod
 import stressonnx.backends.simple as _simple_mod
 
 
-def _always_fail(hf_subdir, filenames, cache_dir=None):
+def _always_fail(hf_subdir, filenames, cache_dir=None, model_id=None):
     raise ModelDownloadError(hf_subdir, f"{hf_subdir}/{filenames[0]}", OSError("offline"))
 
 

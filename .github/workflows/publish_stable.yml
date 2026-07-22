@@ -5,6 +5,11 @@ on:
   push:
     branches: [master]
 
+# one release at a time; never cancel a publish mid-flight
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
