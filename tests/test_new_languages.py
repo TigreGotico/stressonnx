@@ -1,0 +1,56 @@
+"""Exact-output tests for the Wiktionary/RUAccent-dictionary languages.
+
+Stress values verified against the source lexicons (English Wiktionary
+stressed headwords; RUAccent pronunciation dictionary) and each language's
+documented rule (citations in ``stressonnx/backends/simple.py``).
+"""
+import pytest
+
+from stressonnx import stress
+from stressonnx.backends.simple import SimpleStressor
+
+
+@pytest.mark.parametrize("text,lang,expected", [
+    # Bulgarian — free stress, vocabulary-driven (Scatton 1984)
+    ("водата е студена", "bul", "вода́та е́ студена"),
+    ("Добро утро", "bul", "Добро́ у́тро"),
+    # Macedonian — fixed antepenultimate (Friedman 2001); OOV words follow it
+    ("Добро утро Македонија", "mkd", "До́бро у́тро Македо́нија"),
+    ("телевизија работи", "mkd", "телеви́зија ра́боти"),
+    # Slovene — free stress, vocabulary-driven (Herrity 2000)
+    ("voda je mrzla", "slv", "vóda jé mrzlá"),
+    # Latvian — fixed initial stress (Nau 1998)
+    ("Labdien, mani draugi", "lav", "Lábdien, máni dráugi"),
+    ("saule spīd debesīs", "lav", "sáule spī́d débesīs"),
+    # ru_simple / ukr_simple — dictionary lookup, no positional guessing
+    ("вода холодная", "ru_simple", "вода́ холо́дная"),
+    ("вода холодна", "ukr_simple", "вода́ холо́дна"),
+    ("Привіт, як справи сьогодні", "ukr_simple", "Приві́т, я́к спра́ви сього́дні"),
+])
+def test_new_language_sentences(text, lang, expected):
+    assert stress(text, lang) == expected
+
+
+def test_free_stress_langs_do_not_guess_oov():
+    """A multi-vowel word absent from the vocabulary must stay unmarked."""
+    for lang, word in [("bul", "студена"), ("slv", "prijatelji"),
+                       ("ru_simple", "абракадабрит"), ("ukr_simple", "абракадабрить")]:
+        s = SimpleStressor(lang)
+        s._ensure_loaded()
+        assert s._accentuate_oov(word) == word
+
+
+def test_macedonian_oov_antepenult():
+    s = SimpleStressor("mkd")
+    s._ensure_loaded()
+    assert s._accentuate_oov("библиотекарка") == "библиоте́карка"
+
+
+def test_vocab_sizes_sanity():
+    """Vocabularies exist and have the expected order of magnitude."""
+    expected_min = {"bul": 40000, "mkd": 1500, "slv": 4000,
+                    "lav": 100, "ru_simple": 100000, "ukr_simple": 45000}
+    for lang, n in expected_min.items():
+        s = SimpleStressor(lang)
+        s._ensure_loaded()
+        assert len(s._vocab) >= n, (lang, len(s._vocab))

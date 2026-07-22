@@ -378,7 +378,7 @@ alternative to the ruaccent multi-stage pipeline.
 
 ## `"simple"` — vocabulary + rules
 
-**Default for 20 Turkic, Caucasian, and minority Slavic/Uralic languages.**
+**Default for the 26 rule/vocabulary languages** (Turkic, Caucasian, Uralic, and the Wiktionary/dictionary-backed Slavic and Baltic set).
 
 ### Architecture
 
@@ -401,6 +401,19 @@ per token:
                     "kat"    → ≤3 vowels → first, else penultimate
                     "none"   → unstressed (no mark inserted)
 ```
+
+
+**Wiktionary / dictionary languages.**  Six languages are vocabulary-first
+additions with no upstream neural model: Bulgarian (`bul`), Macedonian
+(`mkd`), Slovene (`slv`), Latvian (`lav`), and the `ru_simple` /
+`ukr_simple` aliases.  Their vocabularies come from stress-marked English
+Wiktionary headwords (via kaikki.org, CC BY-SA) except `ru_simple`, built
+from the RUAccent pronunciation dictionary (Apache-2.0).  Free-stress
+languages (bul, slv, ru_simple, ukr_simple) use the `none` rule — dictionary
+lookup only, never a positional guess; `mkd` follows the fixed
+antepenultimate rule (Friedman 2001) with an exceptions-only vocabulary, and
+`lav` fixed initial stress (Nau 1998).  Rebuild with
+`export/build_wiktionary_vocab.py`.
 
 ### Per-language OOV rules
 
@@ -615,7 +628,7 @@ alternative to the ruaccent multi-stage pipeline.
 
 ## `"simple"` — vocabulary + rules
 
-**Default for 20 Turkic, Caucasian, and minority Slavic/Uralic languages.**
+**Default for the 26 rule/vocabulary languages** (Turkic, Caucasian, Uralic, and the Wiktionary/dictionary-backed Slavic and Baltic set).
 
 ### Architecture
 
@@ -756,7 +769,7 @@ is left with no mark at all.
   [silero_stress](https://github.com/snakers4/silero-models) (MIT) and
   reflect the training data used there.  Low-frequency or dialectal forms may
   be missing.
-- All 20 `simple` vocabularies (`bel_simple` included) are exports of the
+- The original 20 `simple` vocabularies (`bel_simple` included) are exports of the
   upstream `silero_stress` `SimpleAccentor` data — there is currently no
   independent gold-standard accuracy measurement for these languages (see
   the "Languages without independent gold" note in
@@ -769,7 +782,7 @@ is left with no mark at all.
 
 | | ruaccent | silero | kubataba | simple |
 |---|---|---|---|---|
-| **Languages** | ru | ukr, bel, ru | ru | 20 languages |
+| **Languages** | ru | ukr, bel, ru | ru | 26 languages |
 | **Context** | Sentence (BERT) | Word (n-gram) | Sentence (Transformer) | Word (dict) |
 | **Homograph resolution** | Yes (BERT + RoBERTa) | No | Partial (learned) | No |
 | **е→ё restoration (ru)** | Yes | Yes | Model-dependent | N/A |

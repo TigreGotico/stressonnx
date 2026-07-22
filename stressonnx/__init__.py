@@ -15,11 +15,12 @@ Model families
     Neural ONNX pipeline (embedding-bag + MLP heads) exported from
     silero_stress (MIT).
 
-``"simple"`` (default for 20 other Slavic/Turkic/Caucasian languages):
+``"simple"`` (default for the other rule/vocabulary languages):
     Vocabulary + rules; no ONNX inference.  Languages: ``aze_cyr``,
-    ``aze_lat``, ``uzb_cyr``, ``uzb_lat``, ``bak``, ``chv``, ``erz``,
-    ``hye``, ``kat``, ``kaz``, ``kbd``, ``kir``, ``kjh``, ``mdf``, ``sah``,
-    ``tat``, ``tgk``, ``udm``, ``xal`` (plus ``bel_simple`` alias).
+    ``aze_lat``, ``uzb_cyr``, ``uzb_lat``, ``bak``, ``bul``, ``chv``,
+    ``erz``, ``hye``, ``kat``, ``kaz``, ``kbd``, ``kir``, ``kjh``, ``lav``,
+    ``mdf``, ``mkd``, ``sah``, ``slv``, ``tat``, ``tgk``, ``udm``, ``xal``
+    (plus the ``bel_simple``, ``ru_simple``, ``ukr_simple`` aliases).
 
 Pass ``bel`` to use the neural accentor; ``bel_simple`` for the vocab path.
 

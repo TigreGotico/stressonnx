@@ -3,7 +3,7 @@
 ## Overview
 
 stressonnx is a pure-onnxruntime word-stress / accentuation library for
-Russian, Ukrainian, Belarusian, and 20 other Slavic, Turkic, Uralic,
+Russian, Ukrainian, Belarusian, and 23 other Slavic, Baltic, Turkic, Uralic,
 Caucasian, and Mongolic languages.
 
 Runtime dependencies: `onnxruntime`, `numpy`, `huggingface_hub`,
@@ -30,7 +30,7 @@ monolithic file:
 | `stressonnx/stressor.py` | Public entry points: `make_stressor()` (factory) and the `Stressor` class. |
 | `stressonnx/backends/ruaccent.py` | `RuAccentStressor` — the `ruaccent` family. |
 | `stressonnx/backends/silero.py` | `_SileroStressor` — the `silero` family (`ukr`, `bel`, `ru`). |
-| `stressonnx/backends/simple.py` | `SimpleStressor` — the `simple` family (20 languages). |
+| `stressonnx/backends/simple.py` | `SimpleStressor` — the `simple` family (26 languages). |
 | `stressonnx/backends/kubataba.py` | `_KubatabaStressor` — the `kubataba` family (`ru` alternative). |
 | `stressonnx/backends/__init__.py` | Re-exports the four backend classes. |
 | `stressonnx/__init__.py` | Assembles the public API: `stress()`, `to_plus_notation()`, and re-exports from every module above. |
@@ -208,7 +208,7 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         input_scripts=frozenset({Script.CYRILLIC}),
     ),
     "simple": ModelEntry(
-        langs=frozenset({…20 langs, including bel_simple…}),
+        langs=frozenset(SIMPLE_LANGS),  # 26 languages incl. the *_simple aliases
         family="simple",
         hf_subdir=None,
         description="…",
@@ -295,7 +295,7 @@ Files: `encoder.onnx`, `decoder_step.onnx`, `vocab.json` — under
 
 ### `SimpleStressor` — simple family (`stressonnx/backends/simple.py`)
 
-Vocabulary + rule-based pipeline.  No ONNX inference.  Supports 20 languages.
+Vocabulary + rule-based pipeline.  No ONNX inference.  Supports 26 languages.
 
 Pipeline per word:
 1. Tokenise sentence (shared boundary regex, hyphen-aware).

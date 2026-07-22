@@ -1,9 +1,8 @@
 """Simple-accentor family (vocabulary + rules).
 
-``simple_accentor`` (model id ``"simple"``, languages ``aze_cyr``,
-``aze_lat``, ``uzb_cyr``, ``uzb_lat``, ``bak``, ``bel_simple``, ``chv``,
-``erz``, ``hye``, ``kat``, ``kaz``, ``kbd``, ``kir``, ``kjh``, ``mdf``,
-``sah``, ``tat``, ``tgk``, ``udm``, ``xal``):
+``simple_accentor`` (model id ``"simple"`` — every language in
+``SIMPLE_LANGS``, from Turkic final-stress languages to the Wiktionary- and
+dictionary-backed ``bul``/``mkd``/``slv``/``lav``/``ru_simple``/``ukr_simple``):
 Vocabulary + rule-based pipeline.
 1. Tokenise sentence.
 2. Look up clean token in vocabulary dict (word → stress char index).
@@ -73,11 +72,16 @@ def _rule_chv(word: str, vowels: list) -> Optional[int]:
     return next((i for i in reversed(vowels) if word[i] not in "ӑӗ"), vowels[0])
 
 
-def _rule_kat(word: str, vowels: list) -> Optional[int]:
-    """Georgian: antepenultimate vowel, initial for shorter words
-    (Akhvlediani 1949, Gudava 1969, Aronson 1990).  Georgian stress is weak
-    and contested — Borise 2020 argues fixed initial — but this is the
-    tradition the curated vocabulary follows exactly."""
+def _rule_antepenult(word: str, vowels: list) -> Optional[int]:
+    """Antepenultimate vowel, initial for shorter words.
+
+    Georgian (rule name ``kat``): Akhvlediani 1949, Gudava 1969, Aronson
+    1990 — the tradition the curated vocabulary follows exactly (Georgian
+    stress is weak and contested; Borise 2020 argues fixed initial).
+    Macedonian (rule name ``antepenult``): fixed antepenultimate stress,
+    first syllable in shorter words (Friedman 2001, "Macedonian"); words
+    with exceptional stress are in the vocabulary, which is exactly the set
+    Wiktionary marks with an explicit accent."""
     return vowels[-3] if len(vowels) >= 3 else vowels[0]
 
 
@@ -119,7 +123,8 @@ OOV_RULES: dict = {
     "first": _rule_first,
     "none": _rule_none,
     "chv": _rule_chv,
-    "kat": _rule_kat,
+    "kat": _rule_antepenult,
+    "antepenult": _rule_antepenult,
     "hye": _rule_hye,
     "tgk": _rule_tgk,
     "mdf": _rule_mdf,
@@ -146,8 +151,9 @@ class SimpleStressor:
         if lang not in SIMPLE_LANGS:
             raise UnsupportedLanguageError(lang, SIMPLE_LANGS)
         self.lang = lang
-        # HF artefacts live under the canonical lang name (strip _simple suffix)
-        self._hf_lang = lang.removesuffix("_simple") if lang.endswith("_simple") else lang
+        # bel_simple shares the bel HF directory (same upstream vocab); the
+        # other *_simple aliases ship their own dedicated vocabularies
+        self._hf_lang = "bel" if lang == "bel_simple" else lang
         self._cache_dir = cache_dir
         self._loaded = False
 

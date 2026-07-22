@@ -30,7 +30,10 @@ def test_unsupported_language_names_lang_and_supported():
 
 def test_fallback_priority_order():
     assert FALLBACK_PRIORITY == ("ruaccent", "silero", "simple")
-    assert _fallback_chain("ru") == [("ruaccent", "ru"), ("silero", "ru")]
+    assert _fallback_chain("ru") == [
+        ("ruaccent", "ru"), ("silero", "ru"), ("simple", "ru_simple")
+    ]
+    assert _fallback_chain("ukr") == [("silero", "ukr"), ("simple", "ukr_simple")]
     assert _fallback_chain("bel") == [("silero", "bel"), ("simple", "bel_simple")]
     assert _fallback_chain("kaz") == [("simple", "kaz")]
     assert _fallback_chain("xx") == []

@@ -51,13 +51,17 @@ sense-dependent pronunciation → a bifonia-style diacritic restorer.**
 | `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), Apache-2.0) | 0.908 word accuracy, **0.742 on homographs** |
 | `silero` | `ukr`, `bel` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё | ru 0.886 / ukr 0.767 / bel 0.859 |
 | `kubataba` | `ru` | Char-level seq2seq Transformer ([kubataba](https://huggingface.co/kubataba), MIT); sentence-in, sentence-out | 0.884 (slow: ~60 ms/row) |
-| `simple` | 20 Slavic/Turkic/Caucasian languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream |
+| `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
 
-¹ `aze_cyr aze_lat uzb_cyr uzb_lat bak bel_simple chv erz hye kat kaz kbd kir
-kjh mdf sah tat tgk udm xal` — Azerbaijani (both scripts), Uzbek (both
-scripts), Bashkir, Belarusian (rule-path alias), Chuvash, Erzya, Armenian,
-Georgian, Kazakh, Kabardian, Kyrgyz, Khakas, Moksha, Yakut, Tatar, Tajik,
-Udmurt, Kalmyk.
+¹ `aze_cyr aze_lat uzb_cyr uzb_lat bak bel_simple bul chv erz hye kat kaz
+kbd kir kjh lav mdf mkd ru_simple sah slv tat tgk udm ukr_simple xal` —
+Azerbaijani (both scripts), Uzbek (both scripts), Bashkir, Belarusian
+(rule-path alias), Bulgarian, Chuvash, Erzya, Armenian, Georgian, Kazakh,
+Kabardian, Kyrgyz, Khakas, Latvian, Moksha, Macedonian, Russian
+(dictionary-path alias), Yakut, Slovene, Tatar, Tajik, Udmurt, Ukrainian
+(dictionary-path alias), Kalmyk.  Every language — including ru/ukr/bel —
+has a torch-free, ONNX-free rule/vocabulary path, so `fallback=True` always
+bottoms out in a model that needs nothing but a small vocabulary file.
 
 Numbers come from the committed, reproducible
 [benchmark scoreboard](benchmarks/RESULTS.md) (annotated UD-treebank gold;
@@ -189,9 +193,11 @@ Two paths, both documented step-by-step for newcomers in
 2. **You have (or train) a neural accentor** → export it to ONNX with the
    scripts in `export/` and add a backend entry.
 
-All 20 upstream silero_stress vocabularies are already shipped, so a new
-`simple` language starts from a new wordlist source (a pronunciation
-dictionary, a stressed corpus, a university lexicon…).
+All 20 upstream silero_stress vocabularies are already shipped, and
+`export/build_wiktionary_vocab.py` turns any language whose Wiktionary
+headwords carry stress marks into a `simple` language (that is how
+Bulgarian, Macedonian, Slovene, Latvian and Ukrainian were built; Russian
+came from the RUAccent pronunciation dictionary).
 
 ---
 

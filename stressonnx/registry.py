@@ -136,8 +136,13 @@ SIMPLE_LANGS = {
     "uzb_cyr", "uzb_lat",
     "bak",
     "bel_simple",   # alias — same vocab as bel but always rule-path
+    "bul",
     "chv", "erz", "hye", "kat", "kaz", "kbd", "kir",
-    "kjh", "mdf", "sah", "tat", "tgk", "udm", "xal",
+    "kjh", "lav", "mdf", "mkd",
+    "ru_simple",    # alias — RUAccent-dictionary vocab, no neural inference
+    "sah", "slv", "tat", "tgk", "udm",
+    "ukr_simple",   # alias — Wiktionary vocab, no neural inference
+    "xal",
 }
 
 ALL_LANGS = RUACCENT_LANGS | MAIN_LANGS | SIMPLE_LANGS
@@ -169,9 +174,15 @@ LANG_SCRIPT: dict[str, Script] = {
     "mdf":      Script.CYRILLIC,
     "uzb_cyr":  Script.CYRILLIC,
     "aze_cyr":  Script.CYRILLIC,
+    "bul":      Script.CYRILLIC,
+    "mkd":      Script.CYRILLIC,
+    "ru_simple":  Script.CYRILLIC,
+    "ukr_simple": Script.CYRILLIC,
     # Latin-script languages
     "aze_lat":  Script.LATIN,
     "uzb_lat":  Script.LATIN,
+    "slv":      Script.LATIN,
+    "lav":      Script.LATIN,
     # Armenian script
     "hye":      Script.ARMENIAN,
     # Georgian (Mkhedruli) script
@@ -254,7 +265,7 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         description=(
             "Vocabulary + rule-based accentor (silero_stress, MIT). "
             "Dictionary lookup with per-language OOV positional fallback. "
-            "Supports 20 languages across Cyrillic, Latin, Armenian, and Georgian scripts."
+            "Supports 26 languages across Cyrillic, Latin, Armenian, and Georgian scripts."
         ),
         input_scripts=_ALL_SCRIPTS,
     ),
@@ -302,10 +313,19 @@ _OOV_RULES = {
     "aze_cyr": "last", "aze_lat": "last",
     "uzb_cyr": "last", "uzb_lat": "last",
     "bak": "last", "bel": "none", "bel_simple": "none",
+    "bul": "none",              # Bulgarian stress is free/lexical (Scatton 1984)
     "chv": "chv", "erz": "first",
     "hye": "hye", "kat": "kat",
     "kaz": "last", "kbd": "kbd", "kir": "last",
-    "kjh": "last", "mdf": "mdf",
-    "sah": "last", "tat": "last", "tgk": "tgk",
-    "udm": "last", "xal": "last",
+    "kjh": "last",
+    "lav": "first",             # Latvian fixed initial stress (Nau 1998)
+    "mdf": "mdf",
+    "mkd": "antepenult",        # Macedonian fixed antepenultimate (Friedman 2001)
+    "ru_simple": "none",        # Russian stress is free/lexical
+    "sah": "last",
+    "slv": "none",              # Slovene stress is free/lexical (Herrity 2000)
+    "tat": "last", "tgk": "tgk",
+    "udm": "last",
+    "ukr_simple": "none",       # Ukrainian stress is free/lexical
+    "xal": "last",
 }

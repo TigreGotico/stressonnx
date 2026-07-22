@@ -206,7 +206,8 @@ def test_lang_sets_are_consistent():
     assert RUACCENT_LANGS == {"ru"}
     assert MAIN_LANGS == {"ru", "ukr", "bel"}
     assert "bel" not in SIMPLE_LANGS and "bel_simple" in SIMPLE_LANGS
-    assert len(SIMPLE_LANGS) == 20
+    assert {"bul", "mkd", "slv", "lav", "ru_simple", "ukr_simple"} <= SIMPLE_LANGS
+    assert len(SIMPLE_LANGS) == 26
 
 
 # ---------------------------------------------------------------------------
