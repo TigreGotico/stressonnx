@@ -10,6 +10,25 @@
 | Ukrainian / Belarusian | `model="silero"` (default) |
 | Turkic / Caucasian / minority languages | `model="simple"` (default) |
 
+Full accuracy numbers (not just relative quality claims) live in
+[`../benchmarks/RESULTS.md`](../benchmarks/RESULTS.md), reproducible with
+`python benchmarks/run.py`.  Headline results:
+
+| lang | model | accuracy | homograph accuracy |
+|------|-------|----------|--------------------|
+| ru | ruaccent | 0.908 | 0.742 |
+| ru | silero | 0.886 | 0.377 |
+| bel | silero | 0.859 | — |
+| bel_simple | simple | 0.417 | — |
+
+`ruaccent` beats `silero` on both plain accuracy and (by a wide margin)
+homograph accuracy for Russian — the much larger download buys real
+correctness, not just parity.  For Belarusian, `silero` (neural) is
+substantially more accurate than `bel_simple` (vocabulary lookup); use
+`bel_simple` only where ONNX inference is unavailable.  See
+`benchmarks/RESULTS.md` for row counts, the annotation-noise ceiling, and
+per-model dropped-row counts.
+
 ---
 
 ## Why lexical stress matters
@@ -34,6 +53,58 @@ The difficulty varies enormously by language:
 | Caucasian (Georgian, Armenian, Kabardino-Balkarian) | Medium | Fixed position in most forms; loanwords and compound words break the rule |
 | Erzya / Moksha | Low–medium | Initial stress default, but many exceptions; vowel reduction in unstressed syllables |
 | Yakut (Sah) | Medium | Long vowels attract stress; vowel harmony constrains position |
+
+---
+
+## Tokenization (shared across backends)
+
+Every backend splits text on a shared boundary set before looking words up:
+whitespace, ASCII punctuation, typographic punctuation
+(`«» „“ ”…—–%№*@[]{}`), and digits.  This keeps a word glued to adjacent
+punctuation or a digit from falling through as one unrecognisable OOV token —
+it is split into the clean word plus the punctuation/digit run instead
+(`«дом»`, `текст—текст`, `дом5`).
+
+Apostrophes are deliberately **not** boundaries: `'` is part of the
+`aze_lat` / `uzb_lat` alphabets and `’` is part of the `bel` alphabet, so
+splitting on them would break words in those languages.
+
+Hyphenated words are split into their hyphen-joined parts for tokenization
+purposes, with one exception: **Russian hyphenated enclitic particles**
+(`-то`, `-нибудь`, `-либо`, `-таки`, `-ка`) never receive stress — e.g.
+`кто́-то`, `како́й-нибудь`, `пришёл-таки`.  This applies identically in both
+the `ruaccent` and `silero` pipelines for `ru`.
+
+---
+
+## Monosyllable (single-vowel word) policy
+
+Backends differ in whether they force a mark onto a word with exactly one
+vowel:
+
+| Backend | Single-vowel word policy |
+|---------|--------------------------|
+| `simple` | Always stressed — the one vowel present is marked, even under an OOV `"none"` rule (see `bel_simple` below). |
+| `silero` | Always stressed — a word with exactly one vowel gets it marked regardless of the model's own prediction. |
+| `ruaccent` | The dictionary/neural accent path only fires for words with **more than one** vowel; a bare, dictionary-absent monosyllable is often left **unmarked**.  Single-vowel entries hardcoded in the accent dictionary (e.g. `о` → `+о`) are still marked. |
+| `kubataba` | Model-dependent — the seq2seq decoder has no explicit monosyllable rule; behavior follows whatever the training data taught it. |
+
+---
+
+## Idempotency (re-stressing already-marked text)
+
+Calling a backend on text that already carries the combining acute
+(U+0301) is safe, but the four backends handle it differently:
+
+| Backend | Behavior on pre-marked input |
+|---------|-------------------------------|
+| `simple` | Skips: if U+0301 is already present in a token, that token is returned unchanged. |
+| `silero` | Skips: a word already containing the stress token short-circuits before any prediction. |
+| `ruaccent` | Strips and re-derives from scratch — marks are not detected as "already done"; yo-homograph and omograph resolution always re-run. |
+| `kubataba` | Strips and re-derives: the whole sentence is re-encoded and re-decoded character-by-character, so any existing marks are just more input characters to the seq2seq model. |
+
+If you need to guarantee a no-op on already-stressed text, prefer `simple`
+or `silero` for that language, or check for U+0301 yourself before calling.
 
 ---
 
@@ -72,28 +143,49 @@ Input sentence
       │
       ▼
 nn_stress_usage (BERT token classifier, ~111 MB)
-  — per-token: STRESS / NO_STRESS / YO
+  — per-token: STRESS / NO_STRESS
   — skips words known to be unstressed (particles, prepositions, …)
       │
-      ├──[yo tokens]──→ nn_yo_homograph (DistilBERT, ~14 MB)
-      │                  — decides whether е should become ё
+      ├──[е-containing tokens]──→ nn_yo_homograph (DistilBERT, ~14 MB)
+      │                            — decides whether е should become ё
       │
-      ├──[omograph tokens]──→ nn_omograph (RoBERTa NLI turbo2, ~343 MB)
-      │                        — picks the correct stressed variant
-      │                          from the homograph dictionary
+      ├──[omograph-dictionary tokens]──→ nn_omograph (RoBERTa NLI turbo2, ~343 MB)
+      │                                    — picks the correct stressed variant
+      │                                      from the homograph dictionary
       │
-      └──[remaining tokens]──→ accent dictionary lookup
-                                  → nn_accent (RoFormer char-level, ~0.8 MB)
-                                    for words not in the dictionary
+      └──[remaining STRESS tokens]──→ accent dictionary lookup
+                                        → nn_accent (RoFormer char-level, ~0.8 MB)
+                                          for words not in the dictionary
 ```
+
+`RuAccentStressor` normalizes input aggressively before processing — it
+strips any character outside its allow-list (Cyrillic, ASCII letters/digits,
+whitespace, and a fixed set of punctuation), so symbols like `…` are
+**dropped**, not preserved, and internal whitespace runs are not guaranteed
+to be preserved byte-for-byte.  This backend is **not layout-preserving**;
+do not rely on it to round-trip arbitrary punctuation or whitespace.
+
+### Yo (ё) handling
+
+`nn_yo_homograph` decides, per occurrence of `е`, whether it should be
+rewritten as `ё` (both are the same letter for stress purposes — `ё` is
+always stressed).  This resolves plain е→ё **restoration** (recovering the
+true pronunciation of a word that is conventionally written with `е`), but
+it does **not** resolve **yo-homographs** — pairs where the surface form is
+ambiguous between two different words depending on ё (`все` "everyone" vs
+`всё` "everything").  Both spellings are left as `все` untouched, because
+the upstream model needed to disambiguate that specific pair has not been
+exported to ONNX; every other known е→ё correction is still applied.
 
 ### Runtime details
 
 - Tokenizers: loaded via the `tokenizers` library (HuggingFace fast tokenizer
   JSON format).  No `transformers` or `torch` required at runtime.
 - `onnxruntime` sessions are created lazily on the first call.
-- Total download: ~470 MB (cached after first use under
-  `~/.local/share/stressonnx/ru_ruaccent/`).
+- Total download: ~470 MB.  Model files are stored in the standard Hugging
+  Face cache (respecting `HF_HOME` and `HF_HUB_OFFLINE`) unless an explicit
+  `cache_dir=` is passed, in which case the layout is
+  `cache_dir/ru_ruaccent/<file>`.
 
 ### Limitations
 
@@ -106,6 +198,12 @@ nn_stress_usage (BERT token classifier, ~111 MB)
   to `nn_accent`, which is character-level and may produce suboptimal results
   for foreign-origin words.
 - **Poetry / non-standard stress** (for expressive effect) is not handled.
+- **Monosyllables** are frequently left unmarked (see the monosyllable table
+  above) — the dictionary/model path only runs for words with 2+ vowels.
+- **Not layout-preserving.**  Aggressive input normalization drops symbols
+  like `…` and does not guarantee whitespace is round-tripped exactly.
+- **Idempotency:** re-running on already-marked text strips and re-derives
+  rather than skipping (see the idempotency table above).
 
 ---
 
@@ -128,18 +226,19 @@ Tokenise → character n-grams (1–3 chars)
 N-gram → embedding row lookup → mean-pool → pooled vector  (NumPy)
       │
       ▼
-accentor.onnx  (MLP stress_clf head)
+accentor.onnx  (MLP stress_clf head, + yo_clf head for ru)
       │
       ▼
-argmax over character positions → stress index
+argmax over character positions → stress index (+ yo index for ru)
       │
       ▼
-Insert U+0301 at that position
+Insert U+0301 at that position (+ е→ё restoration for ru)
 ```
 
 Exceptions and skip-lists are consulted before the ONNX call:
-`exceptions.txt.gz` (word → explicit stress index) and
-`skip_stress_words.txt.gz` (words that should not be stressed, e.g.
+`exceptions.txt.gz` (word → explicit stress index, plus an explicit yo index
+for `ru`) and `skip_stress_words.txt.gz` / `skip_yo_words.txt.gz` (words that
+should not receive a stress mark or a ё rewrite respectively — e.g.
 monosyllables, clitics).
 
 The original PyTorch model uses `nn.EmbeddingBag` with mode `"mean"`.
@@ -147,8 +246,21 @@ Since `onnxruntime` does not support `EmbeddingBag` directly, the export
 splits the computation:
 - The embedding matrix is saved as `embedding.npy` and the n-gram pool is
   computed in NumPy.
-- Only the MLP head (linear + activation + linear) is exported as
+- Only the MLP head(s) (linear + activation + linear) are exported as
   `accentor.onnx`.
+
+### е→ё handling for Russian
+
+The Russian silero pipeline **does restore е→ё**: it runs a second MLP head
+(`yo_logits`) alongside the stress head and rewrites `е` to `ё` when the
+predicted yo-position coincides with the predicted stress position (`ё` is
+always stressed in Russian orthography, so it only rewrites where that
+constraint holds).  What it does **not** do is resolve **yo-homographs** —
+words that are ambiguous purely because of the е/ё distinction, such as
+`все` ("everyone") vs `всё` ("everything").  Both stay written as `все`;
+neither `silero` nor `ruaccent` (see above) disambiguates this specific
+pair — the upstream homograph-resolution model that would be needed has not
+been exported.
 
 ### Why Ukrainian and Belarusian use this model
 
@@ -158,7 +270,7 @@ words via character n-gram features.
 
 Ukrainian specifics:
 - Vowels і, и, е, є, а, о, у, ю, я are all potentially stressed.
-- No yo-homograph problem (Ukrainian uses і, not е/ё distinction).
+- No е/ё distinction to disambiguate.
 - Fewer systematic homograph pairs than Russian.
 
 Belarusian specifics:
@@ -166,7 +278,9 @@ Belarusian specifics:
   pronounce words correctly.
 - Stress is not marked in standard orthography.
 - Fewer neural training resources than Russian → silero neural model is the
-  best available quality without a full BERT pipeline.
+  best available quality without a full BERT pipeline; see the benchmark
+  table above — silero (0.859 accuracy) is dramatically better here than the
+  `bel_simple` vocabulary fallback (0.417).
 
 ### Why silero is also available for Russian
 
@@ -178,18 +292,21 @@ a valid alternative when:
 - Fast cold-start is required (silero ru downloads ~5 MB).
 
 It will assign the same stress to both readings of `замок`; for TTS of
-mixed-context text this is audible.
+mixed-context text this is audible.  See `benchmarks/RESULTS.md`: on
+Russian, `ruaccent` scores 0.742 homograph accuracy against `silero`'s 0.377.
 
 ### Limitations
 
 - **No homograph disambiguation** for Russian.  One-best prediction per word.
+- **No yo-homograph disambiguation.**  е→ё restoration runs, but
+  `все`/`всё`-style ambiguity is left as-is (see above).
 - **Word-level context only.**  The n-gram features are character-level; the
   model has no access to surrounding words.
 - **Vocabulary coverage** is finite.  Neologisms and foreign words rely on
   n-gram generalisation, which degrades for non-Cyrillic stems.
-- The **Ukrainian and Belarusian models were verified to match the original**
+- The **Ukrainian and Belarusian models are verified to match the original**
   silero outputs exactly (see `export/verify_e2e.py`).  The Russian model
-  was verified numerically at export (max |diff| < 1e-3).
+  is verified numerically at export (max |diff| < 1e-3).
 
 ---
 
@@ -254,12 +371,14 @@ alternative to the ruaccent multi-stage pipeline.
   recommended production choice.  Use `"ruaccent"` for production Russian TTS.
 - **Numerical precision:** float32 ONNX; verified max |diff| = 2.16×10⁻⁴
   vs the original PyTorch model (argmax identical on all tested sentences).
+- **Monosyllable and idempotency behavior is model-dependent** — there is no
+  explicit rule for either case; see the tables above.
 
 ---
 
 ## `"simple"` — vocabulary + rules
 
-**Default for 20 Turkic, Caucasian, and minority Slavic languages.**
+**Default for 20 Turkic, Caucasian, and minority Slavic/Uralic languages.**
 
 ### Architecture
 
@@ -275,7 +394,8 @@ Tokenise: split on whitespace + punctuation, preserve hyphens
 per token:
       ├──[in vocab]──→ stress_char_idx from dictionary → insert U+0301
       │
-      └──[OOV]──→ positional rule:
+      └──[OOV]──→ if exactly 1 vowel, always stress it; otherwise apply the
+                    per-language positional rule:
                     "last"   → rightmost vowel
                     "first"  → leftmost vowel
                     "kat"    → ≤3 vowels → first, else penultimate
@@ -373,8 +493,14 @@ OOV last-vowel rule holds for standard forms.
 
 **Belarusian simple (`bel_simple`)**
 Same language as `bel` but using vocabulary-only lookup without neural
-inference.  OOV words receive no stress mark.  Use for offline environments
-where ONNX is unavailable, or as a fallback.
+inference — a lower-accuracy fallback (0.417 vs. `silero`'s 0.859, see the
+benchmark table above), meant for offline environments where ONNX inference
+is unavailable, or as an explicit fallback target.  Its OOV rule is `"none"`,
+but that rule only applies to **multi-vowel** OOV words: a **single-vowel**
+OOV word is always stressed on that vowel (the "always stress monosyllables"
+rule takes precedence over the per-language OOV rule, matching upstream
+`SimpleAccentor` behavior).  A multi-vowel word absent from the vocabulary
+is left with no mark at all.
 
 ### Limitations
 
@@ -393,6 +519,12 @@ where ONNX is unavailable, or as a fallback.
   [silero_stress](https://github.com/snakers4/silero-models) (MIT) and
   reflect the training data used there.  Low-frequency or dialectal forms may
   be missing.
+- All 20 `simple` vocabularies (`bel_simple` included) are exports of the
+  upstream `silero_stress` `SimpleAccentor` data — there is currently no
+  independent gold-standard accuracy measurement for these languages (see
+  the "Languages without independent gold" note in
+  `benchmarks/RESULTS.md`); correctness is locked to the upstream reference
+  via `tests/test_export_parity.py`, not benchmarked against external data.
 
 ---
 
@@ -403,6 +535,8 @@ where ONNX is unavailable, or as a fallback.
 | **Languages** | ru | ukr, bel, ru | ru | 20 languages |
 | **Context** | Sentence (BERT) | Word (n-gram) | Sentence (Transformer) | Word (dict) |
 | **Homograph resolution** | Yes (BERT + RoBERTa) | No | Partial (learned) | No |
+| **е→ё restoration (ru)** | Yes | Yes | Model-dependent | N/A |
+| **Yo-homograph (все/всё) disambiguation** | No | No | No | N/A |
 | **ONNX inference** | 4 models | 1 model | 2 models | None |
 | **Download size** | ~470 MB | ~5–10 MB | ~30 MB | ~1–5 MB |
 | **Cold-start latency** | High (4 sessions) | Low | Medium (2 sessions) | Near-zero |
@@ -411,4 +545,8 @@ where ONNX is unavailable, or as a fallback.
 | **OOV handling** | nn_accent (char-level) | n-gram generalisation | seq2seq generalisation | positional rule |
 | **Sentence-level input** | Required | Works word-by-word | Required | Works word-by-word |
 | **Max input length** | ~512 subword tokens | Unlimited (per-word) | 256 characters | Unlimited |
+| **Idempotent on pre-marked text** | No (re-derives) | Yes (skips) | No (re-derives) | Yes (skips) |
 | **License** | Apache-2.0 | MIT | MIT | MIT |
+
+See [`../benchmarks/RESULTS.md`](../benchmarks/RESULTS.md) for measured
+accuracy numbers instead of qualitative claims.
