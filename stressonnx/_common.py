@@ -1,5 +1,6 @@
 """Private low-level helpers shared by several backends."""
 import re
+from typing import NamedTuple
 
 import numpy as np
 
@@ -27,3 +28,44 @@ def _softmax(x: np.ndarray) -> np.ndarray:
     x = x - x.max(axis=1, keepdims=True)
     e = np.exp(x)
     return e / e.sum(axis=1, keepdims=True)
+
+
+class Tokenized(NamedTuple):
+    """A sentence split for word-level stress prediction.
+
+    The three sequences are index-aligned; joining ``raw`` reconstructs the
+    input exactly.  ``clean[i]`` is the lowercased, alphabet-filtered lookup
+    key for ``raw[i]``; ``predict[i]`` is False for separators, tokens with
+    no alphabet characters, and masked hyphen clitics.
+    """
+
+    raw: list
+    clean: list
+    predict: list
+
+
+def tokenize(sentence: str, clean_re: re.Pattern, mask_clitics: bool = False) -> Tokenized:
+    """Split *sentence* into stressable tokens (the one shared tokenizer).
+
+    Words are cut at the shared boundary set (:data:`_RE_SPLIT`) and then at
+    hyphens, each hyphen part predicted independently.  With
+    ``mask_clitics=True`` a final hyphen part in
+    :data:`_UNSTRESSED_HYPHEN_CLITICS` (кто́-то, како́й-нибудь …) is excluded
+    from prediction.
+    """
+    raw, clean, predict = [], [], []
+    for word in _RE_SPLIT.split(sentence):
+        parts = word.split("-")
+        if len(parts) == 1:
+            tokens = parts
+            mask = [True]
+        else:
+            tokens = [p + "-" for p in parts[:-1]] + [parts[-1]]
+            mask = [True] * (len(parts) - 1) + [
+                not (mask_clitics and parts[-1] in _UNSTRESSED_HYPHEN_CLITICS)
+            ]
+        keys = [clean_re.sub("", t.lower()) for t in tokens]
+        raw.extend(tokens)
+        clean.extend(keys)
+        predict.extend(bool(k) and m for k, m in zip(keys, mask))
+    return Tokenized(raw, clean, predict)

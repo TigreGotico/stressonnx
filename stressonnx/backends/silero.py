@@ -15,7 +15,7 @@ import re
 import numpy as np
 import onnxruntime as ort
 
-from stressonnx._common import _RE_RU_COND, _RE_SPLIT, _RU_VOWELS, _UNSTRESSED_HYPHEN_CLITICS, _softmax
+from stressonnx._common import _RE_RU_COND, _RU_VOWELS, _softmax, tokenize
 from stressonnx.download import _download_files
 from stressonnx.errors import UnsupportedLanguageError
 from stressonnx.notation import STRESS_TOKEN, _insert_stress
@@ -109,53 +109,10 @@ class _SileroStressor:
     # ------------------------------------------------------------------
 
     def _tokenize(self, sentence: str):
-        """Tokenise for ru (hyphen-aware) or ukr/bel (simple split)."""
+        """Tokenise via the shared tokenizer; ru masks hyphen clitics."""
         if self.lang == "ru":
-            return self._tokenize_ru(sentence)
-        return self._tokenize_simple(sentence)
-
-    @staticmethod
-    def _tokenize_ru(sentence: str):
-        tokens, model_inputs, prediction_mask = [], [], []
-        for word in _RE_SPLIT.split(sentence):
-            parts = word.split("-")
-            if len(parts) == 1:
-                cur_tokens = parts
-                cur_pred_mask = [True]
-            else:
-                cur_tokens = [p + "-" for p in parts[:-1]] + [parts[-1]]
-                cur_pred_mask = [True for _ in parts[:-1]] + [
-                    parts[-1] not in _UNSTRESSED_HYPHEN_CLITICS
-                ]
-            cur_inputs = [_RE_RU_COND.sub("", t.lower()) for t in cur_tokens]
-            cur_pred_mask = [
-                (len(x) > 0) and bool(m)
-                for x, m in zip(cur_inputs, cur_pred_mask)
-            ]
-            tokens.extend(cur_tokens)
-            model_inputs.extend(cur_inputs)
-            prediction_mask.extend(cur_pred_mask)
-        return tokens, model_inputs, prediction_mask
-
-    def _tokenize_simple(self, sentence: str):
-        tokens, model_inputs, prediction_mask = [], [], []
-        for word in _RE_SPLIT.split(sentence):
-            parts = word.split("-")
-            if len(parts) == 1:
-                cur_tokens = parts
-                cur_pred_mask = [True]
-            else:
-                cur_tokens = [p + "-" for p in parts[:-1]] + [parts[-1]]
-                cur_pred_mask = [True for _ in parts]
-            cur_inputs = [self._re_cond.sub("", t.lower()) for t in cur_tokens]
-            cur_pred_mask = [
-                (len(x) > 0) and bool(m)
-                for x, m in zip(cur_inputs, cur_pred_mask)
-            ]
-            tokens.extend(cur_tokens)
-            model_inputs.extend(cur_inputs)
-            prediction_mask.extend(cur_pred_mask)
-        return tokens, model_inputs, prediction_mask
+            return tokenize(sentence, _RE_RU_COND, mask_clitics=True)
+        return tokenize(sentence, self._re_cond)
 
     # ------------------------------------------------------------------
     # Embedding pool
