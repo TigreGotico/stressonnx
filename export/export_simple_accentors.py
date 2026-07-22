@@ -8,9 +8,9 @@ No torch required.  Run once per language (or all at once).
 
 Usage::
 
-    python stressonnx/export/export_simple_accentors.py --lang bak
-    python stressonnx/export/export_simple_accentors.py --all
-    python stressonnx/export/export_simple_accentors.py --all --out_base /tmp/out
+    python export/export_simple_accentors.py --lang bak
+    python export/export_simple_accentors.py --all
+    python export/export_simple_accentors.py --all --out_base /tmp/out
 """
 import argparse
 import gzip

@@ -2,9 +2,9 @@
 
 Usage::
 
-    python stressonnx/export/verify_e2e.py --lang ru
-    python stressonnx/export/verify_e2e.py --lang ukr
-    python stressonnx/export/verify_e2e.py --lang kaz   # simple_accentor
+    python export/verify_e2e.py --lang ru
+    python export/verify_e2e.py --lang ukr
+    python export/verify_e2e.py --lang kaz   # simple_accentor
 """
 import argparse
 import sys

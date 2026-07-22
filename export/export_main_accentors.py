@@ -5,8 +5,8 @@ Run once per language, then upload the output directory to HF.
 
 Usage::
 
-    python stressonnx/export/export_main_accentors.py --lang ukr
-    python stressonnx/export/export_main_accentors.py --lang bel
+    python export/export_main_accentors.py --lang ukr
+    python export/export_main_accentors.py --lang bel
 """
 import argparse
 import gzip

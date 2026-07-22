@@ -266,7 +266,7 @@ the `ruaccent` model for Russian).
 pip install "stressonnx[export]"
 ```
 
-See [`stressonnx/export/ADDING_A_LANGUAGE.md`](stressonnx/export/ADDING_A_LANGUAGE.md)
+See [`export/ADDING_A_LANGUAGE.md`](export/ADDING_A_LANGUAGE.md)
 for instructions on adding a new language, exporting ONNX artefacts, and
 uploading to HuggingFace.
 
