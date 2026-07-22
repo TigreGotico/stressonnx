@@ -1,9 +1,12 @@
-"""Smoke tests for SimpleAccentor-backed languages."""
+"""Exact-output tests for SimpleAccentor-backed languages.
+
+Expected values come from the exported silero_stress vocabularies (verified
+against the reference ``SimpleAccentor`` — see the parity test below).
+"""
 import pytest
 
-# (lang, input, expected) — output uses combining acute (U+0301) after stressed vowel
+# (lang, input, expected) — combining acute (U+0301) after the stressed vowel
 SIMPLE_CASES = [
-    # vocab hit
     ("kaz", "Қазақстан", "Қазақста́н"),
     ("tat", "Казан", "Каза́н"),
     ("kir", "Бишкек", "Бишке́к"),
@@ -11,31 +14,27 @@ SIMPLE_CASES = [
     ("aze_lat", "Bakı", "Bakı́"),
     ("uzb_cyr", "Тошкент", "Тошке́нт"),
     ("uzb_lat", "Toshkent", "Toshként"),
-    ("hye", "Երեւան", "Երևа́ն"),
-    ("kat", "თბილისი", "თბილი́სი"),
+    ("hye", "Երեւան", "Երեւա́ն"),
+    ("kat", "თბილისი", "თბი́ლისი"),
     ("bak", "Өфе", "Өфе́"),
     ("chv", "Шупашкар", "Шупашка́р"),
-    ("sah", "Дьокуускай", "Дьокуускай"),   # in vocab (no stress mark if no vowel)
+    ("sah", "Дьокуускай", "Дьокуу́скай"),
     ("erz", "Саранск", "Са́ранск"),
     ("mdf", "Саранск", "Са́ранск"),
-    ("kbd", "Налшык", "Налшык"),           # in vocab
+    ("kbd", "Налшык", "Налшы́к"),
     ("kjh", "Абакан", "Абака́н"),
     ("tgk", "Душанбе", "Душанбе́"),
-    ("udm", "Ижевск", "Ижевск"),           # in vocab
+    ("udm", "Ижевск", "Иже́вск"),
     ("xal", "Элиста", "Элиста́"),
-    # bel_simple (vocab + rule path)
     ("bel_simple", "свет", "све́т"),
+    # bel_simple exercises the vocab + rule path
 ]
 
 
 @pytest.mark.parametrize("lang,inp,expected", SIMPLE_CASES)
 def test_stress_simple(lang, inp, expected):
     from stressonnx import stress
-    result = stress(inp, lang)
-    # Check that combining acute is present (or word unchanged if no vowels/no vocab)
-    assert "́" in result or "́" not in expected, (
-        f"[{lang}] expected combining acute in result for {inp!r}, got {result!r}"
-    )
+    assert stress(inp, lang) == expected
 
 
 def test_stress_simple_matches_silero():
