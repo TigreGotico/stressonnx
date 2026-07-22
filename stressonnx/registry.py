@@ -114,10 +114,10 @@ _MAIN_FILES = [
     "meta.json",
 ]
 
-# Files for simple_accentor family
+# Files for simple_accentor family (language metadata ships in
+# stressonnx/languages/, so only the vocabulary is fetched)
 _SIMPLE_FILES = [
     "vocab.gz",
-    "meta.json",
 ]
 
 # ---------------------------------------------------------------------------

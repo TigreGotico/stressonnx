@@ -37,13 +37,17 @@ def test_free_stress_langs_do_not_guess_oov():
                        ("ru", "абракадабрит"), ("uk", "абракадабрить")]:
         s = SimpleStressor(lang)
         s._ensure_loaded()
-        assert s._accentuate_oov(word) == word
+        from stressonnx._common import lower_preserving_length
+        assert s._rule_offset(lower_preserving_length(word)) is None
 
 
 def test_macedonian_oov_antepenult():
     s = SimpleStressor("mk")
     s._ensure_loaded()
-    assert s._accentuate_oov("библиотекарка") == "библиоте́карка"
+    from stressonnx._common import lower_preserving_length
+    from stressonnx.notation import render_marks
+    idx = s._rule_offset(lower_preserving_length("библиотекарка"))
+    assert render_marks("библиотекарка", [idx]) == "библиоте́карка"
 
 
 def test_vocab_sizes_sanity():

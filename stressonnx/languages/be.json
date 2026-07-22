@@ -9,5 +9,11 @@
   "sources": [
     "East Slavic accentology: free lexical stress"
   ],
-  "tag": "be"
+  "tag": "be",
+  "alpha": "ЁІЎАБВГДЕЖЗЙКЛМНОПРСТУФХЦЧШЫЬЭЮЯабвгдежзйклмнопрстуфхцчшыьэюяёіў’",
+  "vowels": "аоуіэыяеёю",
+  "accuracy": {
+    "silero": 0.873,
+    "simple": 0.433
+  }
 }

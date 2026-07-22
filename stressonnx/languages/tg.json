@@ -8,5 +8,8 @@
   "sources": [
     "Perry 2005, A Tajik Persian Reference Grammar §1.6: final stress, izafet -и unstressed"
   ],
-  "tag": "tg"
+  "tag": "tg",
+  "alpha": "абвгдежзийклмнопрстуфхчшъэюяёғқҳҷӣӯ",
+  "vowels": "аеиоуэюяёӣӯ",
+  "rule_accuracy": 0.736
 }

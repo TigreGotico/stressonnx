@@ -8,5 +8,8 @@
   "sources": [
     "Kirchner 1998: final stress"
   ],
-  "tag": "ky"
+  "tag": "ky",
+  "alpha": "абвгдежзийклмнопрстуфхцчшыьэюяёңүө",
+  "vowels": "аеиоуыэюяёүө",
+  "rule_accuracy": 0.993
 }

@@ -8,5 +8,7 @@
   "sources": [
     "Nau 1998, Latvian: fixed initial stress"
   ],
-  "tag": "lv"
+  "tag": "lv",
+  "alpha": "aābcčdeēfgģhiījkķlļmnņoōprsštuūvzž",
+  "vowels": "aāeēiīoōuū"
 }

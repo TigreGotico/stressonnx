@@ -8,5 +8,8 @@
   "sources": [
     "Bläsing, Kalmuck: final stress (understudied)"
   ],
-  "tag": "xal"
+  "tag": "xal",
+  "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяҗңүһәө",
+  "vowels": "аеиоуыэюяүәө",
+  "rule_accuracy": 1.0
 }

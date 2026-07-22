@@ -8,5 +8,8 @@
   "sources": [
     "Hamari & Ajanki 2022: first-syllable tendency (free variation)"
   ],
-  "tag": "myv"
+  "tag": "myv",
+  "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяё",
+  "vowels": "аеиоуыэюяё",
+  "rule_accuracy": 0.538
 }

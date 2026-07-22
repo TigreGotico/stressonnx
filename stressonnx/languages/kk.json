@@ -8,5 +8,8 @@
   "sources": [
     "Kirchner 1998 via Schiering & van der Hulst 2010: Turkic final stress"
   ],
-  "tag": "kk"
+  "tag": "kk",
+  "alpha": "абвгдежзийклмнопрстуфхцчшщыьэюяіғқңүұһәө",
+  "vowels": "аеиоуыэюяіүұәө",
+  "rule_accuracy": 0.987
 }

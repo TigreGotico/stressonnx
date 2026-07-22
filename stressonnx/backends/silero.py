@@ -20,7 +20,7 @@ import onnxruntime as ort
 from stressonnx._common import _RE_RU_COND, _RU_VOWELS, _softmax, lower_preserving_length, tokenize
 from stressonnx.download import _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError, UnsupportedLanguageError
-from stressonnx.notation import STRESS_TOKEN, _insert_stress
+from stressonnx.notation import STRESS_TOKEN, render_marks
 from stressonnx.registry import MAIN_LANGS, _MAIN_FILES, hf_dir
 
 
@@ -215,55 +215,57 @@ class _SileroStressor:
         first_vowel_pos = vowel_ids[0] if vowel_ids else -1
         return stress_positions, yo_positions, num_vowels, first_vowel_pos
 
-    def _accentuate_exception(self, clean_word: str, raw_word: str) -> str:
+    def _exception_offsets(self, clean_word: str, raw_word: str, with_yo: bool):
+        """(mark, yo) offsets within *raw_word* for an exceptions-dict entry."""
         exc_stress, exc_yo = self._exceptions[clean_word]
+        yo = []
         if (
-            self._has_yo
+            with_yo
             and exc_yo != -1
             and 0 <= exc_yo < len(raw_word)
             and raw_word[exc_yo].lower() == "е"
         ):
-            raw_word = (
-                raw_word[:exc_yo]
-                + ("ё" if raw_word[exc_yo].islower() else "Ё")
-                + raw_word[exc_yo + 1:]
-            )
-        return _insert_stress(raw_word, exc_stress, self._vowels)
-
-    # ------------------------------------------------------------------
-    # Main entry point
-    # ------------------------------------------------------------------
+            yo.append(exc_yo)
+        lower = lower_preserving_length(raw_word)
+        effective = dict(enumerate(lower))
+        for o in yo:
+            effective[o] = "ё"
+        if 0 <= exc_stress < len(raw_word) and effective[exc_stress] in self._vowels:
+            return [exc_stress], yo
+        return [], yo
 
     def __call__(self, sentence: str) -> str:
-        self._ensure_loaded()
-        return self._decode(sentence, with_yo=self._has_yo)
+        marks, yo = self.mark_offsets(sentence)
+        return render_marks(sentence, marks, yo)
 
-    def _decode(self, sentence: str, with_yo: bool) -> str:
-        """Single decode path for all languages.
+    def mark_offsets(self, text: str):
+        """Offsets (into *text*) of stressed vowels and е→ё substitutions.
 
-        With ``with_yo=True`` (``ru``) this is a port of silero_stress's
-        ``Accentor.__call__`` (default flags), adapted from ``+``-before-vowel
-        to combining acute after the vowel: ё in the input is stressed
+        With yo enabled (``ru``) this is a port of silero_stress's
+        ``Accentor.__call__`` (default flags): ё in the input is stressed
         directly (ё is inherently stressed in Russian orthography), the
         model's е→ё prediction is applied only where it agrees with the
         predicted stress position, and skip/yo dictionaries are keyed on the
-        е-spelling.  With ``with_yo=False`` (``ukr``/``bel``) every ё branch
-        is inert and the same loop reduces to the plain decode.
+        е-spelling.  For ``uk``/``be`` every ё branch is inert and the same
+        loop reduces to the plain decode.
         """
-        raw_tokens, clean_tokens, prediction_mask = self._tokenize(sentence)
+        self._ensure_loaded()
+        with_yo = self._has_yo
+        raw_tokens, clean_tokens, prediction_mask = self._tokenize(text)
         stress_preds, stress_probs, yo_preds, yo_probs = self._predict(clean_tokens)
 
-        out = []
+        marks, yo_out = [], []
+        pos = 0
         for wi, (raw_word, clean_word, need) in enumerate(
             zip(raw_tokens, clean_tokens, prediction_mask)
         ):
+            start = pos
+            pos += len(raw_word)
             if not need:
-                out.append(raw_word)
                 continue
 
             raw_lower = lower_preserving_length(raw_word)
             if STRESS_TOKEN in unicodedata.normalize("NFD", raw_word):
-                out.append(raw_word)
                 continue
 
             base_word = clean_word.replace("ё", "е") if with_yo else clean_word
@@ -271,14 +273,15 @@ class _SileroStressor:
             if with_yo and "ё" in raw_lower:
                 # ё is inherently stressed — mark each ё the input already has
                 if base_word not in self._skip_stress:
-                    yo_char_pos = [i for i, c in enumerate(raw_lower) if c == "ё"]
-                    for i, p in enumerate(yo_char_pos):
-                        raw_word = raw_word[: p + i + 1] + STRESS_TOKEN + raw_word[p + i + 1:]
-                out.append(raw_word)
+                    marks.extend(
+                        start + i for i, c in enumerate(raw_lower) if c == "ё"
+                    )
                 continue
 
             if clean_word in self._exceptions:
-                out.append(self._accentuate_exception(clean_word, raw_word))
+                m, y = self._exception_offsets(clean_word, raw_word, with_yo)
+                marks.extend(start + o for o in m)
+                yo_out.extend(start + o for o in y)
                 continue
 
             stressed_vowel_ids = [int(stress_preds[wi])]
@@ -292,27 +295,21 @@ class _SileroStressor:
             )
 
             if num_vowels == 0:
-                out.append(raw_word)
                 continue
 
             # е→ё restoration: only where the yo prediction lands on the
             # predicted stress position (ё must carry the stress)
             if with_yo and yo_probs[wi] > 0.5 and base_word not in self._skip_yo:
-                for yo_pos in yo_positions:
-                    if yo_pos in stress_positions and raw_lower[yo_pos] == "е":
-                        raw_word = (
-                            raw_word[:yo_pos]
-                            + ("ё" if raw_word[yo_pos].islower() else "Ё")
-                            + raw_word[yo_pos + 1:]
-                        )
+                yo_out.extend(
+                    start + p
+                    for p in yo_positions
+                    if p in stress_positions and raw_lower[p] == "е"
+                )
 
             if num_vowels == 1:
                 stress_positions = [first_vowel_pos]
                 set_stress = True
 
             if set_stress:
-                for i, sp in enumerate(stress_positions):
-                    raw_word = raw_word[: sp + i + 1] + STRESS_TOKEN + raw_word[sp + i + 1:]
-
-            out.append(raw_word)
-        return "".join(out)
+                marks.extend(start + p for p in stress_positions)
+        return marks, yo_out

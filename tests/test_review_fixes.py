@@ -23,7 +23,10 @@ def test_dotted_capital_i_keeps_mark_on_vowel():
     """'İ'.lower() is two code points; indices must not shift (İstanbul bug)."""
     s = SimpleStressor("az-Latn")
     s._ensure_loaded()
-    out = s._accentuate_oov("İstanbul")
+    from stressonnx._common import lower_preserving_length
+    from stressonnx.notation import render_marks
+    idx = s._rule_offset(lower_preserving_length("İstanbul"))
+    out = render_marks("İstanbul", [idx])
     mark = out.find("́")
     assert out[mark - 1].lower() in s._vowels, out
 

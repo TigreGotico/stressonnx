@@ -8,5 +8,8 @@
   "sources": [
     "Ghaffarvand Mokari & Werner 2017, JIPA: final stress"
   ],
-  "tag": "az-Cyrl"
+  "tag": "az-Cyrl",
+  "alpha": "абвгғдеәжзиыјкҝлмноөпрстуүфхһчҹш'",
+  "vowels": "аеәиыоөуү",
+  "rule_accuracy": 0.816
 }

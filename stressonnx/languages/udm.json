@@ -8,5 +8,8 @@
   "sources": [
     "Winkler 2001: fixed final stress (negated verbs/imperatives initial — needs morphology)"
   ],
-  "tag": "udm"
+  "tag": "udm",
+  "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяёӝӟӥӧӵ",
+  "vowels": "аеиоуыэюяёӥӧ",
+  "rule_accuracy": 0.975
 }

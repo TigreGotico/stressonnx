@@ -2,7 +2,7 @@
 
 Models are downloaded automatically on first run.
 """
-from stressonnx import stress, to_plus_notation, Stressor
+from stressonnx import StressPipeline, stress, to_plus_notation
 
 # --- module-level function ---------------------------------------------------
 
@@ -37,16 +37,12 @@ print(f"diacritic: {diacritic!r}")
 print(f"plus:      {plus_form!r}")
 print(f"convert:   {to_plus_notation(diacritic)!r}")   # same as plus_form
 
-# --- Stressor class ----------------------------------------------------------
+# --- StressPipeline: an isolated engine --------------------------------------
 
-s = Stressor(lang="ru")
-print(s.model)       # ruaccent
-print(s.lang)        # ru
-print(s.notation)    # diacritic
+pipeline = StressPipeline()
+print(pipeline.stress("белок яйца полезен", "ru"))   # бело́к яйца́ поле́зен
 
-print(s("белок яйца полезен"))   # бело́к яйца́ поле́зен
-
-# Stressor persists its model; reuse it across many calls
+# The pipeline caches its backends; reuse it across many calls
 sentences = [
     "замок стоит на горе",
     "дверной замок надёжен",
@@ -54,4 +50,4 @@ sentences = [
     "коса русалки длинная",
 ]
 for sent in sentences:
-    print(s(sent))
+    print(pipeline.stress(sent, "ru"))

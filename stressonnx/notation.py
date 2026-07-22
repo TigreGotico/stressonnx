@@ -67,6 +67,23 @@ def to_plus_notation(text: str) -> str:
     return "".join(result)
 
 
+def render_marks(text: str, mark_offsets, yo_offsets=()) -> str:
+    """Render stress marks (and е→ё substitutions) onto *text* by offset.
+
+    Offsets index *text* itself; the combining acute is inserted after each
+    marked character, back to front so earlier offsets stay valid.  This is
+    the single place span-native backends turn positions into a string.
+    """
+    chars = list(text)
+    for o in yo_offsets:
+        if 0 <= o < len(chars) and chars[o] in "еЕ":
+            chars[o] = "ё" if chars[o] == "е" else "Ё"
+    for o in sorted(mark_offsets, reverse=True):
+        if 0 <= o < len(chars):
+            chars.insert(o + 1, STRESS_TOKEN)
+    return "".join(chars)
+
+
 def _apply_notation(text: str, notation: str | StressNotation) -> str:
     """Convert *text* from combining-acute to the requested *notation*.
 

@@ -8,5 +8,7 @@
   "sources": [
     "Herrity 2000, Slovene: A Comprehensive Grammar: free stress"
   ],
-  "tag": "sl"
+  "tag": "sl",
+  "alpha": "abcčdefghijklmnoprsštuvzž",
+  "vowels": "aeiou"
 }

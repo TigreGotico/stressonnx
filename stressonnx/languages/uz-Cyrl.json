@@ -8,5 +8,8 @@
   "sources": [
     "Boeschoten 1998: final stress"
   ],
-  "tag": "uz-Cyrl"
+  "tag": "uz-Cyrl",
+  "alpha": "абдеэфгҳижклмнопқрстувхйзўғшчнгъ",
+  "vowels": "аеиоуў",
+  "rule_accuracy": 1.0
 }

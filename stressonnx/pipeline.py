@@ -16,8 +16,8 @@ import time
 from dataclasses import dataclass
 
 from stressonnx.errors import ModelDownloadError, ModelLoadError
-from stressonnx.notation import STRESS_TOKEN, _apply_notation
-from stressonnx.registry import DEFAULT_MODEL, MODEL_REGISTRY
+from stressonnx.notation import STRESS_TOKEN, _apply_notation, render_marks
+from stressonnx.registry import DEFAULT_MODEL, LANGUAGES, MODEL_REGISTRY
 from stressonnx.stressor import make_stressor
 
 LOG = logging.getLogger("stressonnx")
@@ -25,12 +25,25 @@ LOG = logging.getLogger("stressonnx")
 #: Model priority for ``fallback=True`` and ``prefer="best"``: quality first.
 FALLBACK_PRIORITY = ("ruaccent", "silero", "simple")
 
-#: ``prefer=`` strategies: an ordered model preference per strategy.
+#: ``prefer=`` strategies.  ``"best"`` orders by each language's measured
+#: accuracy (the ``accuracy`` field of its data file) where numbers exist,
+#: falling back to the quality-first default; ``"fast"`` and ``"smallest"``
+#: order by latency and footprint.
 _PREFER_ORDERS = {
-    "best": FALLBACK_PRIORITY,
     "fast": ("silero", "simple", "ruaccent"),
     "smallest": ("simple", "silero", "ruaccent"),
 }
+
+
+def _best_order(lang: str):
+    measured = LANGUAGES.get(lang, {}).get("accuracy")
+    if measured:
+        return tuple(sorted(
+            FALLBACK_PRIORITY,
+            key=lambda m: measured.get(m, -1.0),
+            reverse=True,
+        ))
+    return FALLBACK_PRIORITY
 
 
 @dataclass(frozen=True)
@@ -127,13 +140,15 @@ class StressPipeline:
 
     def _resolve(self, lang: str, model: str | None, prefer: str | None):
         if model is None and prefer is not None:
-            try:
+            if prefer == "best":
+                order = _best_order(lang)
+            elif prefer in _PREFER_ORDERS:
                 order = _PREFER_ORDERS[prefer]
-            except KeyError:
+            else:
                 raise ValueError(
                     f"Unknown prefer={prefer!r}; expected one of "
-                    f"{sorted(_PREFER_ORDERS)}."
-                ) from None
+                    f"{sorted(_PREFER_ORDERS) + ['best']}."
+                )
             model = next(
                 (m for m in order if lang in MODEL_REGISTRY[m].langs), None
             )
@@ -156,10 +171,11 @@ class StressPipeline:
     # Public API
     # ------------------------------------------------------------------
 
-    def stress(self, text: str, lang: str = "ru", model: str | None = None,
-               notation: str = "diacritic", fallback: bool = False,
-               prefer: str | None = None) -> str:
-        """Insert stress marks into *text* (see :func:`stressonnx.stress`)."""
+    def _execute(self, text: str, lang: str, model: str | None,
+                 fallback: bool, prefer: str | None, runner):
+        """Run *runner(backend, text)* against the selected model, walking
+        the fallback chain on download/load failures and honoring the
+        failure cooldown."""
         lang, model, resolved = self._resolve(lang, model, prefer)
 
         attempts = [(model, lang)]
@@ -183,7 +199,7 @@ class StressPipeline:
 
             key, backend = self._backend(try_lang, try_model, try_resolved)
             try:
-                result = backend(text)
+                result = runner(backend, text)
             except (ModelDownloadError, ModelLoadError) as exc:
                 self._failures[key] = (time.monotonic(), exc)
                 if not fallback:
@@ -195,8 +211,16 @@ class StressPipeline:
                 )
                 continue
             self._failures.pop(key, None)
-            return _apply_notation(result, notation)
+            return result
         raise last_error
+
+    def stress(self, text: str, lang: str = "ru", model: str | None = None,
+               notation: str = "diacritic", fallback: bool = False,
+               prefer: str | None = None) -> str:
+        """Insert stress marks into *text* (see :func:`stressonnx.stress`)."""
+        result = self._execute(text, lang, model, fallback, prefer,
+                               lambda backend, t: backend(t))
+        return _apply_notation(result, notation)
 
     def stress_batch(self, texts, lang: str = "ru", model: str | None = None,
                      notation: str = "diacritic", fallback: bool = False,
@@ -214,12 +238,20 @@ class StressPipeline:
 
         Words are the whitespace-delimited tokens of *text*; each carries
         the offset of its stressed vowel (or ``None``) and whether е→ё was
-        restored inside it.  Unlike the marked string, offsets refer to the
-        input exactly as the caller passed it — nothing to re-parse.
+        restored inside it.  Offsets refer to the input exactly as the
+        caller passed it.
         """
-        marked = self.stress(text, lang, model=model, fallback=fallback,
-                             prefer=prefer)
-        mark_offsets, yo_offsets = _align_marks(text, marked)
+        def runner(backend, t):
+            if hasattr(backend, "mark_offsets"):
+                marks, yo = backend.mark_offsets(t)
+                return marks, yo, render_marks(t, marks, yo)
+            marked = backend(t)
+            marks, yo = _align_marks(t, marked)
+            return marks, yo, marked
+
+        mark_offsets, yo_offsets, marked = self._execute(
+            text, lang, model, fallback, prefer, runner
+        )
         mark_set, yo_set = set(mark_offsets), set(yo_offsets)
 
         words = []

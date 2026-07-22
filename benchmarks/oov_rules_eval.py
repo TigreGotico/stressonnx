@@ -20,15 +20,13 @@ from stressonnx.backends.simple import SimpleStressor
 
 def make_rule_fn(stressor):
     """Vowel-ordinal predictor delegating to the REAL shipped rule logic."""
-    from stressonnx.notation import STRESS_TOKEN
     vowels = stressor._ordinal_vowels
 
     def predict(word):
-        out = stressor._accentuate_oov(word)
-        mark = out.find(STRESS_TOKEN)
-        if mark == -1:
+        idx = stressor._rule_offset(word)
+        if idx is None:
             return None
-        return sum(1 for c in out[: mark - 1] if c in vowels)
+        return sum(1 for c in word[:idx] if c in vowels)
     return predict
 
 

@@ -1,30 +1,26 @@
-"""Simple-accentor family (vocabulary + rules).
+"""Simple-accentor family: vocabulary + rules, span-native.
 
-``simple_accentor`` (model id ``"simple"`` — every language in
-``SIMPLE_LANGS``, from Turkic final-stress languages to the Wiktionary- and
-dictionary-backed ``bul``/``mkd``/``slv``/``lav``/``ru_simple``/``ukr_simple``):
-Vocabulary + rule-based pipeline.
-1. Tokenise sentence.
-2. Look up clean token in vocabulary dict (word → stress char index).
-3. OOV fall-back: language-specific positional rule (last/first/none/kat).
-4. Insert '+' at the determined character index.
+``simple_accentor`` (model id ``"simple"``) serves every language in
+``SIMPLE_LANGS``: dictionary lookup with a per-language positional rule for
+out-of-vocabulary words.  Positions are computed as **offsets into the
+original input** (:meth:`SimpleStressor.mark_offsets`); the marked string is
+a rendering of those offsets, never the other way around.
 """
-import threading
 import gzip
-import json
-import unicodedata
 import re
+import threading
+import unicodedata
 from typing import Callable, Optional
 
 from stressonnx._common import SCRIPT_VOWELS, lower_preserving_length, tokenize
 from stressonnx.download import LOG, _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError, UnsupportedLanguageError
-from stressonnx.notation import STRESS_TOKEN, _insert_stress
-from stressonnx.registry import LANGUAGES, SIMPLE_LANGS, _OOV_RULES, _SIMPLE_FILES, hf_dir
+from stressonnx.notation import STRESS_TOKEN, render_marks
+from stressonnx.registry import LANGUAGES, SIMPLE_LANGS, _OOV_RULES, _SIMPLE_FILES
 
 
 def _load_vocab(path: str) -> dict:
-    """Load a SimpleAccentor vocab (word → stress char index).
+    """Load a vocabulary (word → stressed vowel ordinal).
 
     Malformed lines are skipped and counted instead of aborting the whole
     language — vocabularies are regenerated from external sources and one
@@ -38,8 +34,8 @@ def _load_vocab(path: str) -> dict:
             if not line:
                 continue
             try:
-                word, idx = line.rsplit(None, 1)
-                vocab[word] = int(idx)
+                word, ordinal = line.rsplit(None, 1)
+                vocab[word] = int(ordinal)
             except ValueError:
                 bad += 1
     if bad:
@@ -50,12 +46,13 @@ def _load_vocab(path: str) -> dict:
 # ---------------------------------------------------------------------------
 # OOV positional rules
 #
-# Each rule maps (lowercased word, indices of its vowels) → the char index to
-# stress, or None for "leave unmarked".  Rules are only consulted for words
-# with two or more vowels — single-vowel words are always stressed on their
-# sole vowel (upstream SimpleAccentor semantics).  Sources per rule are in
-# the docstrings; measured accuracy per language lives in
-# benchmarks/RESULTS.md (reproduce: python benchmarks/oov_rules_eval.py).
+# Each rule maps (lowercased word, char indices of its language vowels) →
+# the position in that vowel list to stress, or None for "leave unmarked".
+# Rules are only consulted for words with two or more vowels — single-vowel
+# words are always stressed on their sole vowel.  Sources per rule are in
+# the docstrings; measured accuracy per language lives in each language's
+# data file (``rule_accuracy``) and benchmarks/RESULTS.md (reproduce:
+# python benchmarks/oov_rules_eval.py).
 # ---------------------------------------------------------------------------
 
 OovRule = Callable[[str, list], Optional[int]]
@@ -65,20 +62,20 @@ def _rule_last(word: str, vowels: list) -> Optional[int]:
     """Final-syllable stress — the Turkic default (Kirchner 1998, Poppe 1964
     via Schiering & van der Hulst 2010, "Word accent systems in the
     languages of Asia")."""
-    return vowels[-1]
+    return len(vowels) - 1
 
 
 def _rule_first(word: str, vowels: list) -> Optional[int]:
     """Initial-syllable stress — Mordvinic: "in both languages the stress
     most commonly falls on the first syllable" (Hamari & Ajanki 2022, The
     Oxford Guide to the Uralic Languages §23.2.3)."""
-    return vowels[0]
+    return 0
 
 
 def _rule_none(word: str, vowels: list) -> Optional[int]:
-    """No mark — Belarusian stress is free and lexically governed, not
-    positionally predictable ("nominal stress in Ukrainian, Russian, and
-    Belarusian … seems to be unpredictable")."""
+    """No mark — for languages whose stress is free and lexically governed
+    (East Slavic, Bulgarian, Slovene): a positional guess is never
+    defensible, so unknown words stay unmarked."""
     return None
 
 
@@ -88,7 +85,10 @@ def _rule_chv(word: str, vowels: list) -> Optional[int]:
     Krueger 1961 via Schiering & van der Hulst 2010; Dobrovolsky 1999,
     ICPhS: "If a word has only reduced vowels, stress falls on the first
     vowel")."""
-    return next((i for i in reversed(vowels) if word[i] not in "ӑӗ"), vowels[0])
+    for n in range(len(vowels) - 1, -1, -1):
+        if word[vowels[n]] not in "ӑӗ":
+            return n
+    return 0
 
 
 def _rule_antepenult(word: str, vowels: list) -> Optional[int]:
@@ -100,13 +100,16 @@ def _rule_antepenult(word: str, vowels: list) -> Optional[int]:
     antepenultimate stress, first syllable in shorter words (Friedman 2001,
     "Macedonian"); words with exceptional stress are in the vocabulary,
     which is exactly the set Wiktionary marks with an explicit accent."""
-    return vowels[-3] if len(vowels) >= 3 else vowels[0]
+    return len(vowels) - 3 if len(vowels) >= 3 else 0
 
 
 def _rule_hye(word: str, vowels: list) -> Optional[int]:
     """Eastern Armenian: "stress occurs within the last non-schwa syllable"
     (Chakmakjian 2024, Speech Prosody) — the schwa ը never carries stress."""
-    return next((i for i in reversed(vowels) if word[i] != "ը"), vowels[0])
+    for n in range(len(vowels) - 1, -1, -1):
+        if word[vowels[n]] != "ը":
+            return n
+    return 0
 
 
 def _rule_tgk(word: str, vowels: list) -> Optional[int]:
@@ -115,8 +118,8 @@ def _rule_tgk(word: str, vowels: list) -> Optional[int]:
     "distinguish[es] accented word-final -i from unstressed final -i, which
     occurs only … as the syntactic izofat enclitic"."""
     if word[vowels[-1]] == "и" and vowels[-1] == len(word) - 1:
-        return vowels[-2]
-    return vowels[-1]
+        return len(vowels) - 2
+    return len(vowels) - 1
 
 
 def _rule_mdf(word: str, vowels: list) -> Optional[int]:
@@ -124,8 +127,10 @@ def _rule_mdf(word: str, vowels: list) -> Optional[int]:
     non-initial syllable if it contains /a/ (or /æ/) and if there is a high
     vowel (/i/ or /u/) in the initial syllable" (Hamari & Ajanki 2022)."""
     if word[vowels[0]] in "иу":
-        return next((i for i in vowels[1:] if word[i] in "ая"), vowels[0])
-    return vowels[0]
+        for n in range(1, len(vowels)):
+            if word[vowels[n]] in "ая":
+                return n
+    return 0
 
 
 def _rule_tat(word: str, vowels: list) -> Optional[int]:
@@ -135,15 +140,15 @@ def _rule_tat(word: str, vowels: list) -> Optional[int]:
     supports at ≥0.7 are enabled — surface-string matching cannot see
     morphology, and the remaining variants (e.g. -ма) are dominated by
     ordinary final-stressed nouns (the алма́ apple / а́лма "don't take"
-    problem).  Same reason the equivalent Kazakh/Kyrgyz/Azerbaijani lists
-    (Kirchner 1998) are documented but NOT applied: measured against those
+    problem).  The equivalent Kazakh/Kyrgyz/Azerbaijani lists (Kirchner
+    1998) are documented but NOT applied: measured against those
     vocabularies, blind retraction loses more than it gains."""
     for suf in ("чә", "ча", "сең", "ме"):
         if word.endswith(suf) and len(word) > len(suf) + 1:
-            pre = [i for i in vowels if i < len(word) - len(suf)]
+            pre = [n for n, i in enumerate(vowels) if i < len(word) - len(suf)]
             if pre:
                 return pre[-1]
-    return vowels[-1]
+    return len(vowels) - 1
 
 
 def _rule_sah(word: str, vowels: list) -> Optional[int]:
@@ -154,11 +159,11 @@ def _rule_sah(word: str, vowels: list) -> Optional[int]:
     element of the heavy nucleus — бии́р, буо́лан, эрээ́ри — and this rule
     scores 0.994 against it vs 0.178 for naive final stress)."""
     groups: list = []
-    for i in vowels:
-        if groups and i == groups[-1][-1] + 1:
-            groups[-1].append(i)
+    for n, i in enumerate(vowels):
+        if groups and i == vowels[groups[-1][-1]] + 1:
+            groups[-1].append(n)
         else:
-            groups.append([i])
+            groups.append([n])
     heavy = [g for g in groups if len(g) >= 2]
     return (heavy[-1] if heavy else groups[-1])[-1]
 
@@ -168,7 +173,7 @@ def _rule_kbd(word: str, vowels: list) -> Optional[int]:
     which stress the penult (Jaimoukha, Grammar of the Kabardian-Cherkess
     Language; consistent with Colarusso 1992's final-stress default).
     Low-confidence: sources are paraphrase-level only."""
-    return vowels[-2] if word.endswith("э") else vowels[-1]
+    return len(vowels) - 2 if word.endswith("э") else len(vowels) - 1
 
 
 OOV_RULES: dict = {
@@ -180,32 +185,37 @@ OOV_RULES: dict = {
     "hye": _rule_hye,
     "tgk": _rule_tgk,
     "mdf": _rule_mdf,
-    "sah": _rule_sah,
     "tat": _rule_tat,
+    "sah": _rule_sah,
     "kbd": _rule_kbd,
 }
 
 
 class SimpleStressor:
-    """Lazy-load vocabulary + rule-based accentor.
-
-    Supports all ``SIMPLE_LANGS``.  The vocab maps known words to a stress
-    character index; unknown words fall back to a per-language positional rule.
+    """Vocabulary + rule accentor; positions first, strings second.
 
     Parameters
     ----------
     lang:
-        One of the supported simple-accentor language tags.
+        A tag from ``SIMPLE_LANGS``.
     cache_dir:
-        Override the default cache location.
+        Override the model storage directory (default: the standard
+        Hugging Face cache).
     """
 
     def __init__(self, lang: str, cache_dir: str | None = None) -> None:
         if lang not in SIMPLE_LANGS:
             raise UnsupportedLanguageError(lang, SIMPLE_LANGS)
         self.lang = lang
-        self._hf_lang = hf_dir(lang, "simple")
-        self._ordinal_vowels = SCRIPT_VOWELS[LANGUAGES[lang]["script"]]
+        spec = LANGUAGES[lang]
+        self._hf_lang = spec["hf"]["simple"]
+        self._ordinal_vowels = SCRIPT_VOWELS[spec["script"]]
+        self._vowels: str = spec["vowels"]
+        self._oov_rule: str = _OOV_RULES[lang]
+        alpha = spec["alpha"]
+        self._re_cond = re.compile(
+            f"[^{re.escape(''.join(sorted(set(alpha + alpha.upper()))))}]"
+        )
         self._cache_dir = cache_dir
         self._loaded = False
         self._load_lock = threading.Lock()
@@ -214,10 +224,10 @@ class SimpleStressor:
         """Thread-safe lazy load (double-checked locking).
 
         Download failures surface as :class:`ModelDownloadError`; anything
-        that fails while parsing or building sessions from files already on
-        disk is wrapped in :class:`ModelLoadError` so the fallback chain can
-        engage on a corrupt cache too.  ``self._loaded`` flips only after
-        every attribute is fully initialized.
+        that fails while parsing files already on disk is wrapped in
+        :class:`ModelLoadError` so the fallback chain can engage on a
+        corrupt cache too.  ``self._loaded`` flips only after every
+        attribute is fully initialized.
         """
         if self._loaded:
             return
@@ -225,83 +235,74 @@ class SimpleStressor:
             if self._loaded:
                 return
             try:
-                self._load()
+                data = _download_files(self._hf_lang, _SIMPLE_FILES,
+                                       self._cache_dir, model_id="simple")
+                self._vocab: dict = _load_vocab(data["vocab.gz"])
             except (ModelDownloadError, ModelLoadError):
                 raise
             except Exception as exc:
-                raise ModelLoadError('simple', exc) from exc
+                raise ModelLoadError("simple", exc) from exc
             self._loaded = True
 
-    def _load(self) -> None:
-        data = _download_files(self._hf_lang, _SIMPLE_FILES, self._cache_dir, model_id="simple")
+    # ------------------------------------------------------------------
+    # Span-native core
+    # ------------------------------------------------------------------
 
-        with open(data["meta.json"], encoding="utf-8") as fh:
-            meta = json.load(fh)
+    def _rule_offset(self, raw_lower: str) -> Optional[int]:
+        """Char offset the positional rule stresses in *raw_lower*, or None.
 
-        self._vocab: dict = _load_vocab(data["vocab.gz"])
-        self._vowels: str = meta["vowels"]
-        # The local rule table wins over meta.json: several languages carry
-        # linguistically refined rules (see _accentuate_oov) that the exported
-        # metadata predates.
-        self._oov_rule: str = _OOV_RULES.get(
-            self.lang, meta.get("oov_rule", "last")
-        )
-
-        alpha = meta["alpha"]
-        alpha_set = "".join(sorted(set(alpha + alpha.upper())))
-        # Escape characters that are special in regex character classes
-        escaped = re.escape(alpha_set)
-        self._re_cond = re.compile(f"[^{escaped}]")
-
-
-    def _accentuate_vocab(self, clean_word: str, raw_word: str) -> str:
-        """Vocabulary hit: mark the Nth vowel of the raw word.
-
-        Vocabularies store vowel ordinals counted over the script-wide
-        superset (:data:`SCRIPT_VOWELS`) — orthography-robust where raw
-        character indices were not (case folding, digraphs).
+        Single-vowel words are always stressed on their sole vowel;
+        otherwise the language's rule from :data:`OOV_RULES` decides.
         """
-        ordinal = self._vocab[clean_word]
-        lower = lower_preserving_length(raw_word)
-        vowel_ids = [i for i, c in enumerate(lower) if c in self._ordinal_vowels]
-        if ordinal >= len(vowel_ids):
-            return raw_word  # raw form diverges from the vocab spelling
-        return _insert_stress(raw_word, vowel_ids[ordinal])
-
-    def _accentuate_oov(self, raw_word: str) -> str:
-        """Stress an out-of-vocabulary word by the language's positional rule.
-
-        Single-vowel words are always stressed on their sole vowel (upstream
-        SimpleAccentor semantics); otherwise the named rule from
-        :data:`OOV_RULES` decides — see each rule's docstring for its
-        linguistic source and benchmarks/RESULTS.md for measured accuracy.
-        """
-        lower = lower_preserving_length(raw_word)
-        vowel_ids = [i for i, c in enumerate(lower) if c in self._vowels]
+        vowel_ids = [i for i, c in enumerate(raw_lower) if c in self._vowels]
         if not vowel_ids:
-            return raw_word
+            return None
         if len(vowel_ids) == 1:
-            idx = vowel_ids[0]
-        else:
-            rule = OOV_RULES[self._oov_rule]  # unknown names fail loudly
-            idx = rule(lower, vowel_ids)
-            if idx is None:
-                return raw_word
-        return raw_word[:idx + 1] + STRESS_TOKEN + raw_word[idx + 1:]
+            return vowel_ids[0]
+        n = OOV_RULES[self._oov_rule](raw_lower, vowel_ids)
+        return None if n is None else vowel_ids[n]
 
-    def __call__(self, sentence: str) -> str:
+    def _word_ordinal(self, clean_word: str, raw_lower: str) -> Optional[int]:
+        """Superset-vowel ordinal to stress in one token, or None."""
+        if clean_word in self._vocab:
+            return self._vocab[clean_word]
+        idx = self._rule_offset(raw_lower)
+        if idx is None:
+            return None
+        # language-vowel position → superset ordinal, so vocabulary and rule
+        # answers share one currency
+        return sum(1 for c in raw_lower[:idx] if c in self._ordinal_vowels)
+
+    def mark_offsets(self, text: str):
+        """Offsets (into *text*) of every stressed vowel — the primitive.
+
+        Returns ``(mark_offsets, yo_offsets)``; the simple family never
+        substitutes е→ё, so the second list is always empty.
+        """
         self._ensure_loaded()
-        tokens = tokenize(sentence, self._re_cond)
-        out = []
+        tokens = tokenize(text, self._re_cond)
+        offsets = []
+        pos = 0
         for raw_word, clean_word, need in zip(*tokens):
+            start = pos
+            pos += len(raw_word)
             if not need:
-                out.append(raw_word)
                 continue
             if STRESS_TOKEN in unicodedata.normalize("NFD", raw_word):
-                out.append(raw_word)
                 continue
-            if clean_word in self._vocab:
-                out.append(self._accentuate_vocab(clean_word, raw_word))
-            else:
-                out.append(self._accentuate_oov(raw_word))
-        return "".join(out)
+            raw_lower = lower_preserving_length(raw_word)
+            ordinal = self._word_ordinal(clean_word, raw_lower)
+            if ordinal is None:
+                continue
+            seen = -1
+            for i, c in enumerate(raw_lower):
+                if c in self._ordinal_vowels:
+                    seen += 1
+                    if seen == ordinal:
+                        offsets.append(start + i)
+                        break
+        return offsets, []
+
+    def __call__(self, sentence: str) -> str:
+        marks, yo = self.mark_offsets(sentence)
+        return render_marks(sentence, marks, yo)

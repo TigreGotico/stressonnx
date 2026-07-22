@@ -8,5 +8,8 @@
   "sources": [
     "Boeschoten 1998 via Schiering & van der Hulst 2010: final stress"
   ],
-  "tag": "uz-Latn"
+  "tag": "uz-Latn",
+  "alpha": "abcdefghijklmnopqrstuvxyzw'",
+  "vowels": "aeiou",
+  "rule_accuracy": 1.0
 }

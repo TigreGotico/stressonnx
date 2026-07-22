@@ -81,9 +81,6 @@ Four layers:
    (`difflib.SequenceMatcher` on yo-neutralized copies) to produce a
    `StressResult` of `StressedWord` spans with offsets into the untouched
    input.
-3. **`Stressor(model=None, lang=None, notation=…, fallback=False)`** —
-   public class.  Wraps the backend returned by `make_stressor()`.  Exposes
-   `.model`, `.lang`, and `.notation` for introspection.
 4. **`make_stressor(model, lang, cache_dir=None)`** — factory.  Consults
    `MODEL_REGISTRY`, validates the `(model, lang)` pair, and returns the
    appropriate backend.
@@ -327,7 +324,7 @@ _apply_notation(result)  →  diacritic or plus  (per user request)
 ```
 
 `_apply_notation()` (in `stressonnx/notation.py`) is the single
-implementation called from both `stress()` and `Stressor.__call__()`.
+implementation called from `StressPipeline.stress()`.
 
 ---
 

@@ -8,5 +8,8 @@
   "sources": [
     "Krueger 1962 + vocabulary evidence: heavy nuclei (long vowels/diphthongs) attract stress"
   ],
-  "tag": "sah"
+  "tag": "sah",
+  "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяёҕҥүһө",
+  "vowels": "аеиоуыэюяёүө",
+  "rule_accuracy": 0.994
 }

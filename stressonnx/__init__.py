@@ -74,7 +74,7 @@ from stressonnx.registry import (
 )
 from stressonnx.notation import STRESS_TOKEN, _apply_notation, to_plus_notation
 from stressonnx.backends import _SileroStressor, SimpleStressor, RuAccentStressor
-from stressonnx.stressor import Stressor, make_stressor
+from stressonnx.stressor import make_stressor
 from stressonnx.pipeline import (
     DEFAULT_PIPELINE,
     FALLBACK_PRIORITY,
@@ -166,7 +166,6 @@ __all__ = [
     "ModelDownloadError",
     "ModelLoadError",
     "FALLBACK_PRIORITY",
-    "Stressor",
     "_SileroStressor",
     "SimpleStressor",
     "RuAccentStressor",

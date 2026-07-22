@@ -8,5 +8,7 @@
   "sources": [
     "Friedman 2001, Macedonian: fixed antepenultimate stress"
   ],
-  "tag": "mk"
+  "tag": "mk",
+  "alpha": "абвгдѓежзѕијклљмнњопрстќуфхцчџш",
+  "vowels": "аеиоу"
 }

@@ -8,5 +8,8 @@
   "sources": [
     "Poppe 1964 via Schiering & van der Hulst 2010: final stress incl. suffixes"
   ],
-  "tag": "ba"
+  "tag": "ba",
+  "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяёғҙҡңҫүһәө",
+  "vowels": "аеиоуыэюяёүәө",
+  "rule_accuracy": 0.852
 }

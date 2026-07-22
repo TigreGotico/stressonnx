@@ -123,25 +123,24 @@ def test_stress_diacritic_plus_roundtrip():
 
 
 # ---------------------------------------------------------------------------
-# Stressor — notation attribute and output
+# Pipeline notation handling
 # ---------------------------------------------------------------------------
 
-def test_stressor_notation_default():
-    from stressonnx import Stressor
-    s = Stressor(lang="kk")
-    assert s.notation == "diacritic"
+def test_pipeline_notation_default():
+    from stressonnx import StressPipeline
+    assert StressPipeline().stress("Алматы", "kk") == "Алматы́"
 
 
 def test_stressor_notation_plus():
-    from stressonnx import Stressor
-    s = Stressor(lang="kk", notation="plus")
+    from stressonnx import StressPipeline
+    s = lambda t: StressPipeline().stress(t, "kk", notation="plus")
     result = s("Казан")
     assert "+" in result
     assert "́" not in result
 
 
 def test_stressor_notation_enum():
-    from stressonnx import Stressor, StressNotation
-    s = Stressor(lang="kk", notation=StressNotation.PLUS)
+    from stressonnx import StressPipeline, StressNotation
+    s = lambda t: StressPipeline().stress(t, "kk", notation=StressNotation.PLUS)
     result = s("Казан")
     assert "+" in result

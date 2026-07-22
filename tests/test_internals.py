@@ -229,7 +229,8 @@ def test_make_stressor_ruaccent_wrong_lang():
         make_stressor(model="ruaccent", lang="uk")
 
 
-def test_stressor_invalid_notation():
-    from stressonnx import Stressor
-    with pytest.raises(ValueError, match="notation"):
-        Stressor(lang="kk", notation="invalid")
+def test_invalid_notation_raises():
+    from stressonnx import stress
+    with pytest.raises(ValueError):
+        stress("Алматы", "kk", notation="invalid")
+

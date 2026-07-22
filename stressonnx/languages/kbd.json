@@ -8,5 +8,8 @@
   "sources": [
     "Jaimoukha grammar compilation; consistent with Colarusso 1992 (paraphrase-level, low confidence)"
   ],
-  "tag": "kbd"
+  "tag": "kbd",
+  "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяёӏ",
+  "vowels": "аеиоуыэюяё",
+  "rule_accuracy": 0.404
 }

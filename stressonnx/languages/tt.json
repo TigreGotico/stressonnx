@@ -8,5 +8,8 @@
   "sources": [
     "Comrie 1997b: final stress; unstressed suffixes/enclitics retract"
   ],
-  "tag": "tt"
+  "tag": "tt",
+  "alpha": "абвгдежзийклмнопрстуфхцчшъыьэюяҗңүһәө",
+  "vowels": "аеиоуыэюяүәө",
+  "rule_accuracy": 0.904
 }

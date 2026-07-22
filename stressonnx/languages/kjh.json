@@ -8,5 +8,8 @@
   "sources": [
     "UNSOURCED: Turkic-default extrapolation; no primary description located"
   ],
-  "tag": "kjh"
+  "tag": "kjh",
+  "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяёіғңҷӧӱ",
+  "vowels": "аеиоуыэюяёіӧӱ",
+  "rule_accuracy": 0.28
 }

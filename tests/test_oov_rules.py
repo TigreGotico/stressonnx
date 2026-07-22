@@ -10,9 +10,12 @@ from stressonnx.backends.simple import SimpleStressor
 
 
 def oov(lang, word):
+    """Apply only the positional rule (never the vocabulary) to one word."""
+    from stressonnx._common import lower_preserving_length
+    from stressonnx.notation import render_marks
     s = SimpleStressor(lang)
-    s._ensure_loaded()
-    return s._accentuate_oov(word)
+    idx = s._rule_offset(lower_preserving_length(word))
+    return word if idx is None else render_marks(word, [idx])
 
 
 # Chuvash: "stress falls on last full vowel; if a word has only reduced

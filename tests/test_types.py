@@ -102,10 +102,9 @@ def test_non_callable_does_not_satisfy_protocol():
     assert not isinstance(NotAStressor(), StressorBackend)
 
 
-def test_stressor_class_satisfies_protocol():
-    from stressonnx import Stressor, StressorBackend
-    s = Stressor(lang="kk")
-    assert isinstance(s, StressorBackend)
+def test_factory_backends_satisfy_protocol():
+    from stressonnx import make_stressor, StressorBackend
+    assert isinstance(make_stressor(lang="kk"), StressorBackend)
 
 
 def test_ruaccent_stressor_satisfies_protocol():

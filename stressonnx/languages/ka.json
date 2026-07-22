@@ -8,5 +8,8 @@
   "sources": [
     "Akhvlediani 1949 / Gudava 1969 / Aronson 1990 (contested: Borise 2020 argues initial)"
   ],
-  "tag": "ka"
+  "tag": "ka",
+  "alpha": "აბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰ",
+  "vowels": "აეიოუ",
+  "rule_accuracy": 1.0
 }

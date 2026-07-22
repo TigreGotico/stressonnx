@@ -91,7 +91,7 @@ Runtime dependencies: `onnxruntime`, `numpy`, `huggingface_hub`, and
 ## Usage
 
 ```python
-from stressonnx import stress, analyze, Stressor, to_plus_notation
+from stressonnx import StressPipeline, analyze, stress, to_plus_notation
 
 # One-shot function (caches model instances internally)
 stress("Привіт світ", "uk")                   # 'Приві́т сві́т'
@@ -102,9 +102,9 @@ stress("красивый город", "ru", model="silero")    # 'краси́в
 stress("красивый город", "ru", model="simple")    # 'краси́вый го́род'
 stress("красивый город", "ru", prefer="fast")     # 'краси́вый го́род'  (silero)
 
-# Reusable object (same API, explicit lifecycle)
-s = Stressor(lang="ru")
-s("замок стоит на горе")                      # 'за́мок сто́ит на горе́'
+# An isolated engine with its own cache and failure policy
+pipeline = StressPipeline()
+pipeline.stress("замок стоит на горе", "ru")                      # 'за́мок сто́ит на горе́'
 ```
 
 ### Structured results: `analyze()`

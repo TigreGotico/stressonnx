@@ -10,5 +10,11 @@
   "sources": [
     "East Slavic accentology: stress is lexical/paradigmatic, not positional"
   ],
-  "tag": "ru"
+  "tag": "ru",
+  "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяё",
+  "vowels": "аеёиоуыэюя",
+  "accuracy": {
+    "ruaccent": 0.938,
+    "silero": 0.914
+  }
 }

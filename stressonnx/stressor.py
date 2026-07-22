@@ -1,7 +1,6 @@
-"""Public Stressor wrapper and the make_stressor factory — model-aware entry points."""
+"""make_stressor: the model-aware backend factory."""
 from stressonnx.backends import RuAccentStressor, _SileroStressor, SimpleStressor
-from stressonnx.notation import _apply_notation
-from stressonnx.registry import DEFAULT_MODEL, MODEL_REGISTRY, StressNotation
+from stressonnx.registry import DEFAULT_MODEL, MODEL_REGISTRY
 from stressonnx.errors import UnsupportedLanguageError
 
 
@@ -71,78 +70,3 @@ def make_stressor(
     if entry.family == "simple":
         return SimpleStressor(lang=lang, cache_dir=cache_dir)
     raise ValueError(f"Internal error: unknown family {entry.family!r}.")
-
-
-class Stressor:
-    """Model-aware stress accentor wrapper.
-
-    ``Stressor`` is the recommended high-level class.  It accepts an explicit
-    *model* parameter (mirroring ``text2tashkeel``'s ``Diacritizer(model=…)``
-    ergonomics) and delegates to the appropriate backend.
-
-    Parameters
-    ----------
-    model:
-        Model-id string — one of ``"ruaccent"``, ``"silero"``, or ``"simple"``.
-        When *None* (the default), the best model for *lang* is selected
-        automatically via :data:`DEFAULT_MODEL`.
-    lang:
-        Language tag (e.g. ``"ru"``, ``"ukr"``, ``"kaz"``).  Required when
-        *model* is *None* or when the chosen model covers multiple languages.
-    cache_dir:
-        Override the HF download cache directory passed to the backend.
-
-    notation:
-        Output notation.  ``"diacritic"`` (default) places the combining
-        acute accent (U+0301) after each stressed vowel (``"приве́т"``).
-        ``"plus"`` emits the ``+``-before-vowel form (``"прив+ет"``).
-
-    Examples
-    --------
-    >>> s = Stressor(lang="ru")                # default: ruaccent
-    >>> s("старинный замок стоит на горе")
-    'стари́нный за́мок сто́ит на горе́'
-
-    >>> s = Stressor(model="silero", lang="ukr")
-    >>> s("Привіт світ")
-    'Приві́т сві́т'
-
-    >>> s = Stressor(model="simple", lang="kaz")
-    >>> s("Сәлем Қазақстан")
-    'Сәле́м Қазақста́н'
-    """
-
-    def __init__(
-        self,
-        model: str | None = None,
-        lang: str | None = None,
-        cache_dir: str | None = None,
-        notation: str = "diacritic",
-        fallback: bool = False,
-    ) -> None:
-        self._backend = make_stressor(model=model, lang=lang, cache_dir=cache_dir)
-        # Expose for inspection
-        self.lang = getattr(self._backend, "lang", lang)
-        self.model = model or DEFAULT_MODEL.get(lang or "")
-        self.fallback = fallback
-        try:
-            self.notation = StressNotation(notation)
-        except ValueError:
-            raise ValueError(
-                f"notation must be 'diacritic' or 'plus'; got {notation!r}."
-            )
-
-    def __call__(self, text: str) -> str:
-        """Accentuate *text*; returns the combining-acute form by default.
-
-        With ``fallback=True`` the call degrades down the model priority
-        chain on download/load failures — the same contract as
-        :func:`stressonnx.stress`.
-        """
-        if self.fallback:
-            from stressonnx.pipeline import DEFAULT_PIPELINE
-            return DEFAULT_PIPELINE.stress(
-                text, self.lang, model=self.model,
-                notation=self.notation, fallback=True,
-            )
-        return _apply_notation(self._backend(text), self.notation)

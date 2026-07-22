@@ -4,7 +4,6 @@ from stressonnx import (
     MODEL_REGISTRY,
     DEFAULT_MODEL,
     make_stressor,
-    Stressor,
     stress,
     RUACCENT_LANGS,
     MAIN_LANGS,
@@ -115,80 +114,20 @@ def test_make_stressor_default_ukr():
 
 
 # ---------------------------------------------------------------------------
-# Stressor class — model-aware wrapper
+# Model-aware selection through the public API
 # ---------------------------------------------------------------------------
 
-def test_stressor_model_attr_simple():
-    s = Stressor(lang="kk")
-    assert s.model == "simple"
+def test_default_model_for_lang():
+    from stressonnx import stress
+    assert stress("Алматы", "kk") == "Алматы́"
 
 
-def test_stressor_model_attr_silero():
-    s = Stressor(model="silero", lang="uk")
-    assert s.model == "silero"
+def test_explicit_model_selection():
+    from stressonnx import stress
+    assert stress("Привіт світ", "uk", model="silero") == "Приві́т сві́т"
+    assert stress("красивый город", "ru", model="ruaccent") == "краси́вый го́род"
+    assert stress("Прывітанне свет", "be", model="silero") == "Прывіта́нне све́т"
 
-
-def test_stressor_model_attr_ruaccent():
-    s = Stressor(model="ruaccent", lang="ru")
-    assert s.model == "ruaccent"
-
-
-def test_stressor_lang_attr():
-    s = Stressor(lang="kk")
-    assert s.lang == "kk"
-
-
-def test_stressor_callable_simple():
-    s = Stressor(lang="kk")
-    result = s("Казан")
-    assert "́" in result  # combining acute U+0301
-
-
-def test_stressor_callable_silero_ukr():
-    s = Stressor(model="silero", lang="uk")
-    result = s("Привіт")
-    assert "́" in result
-
-
-def test_stressor_callable_silero_bel():
-    s = Stressor(model="silero", lang="be")
-    result = s("свет")
-    assert "́" in result
-
-
-# ---------------------------------------------------------------------------
-# stress() function — model parameter
-# ---------------------------------------------------------------------------
-
-def test_stress_model_param_simple():
-    result = stress("Казан", "tt", model="simple")
-    assert result == "Каза́н"
-
-
-def test_stress_model_param_silero():
-    result = stress("Привіт", "uk", model="silero")
-    assert "́" in result
-
-
-def test_stress_model_none_equals_default():
-    """stress(text, lang) == stress(text, lang, model=None)."""
-    for lang, text in [("kk", "Казан"), ("uk", "Привіт"), ("tt", "Казан")]:
-        assert stress(text, lang) == stress(text, lang, model=None)
-
-
-def test_stress_backward_compat_no_model():
-    """stress(text, lang) without model argument still works."""
-    assert "́" in stress("Привіт", "uk")
-    assert "́" in stress("Казан", "tt")
-
-
-def test_stress_model_wrong_for_lang():
-    with pytest.raises(ValueError):
-        stress("text", "kk", model="ruaccent")
-
-
-# ---------------------------------------------------------------------------
-# All-langs coverage (smoke: no crash, returns string with '+' or unchanged)
 # ---------------------------------------------------------------------------
 
 _LANG_SAMPLES = {
@@ -217,7 +156,8 @@ _LANG_SAMPLES = {
 
 @pytest.mark.parametrize("lang,text", list(_LANG_SAMPLES.items()))
 def test_all_simple_langs_via_stressor(lang, text):
-    s = Stressor(lang=lang)
+    from stressonnx import make_stressor
+    s = make_stressor(model="simple", lang=lang)
     result = s(text)
     assert isinstance(result, str)
     assert len(result) >= len(text)

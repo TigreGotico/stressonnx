@@ -15,7 +15,6 @@ from stressonnx import (
     lang_to_script,
     make_stressor,
     stress,
-    Stressor,
 )
 
 # --- ModelEntry introspection -----------------------------------------------
@@ -84,7 +83,7 @@ custom = MyCustomStressor()
 assert isinstance(custom, StressorBackend)
 print(f"  custom callable → isinstance StressorBackend ✓")
 
-# Stressor class satisfies it
-s = Stressor(lang="kk")
+# factory-produced backends satisfy it
+s = make_stressor(model="simple", lang="kk")
 assert isinstance(s, StressorBackend)
 print(f"  Stressor(lang='kk') → isinstance StressorBackend ✓")

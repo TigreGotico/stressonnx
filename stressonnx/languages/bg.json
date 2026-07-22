@@ -8,5 +8,7 @@
   "sources": [
     "Scatton 1984, A Reference Grammar of Modern Bulgarian: free/mobile stress"
   ],
-  "tag": "bg"
+  "tag": "bg",
+  "alpha": "абвгдежзийклмнопрстуфхцчшщъьюя",
+  "vowels": "аеиоуъюя"
 }
