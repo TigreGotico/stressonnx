@@ -14,14 +14,14 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
-  issues: read
-  id-token: write   # prepared for PyPI trusted publishing
 
 jobs:
   publish_alpha:
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     uses: OpenVoiceOS/gh-automations/.github/workflows/publish-alpha.yml@dev
-    secrets: inherit
+    secrets:
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      MATRIX_TOKEN: ${{ secrets.MATRIX_TOKEN }}
     with:
       branch: 'dev'
       version_file: 'version.py'
@@ -30,3 +30,4 @@ jobs:
       propose_release: true
       changelog_max_issues: 100
       publish_pypi: true
+      notify_matrix: true
