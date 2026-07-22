@@ -49,16 +49,12 @@ use this to verify compatibility before dispatching text to stressonnx::
 """
 import unicodedata as _unicodedata
 
-from stressonnx.accentor import (
+from stressonnx.errors import (
     StressonnxError,
     UnsupportedLanguageError,
     ModelDownloadError,
-    Stressor,
-    _SileroStressor,
-    _KubatabaStressor,
-    SimpleStressor,
-    RuAccentStressor,
-    make_stressor,
+)
+from stressonnx.registry import (
     MODEL_REGISTRY,
     DEFAULT_MODEL,
     RUACCENT_LANGS,
@@ -66,14 +62,15 @@ from stressonnx.accentor import (
     SIMPLE_LANGS,
     ALL_LANGS,
     LANG_SCRIPT,
-    STRESS_TOKEN,
     ModelEntry,
     Script,
     StressNotation,
     StressorBackend,
     lang_to_script,
-    _apply_notation,
 )
+from stressonnx.notation import STRESS_TOKEN, _apply_notation
+from stressonnx.backends import _SileroStressor, _KubatabaStressor, SimpleStressor, RuAccentStressor
+from stressonnx.stressor import Stressor, make_stressor
 
 _SINGLETONS: dict = {}
 

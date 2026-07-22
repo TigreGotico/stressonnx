@@ -84,32 +84,32 @@ def test_make_stressor_simple_no_lang():
 
 
 def test_make_stressor_simple_returns_simple_stressor():
-    from stressonnx.accentor import SimpleStressor
+    from stressonnx.backends.simple import SimpleStressor
     s = make_stressor(model="simple", lang="kaz")
     assert isinstance(s, SimpleStressor)
 
 
 def test_make_stressor_silero_returns_silero_stressor():
-    from stressonnx.accentor import _SileroStressor
+    from stressonnx.backends.silero import _SileroStressor
     s = make_stressor(model="silero", lang="ukr")
     assert isinstance(s, _SileroStressor)
 
 
 def test_make_stressor_ruaccent_returns_ruaccent_stressor():
-    from stressonnx.accentor import RuAccentStressor
+    from stressonnx.backends.ruaccent import RuAccentStressor
     s = make_stressor(model="ruaccent", lang="ru")
     assert isinstance(s, RuAccentStressor)
 
 
 def test_make_stressor_default_ru():
     """make_stressor(lang='ru') should use the ruaccent model."""
-    from stressonnx.accentor import RuAccentStressor
+    from stressonnx.backends.ruaccent import RuAccentStressor
     s = make_stressor(lang="ru")
     assert isinstance(s, RuAccentStressor)
 
 
 def test_make_stressor_default_ukr():
-    from stressonnx.accentor import _SileroStressor
+    from stressonnx.backends.silero import _SileroStressor
     s = make_stressor(lang="ukr")
     assert isinstance(s, _SileroStressor)
 

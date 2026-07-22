@@ -16,7 +16,7 @@ from stressonnx import (
     stress,
     to_plus_notation,
 )
-from stressonnx.accentor import _insert_stress
+from stressonnx.notation import _insert_stress
 
 
 # ---------------------------------------------------------------------------
@@ -185,7 +185,7 @@ def test_to_plus_notation_leaves_other_diacritics():
 
 
 def test_notation_round_trip():
-    from stressonnx.accentor import _plus_to_diacritic
+    from stressonnx.notation import _plus_to_diacritic
     for s in ["приве́т", "Сәле́м Қазақста́н", "düny+a"]:
         plus = to_plus_notation(s) if STRESS_TOKEN in s else s
         assert to_plus_notation(_plus_to_diacritic(plus)) == plus

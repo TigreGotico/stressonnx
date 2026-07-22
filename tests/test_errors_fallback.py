@@ -4,7 +4,7 @@ import logging
 import pytest
 
 import stressonnx
-import stressonnx.accentor as accentor
+import stressonnx.download as download
 from stressonnx import (
     FALLBACK_PRIORITY,
     ModelDownloadError,
@@ -40,7 +40,7 @@ def test_download_failure_propagates_without_fallback(monkeypatch):
     def _boom(*args, **kwargs):
         raise OSError("simulated outage")
 
-    monkeypatch.setattr(accentor, "hf_hub_download", _boom)
+    monkeypatch.setattr(download, "hf_hub_download", _boom)
     monkeypatch.setattr(stressonnx, "_SINGLETONS", {})
     with pytest.raises(ModelDownloadError) as excinfo:
         stress("привет", "ru")
@@ -49,14 +49,14 @@ def test_download_failure_propagates_without_fallback(monkeypatch):
 
 def test_fallback_walks_chain_and_warns(monkeypatch, caplog):
     """ruaccent download fails → silero serves the request, with a warning."""
-    real = accentor.hf_hub_download
+    real = download.hf_hub_download
 
     def _fail_ruaccent(*args, **kwargs):
         if kwargs.get("filename", "").startswith("ru_ruaccent/"):
             raise OSError("simulated outage")
         return real(*args, **kwargs)
 
-    monkeypatch.setattr(accentor, "hf_hub_download", _fail_ruaccent)
+    monkeypatch.setattr(download, "hf_hub_download", _fail_ruaccent)
     monkeypatch.setattr(stressonnx, "_SINGLETONS", {})
     with caplog.at_level(logging.WARNING, logger="stressonnx"):
         result = stress("красивый город", "ru", fallback=True)
@@ -68,7 +68,7 @@ def test_fallback_exhaustion_raises(monkeypatch):
     def _boom(*args, **kwargs):
         raise OSError("simulated outage")
 
-    monkeypatch.setattr(accentor, "hf_hub_download", _boom)
+    monkeypatch.setattr(download, "hf_hub_download", _boom)
     monkeypatch.setattr(stressonnx, "_SINGLETONS", {})
     with pytest.raises(ModelDownloadError):
         stress("привет", "ru", fallback=True)

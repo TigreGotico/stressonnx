@@ -13,9 +13,10 @@ import os
 
 import pytest
 
-import stressonnx.accentor as accentor
+import stressonnx.download as download
 from stressonnx import ModelDownloadError
-from stressonnx.accentor import _download_files
+from stressonnx.backends.ruaccent import RuAccentStressor
+from stressonnx.download import _download_files
 
 
 def test_explicit_cache_dir_layout_no_double_nesting(tmp_path):
@@ -34,7 +35,7 @@ def test_explicit_cache_dir_offline_reuse(tmp_path, monkeypatch):
     def _no_network(*args, **kwargs):
         raise AssertionError("hf_hub_download called on a warm cache")
 
-    monkeypatch.setattr(accentor, "hf_hub_download", _no_network)
+    monkeypatch.setattr(download, "hf_hub_download", _no_network)
     second = _download_files("kaz", ["meta.json"], cache_dir=str(tmp_path))
     assert second == first
 
@@ -54,7 +55,7 @@ def test_download_failure_raises_typed_error(monkeypatch, tmp_path):
     def _boom(*args, **kwargs):
         raise OSError("simulated network failure")
 
-    monkeypatch.setattr(accentor, "hf_hub_download", _boom)
+    monkeypatch.setattr(download, "hf_hub_download", _boom)
     with pytest.raises(ModelDownloadError) as excinfo:
         _download_files("kaz", ["meta.json"], cache_dir=str(tmp_path / "cold"))
     err = excinfo.value
@@ -73,22 +74,22 @@ def test_ruaccent_consumes_dict_no_hand_joined_paths():
     """
     import inspect
 
-    src = inspect.getsource(accentor.RuAccentStressor._ensure_loaded)
+    src = inspect.getsource(RuAccentStressor._ensure_loaded)
     assert "os.path.join" not in src
     assert 'data["' in src
 
 
 def test_ruaccent_warm_load_is_offline(monkeypatch):
     """After a first load, a fresh instance loads from cache with no network."""
-    accentor.RuAccentStressor()._ensure_loaded()  # warm the cache
+    RuAccentStressor()._ensure_loaded()  # warm the cache
 
-    real = accentor.hf_hub_download
+    real = download.hf_hub_download
 
     def _local_only(*args, **kwargs):
         kwargs["local_files_only"] = True  # any network need → LocalEntryNotFoundError
         return real(*args, **kwargs)
 
-    monkeypatch.setattr(accentor, "hf_hub_download", _local_only)
-    stressor = accentor.RuAccentStressor()
+    monkeypatch.setattr(download, "hf_hub_download", _local_only)
+    stressor = RuAccentStressor()
     stressor._ensure_loaded()  # must succeed from the shared HF cache alone
     assert stressor._loaded
