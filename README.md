@@ -1,7 +1,7 @@
 # stressonnx
 
 Multi-language **word-stress placement** ("accentuation") for text, built for
-TTS front-ends.  Pure `onnxruntime + numpy` at runtime — **no torch, ever**.
+TTS front-ends. Pure `onnxruntime + numpy` at runtime. No torch, ever.
 
 ```python
 from stressonnx import stress
@@ -10,37 +10,38 @@ stress("старинный замок стоит на горе", "ru")   # 'ст
 stress("дверной замок надёжен", "ru")           # 'дверно́й замо́к надёжен'
 ```
 
-Same spelling, different word: за́мок is a castle, замо́к is a lock.  stressonnx
-reads the sentence, decides which one you meant, and marks the stressed vowel.
+Same spelling, different word: за́мок is a castle, замо́к is a lock.
+stressonnx reads the sentence, decides which one you meant, and marks the
+stressed vowel.
 
 ---
 
 ## Why word stress?
 
 **Word stress** (lexical stress) is which syllable of a word is pronounced
-prominently: English *REcord* (noun) vs *reCORD* (verb).  A text-to-speech
-system must know it before it can pick the right sounds — in Russian,
-unstressed vowels *reduce* (о sounds like а), so getting the stress wrong
-changes every vowel in the word, not just the melody.
+prominently: English *REcord* (noun) vs *reCORD* (verb). A text-to-speech
+system must know it before it can pick the right sounds. In Russian,
+unstressed vowels *reduce* (о sounds like а), so a wrong stress changes
+every vowel in the word, not just the melody.
 
-Whether **you** need this library depends on how your language writes stress:
+Whether you need this library depends on how your language writes stress:
 
 | Orthography type | Examples | What you need |
 |---|---|---|
-| Stress is free/mobile and **not written** | Russian, Ukrainian, Belarusian, most languages here | **A stress model — this library.**  Nothing in the spelling of `замок` tells you which syllable to stress; only context does. |
-| Stress is **predictable by rule** | Kazakh/Turkic (final syllable), Armenian, Georgian | A positional rule covers most words — that is the `simple` backend: a curated exception vocabulary plus a per-language default rule. |
-| Stress is **already written** | Spanish, Greek, Portuguese | You do **not** need stressonnx — the orthography (accent rules) already encodes it.  But you may still need *sense* disambiguation, see below. |
+| Stress is free/mobile and **not written** | Russian, Ukrainian, Belarusian, most languages here | **A stress model — this library.** Nothing in the spelling of `замок` tells you which syllable to stress; only context does. |
+| Stress is **predictable by rule** | Kazakh/Turkic (final syllable), Armenian, Georgian | A positional rule covers most words. That is the `simple` backend: a curated exception vocabulary plus a per-language default rule. |
+| Stress is **already written** | Spanish, Greek, Portuguese | You do not need stressonnx. The orthography (accent rules) already encodes it. You may still need *sense* disambiguation, see below. |
 
-**The Portuguese case (why "stress is written" isn't the end of the story):**
+**The Portuguese case (why "stress is written" is not the end of the story):**
 Portuguese spelling pins down the stressed syllable, yet pairs like *sede*
-(thirst /ˈsedɨ/ vs headquarters /ˈsɛdɨ/) share spelling *and* stress position
-while differing in vowel **quality** — resolvable only from meaning.  Our
+(thirst /ˈsedɨ/ vs headquarters /ˈsɛdɨ/) share spelling and stress position
+while differing in vowel **quality**, resolvable only from meaning. Our
 sibling library [bifonia](https://github.com/TigreGotico/bifonia) solves that
 with the same "disambiguate before G2P" idea used here: its
 `add_extra_diacritics(text)` rewrites the homograph with an explicit
 open/closed-vowel diacritic (*séde*/*sêde*) so any downstream phonemizer gets
-it right.  Rule of thumb: **unwritten stress → stressonnx; written stress but
-sense-dependent pronunciation → a bifonia-style diacritic restorer.**
+it right. Rule of thumb: unwritten stress needs stressonnx. Written stress
+with sense-dependent pronunciation needs a bifonia-style diacritic restorer.
 
 ---
 
@@ -53,22 +54,22 @@ sense-dependent pronunciation → a bifonia-style diacritic restorer.**
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
 
 ¹ `ru uk be bg mk sl lv hy ka kk ky tt ba cv sah kjh tg udm mdf myv kbd xal
-az-Latn az-Cyrl uz-Latn uz-Cyrl` — Russian, Ukrainian, Belarusian (all
+az-Latn az-Cyrl uz-Latn uz-Cyrl`: Russian, Ukrainian, Belarusian (all
 dictionary-path), Bulgarian, Macedonian, Slovene, Latvian, Armenian,
 Georgian, Kazakh, Kyrgyz, Tatar, Bashkir, Chuvash, Yakut, Khakas, Tajik,
 Udmurt, Moksha, Erzya, Kabardian, Kalmyk, Azerbaijani (both scripts), Uzbek
-(both scripts).  Every language — including ru/uk/be — has a torch-free,
+(both scripts). Every language, including ru/uk/be, has a torch-free,
 ONNX-free rule/vocabulary path (`model="simple"`), so `fallback=True` always
 bottoms out in a model that needs nothing but a small vocabulary file.
 
 Numbers come from the committed, reproducible
 [benchmark scoreboard](benchmarks/RESULTS.md) (annotated UD-treebank gold;
-read its noise-ceiling note before quoting absolutes).  Defaults per
+read its noise-ceiling note before quoting absolutes). Defaults per
 language: `ru → ruaccent`, `uk/be → silero`, everything else → `simple`.
 
 Models are hosted on
 [TigreGotico/stressonnx-models](https://huggingface.co/TigreGotico/stressonnx-models)
-and downloaded automatically on first use (see *Offline & failure behavior*).
+and download automatically on first use (see *Offline & failure behavior*).
 
 ---
 
@@ -79,12 +80,12 @@ pip install stressonnx
 ```
 
 Runtime dependencies: `onnxruntime`, `numpy`, `huggingface_hub`, and
-`tokenizers` (used only by the `ru` ruaccent pipeline).  Optional:
+`tokenizers` (used only by the `ru` ruaccent pipeline). Optional:
 
-- `razdel` — better Russian sentence splitting inside the ruaccent pipeline
-  (`pip install razdel`); without it the whole input is processed as one span.
-- `pip install stressonnx[export]` — torch + silero_stress, **only** for
-  re-exporting models from a checkout (never needed at runtime).
+- `razdel` for better Russian sentence splitting inside the ruaccent pipeline
+  (`pip install razdel`). Without it the whole input is processed as one span.
+- `pip install stressonnx[export]` adds torch + silero_stress, only for
+  re-exporting models from a checkout. Never needed at runtime.
 
 ---
 
@@ -111,7 +112,7 @@ pipeline.stress("замок стоит на горе", "ru")                    
 
 For TTS pipelines that need to reason about individual words rather than a
 marked string, `analyze()` returns a `StressResult`: per-word spans with
-offsets into the **original, untouched input**.
+offsets into the original, untouched input.
 
 ```python
 result = analyze("замок стоит на горе", "ru")
@@ -126,9 +127,9 @@ for w in result.words:
 ```
 
 `w.stressed_index` is the offset of the stressed vowel *within the word*
-(`None` if the word carries no mark); `w.yo_restored` is `True` when the
-backend rewrote е→ё inside that word.  Because offsets refer to `result.original`
-exactly as passed in, callers never need to re-parse the marked string to
+(`None` if the word carries no mark). `w.yo_restored` is `True` when the
+backend rewrote е→ё inside that word. Offsets refer to `result.original`
+exactly as passed in, so callers never need to re-parse the marked string to
 locate a word.
 
 ### Batches: `stress_batch()`
@@ -142,7 +143,7 @@ stress_batch(["привет", "мир"], "ru")   # ['приве́т', 'мир']
 ### Output notation
 
 All backends emit the **combining acute accent** (U+0301) *after* the
-stressed vowel — `приве́т` is `п р и в е U+0301 т`.  For TTS models trained on
+stressed vowel: `приве́т` is `п р и в е U+0301 т`. For TTS models trained on
 the `+`-before-vowel format:
 
 ```python
@@ -153,21 +154,21 @@ to_plus_notation("приве́т")                # 'прив+ет'  (handles NF
 ### ё restoration (Russian)
 
 Both Russian neural backends restore ё that writers commonly type as е:
-`зеленый → зелё́ный`.  Genuinely ambiguous ё-homographs (все/всё) are resolved
-by `ruaccent` from context and deliberately left untouched by `silero`.
+`зеленый → зелё́ный`. Genuinely ambiguous ё-homographs (все/всё) are resolved
+by `ruaccent` from context, and deliberately left untouched by `silero`.
 
 ---
 
 ## Offline & failure behavior
 
 - **First call per language downloads models** into the standard Hugging Face
-  cache (`~/.cache/huggingface`, relocatable via `HF_HOME`).  Sizes: `ru`
-  ruaccent ≈ 500 MB, silero ≈ tens of MB, `simple` languages ≈ 1 MB.
-- **Warm-up ahead of serving:** call `warm_up(lang)` once at startup so no
-  synthesis request ever blocks on a model download; it loads the same
+  cache (`~/.cache/huggingface`, relocatable via `HF_HOME`). Sizes: `ru`
+  ruaccent about 500 MB, silero tens of MB, `simple` languages about 1 MB.
+- **Warm up ahead of serving.** Call `warm_up(lang)` once at startup so no
+  synthesis request ever blocks on a model download. It loads the same
   cached instance later `stress()` calls use.
-- **Fully offline:** after a warm run, set `HF_HUB_OFFLINE=1` — cached models
-  keep working, network is never touched.
+- **Fully offline.** After a warm run, set `HF_HUB_OFFLINE=1`. Cached models
+  keep working and the network is never touched.
 - **Typed failures:**
 
 ```python
@@ -182,28 +183,27 @@ except ModelDownloadError as e:               # names the exact missing HF path
 ```
 
 `fallback=True` degrades down the quality chain with a logged warning per
-hop (it also engages on `ModelLoadError` — a corrupt cache — not just
-failed downloads); the default (`False`) raises immediately.  A failed
-(lang, model) pair is not retried for 30 s, so an outage never triggers a
-download attempt per call.
+hop (it also engages on `ModelLoadError`, a corrupt cache, not just failed
+downloads). The default (`False`) raises immediately. A failed (lang, model)
+pair is not retried for 30 s, so an outage never triggers a download attempt
+per call.
 
-**Supply-chain pinning:** model files are fetched from a commit-pinned
-revision of the HF repo (`HF_REPO_REVISION` in `stressonnx/registry.py`),
-so releases are reproducible and upstream changes never reach users
-implicitly.
+**Supply-chain pinning:** model files come from a commit-pinned revision of
+the HF repo (`HF_REPO_REVISION` in `stressonnx/registry.py`), so releases are
+reproducible and upstream changes never reach users implicitly.
 
 **Thread safety:** `stress()` and the backends use double-checked locking
-for lazy loads; calling from multiple threads is supported (onnxruntime
+for lazy loads. Calling from multiple threads is supported (onnxruntime
 sessions are thread-safe for inference).
 
 ### Contracts worth knowing
 
-- `simple`/`silero` **skip** words already carrying U+0301; `ruaccent`
+- `simple`/`silero` **skip** words already carrying U+0301. `ruaccent`
   **strips and re-derives** (wrong input marks get corrected).
-- Monosyllables: `simple`/`silero` always stress them; `ruaccent` usually
+- Monosyllables: `simple`/`silero` always stress them. `ruaccent` usually
   leaves bare single-vowel words unmarked.
 - `ruaccent` normalizes its input (drops symbols like `…`, collapses runs of
-  whitespace) — it is not byte-layout-preserving; the other backends are.
+  whitespace). It is not byte-layout-preserving; the other backends are.
 - Russian hyphenated clitics (`кто́-то`, `како́й-нибудь`, `-либо`, `-таки`,
   `-ка`) never receive a mark on the particle.
 
@@ -211,8 +211,8 @@ sessions are thread-safe for inference).
 
 ## Guarding by writing system
 
-Feeding Cyrillic to the Georgian model (or vice versa) is a silent no-op — the
-input never matches the model's alphabet.  Check first:
+Feeding Cyrillic to the Georgian model (or vice versa) is a silent no-op: the
+input never matches the model's alphabet. Check first:
 
 ```python
 from stressonnx import lang_to_script, MODEL_REGISTRY
@@ -231,17 +231,17 @@ plain strings shared with phoonnx's `Alphabet` enum for direct comparison.
 Two paths, both documented step-by-step for newcomers in
 [`export/ADDING_A_LANGUAGE.md`](export/ADDING_A_LANGUAGE.md):
 
-1. **You have a stressed wordlist** → ship a `simple` language: package the
+1. **You have a stressed wordlist.** Ship a `simple` language: package the
    vocabulary, declare alphabet/vowels/OOV rule, upload to the HF repo,
-   register the language tag.  No training, no torch.
-2. **You have (or train) a neural accentor** → export it to ONNX with the
+   register the language tag. No training, no torch.
+2. **You have (or train) a neural accentor.** Export it to ONNX with the
    scripts in `export/` and add a backend entry.
 
 All 20 upstream silero_stress vocabularies are already shipped, and
 `export/build_wiktionary_vocab.py` turns any language whose Wiktionary
-headwords carry stress marks into a `simple` language (that is how
-Bulgarian, Macedonian, Slovene, Latvian and Ukrainian were built; Russian
-came from the RUAccent pronunciation dictionary).
+headwords carry stress marks into a `simple` language. That is how
+Bulgarian, Macedonian, Slovene, Latvian and Ukrainian were built. Russian
+came from the RUAccent pronunciation dictionary.
 
 ---
 
@@ -249,40 +249,40 @@ came from the RUAccent pronunciation dictionary).
 
 Pick your entry point:
 
-- **New to all of this?**  The [Why word stress?](#why-word-stress) section
-  above, then [`docs/languages.md`](docs/languages.md) — a plain-language,
+- **New to all of this?** Read [Why word stress?](#why-word-stress) above,
+  then [`docs/languages.md`](docs/languages.md), a plain-language,
   per-language guide to why stress marking is needed and what we do about it.
-- **Developer integrating stressonnx?**  [Usage](#usage) above, then
+- **Developer integrating stressonnx?** Read [Usage](#usage) above, then
   [`docs/models.md`](docs/models.md) for backend contracts and
   [`docs/architecture.md`](docs/architecture.md) for the package internals.
-- **Linguist checking our homework?**  [`docs/languages.md`](docs/languages.md)
-  carries the typology and per-rule citations;
-  [`benchmarks/RESULTS.md`](benchmarks/RESULTS.md) the measurements; every
-  OOV rule's source is quoted in `stressonnx/backends/simple.py`.
+- **Linguist checking our homework?** [`docs/languages.md`](docs/languages.md)
+  carries the typology and per-rule citations.
+  [`benchmarks/RESULTS.md`](benchmarks/RESULTS.md) carries the measurements.
+  Every OOV rule's source is quoted in `stressonnx/backends/simple.py`.
 
-- [`docs/languages.md`](docs/languages.md) — per-language guide: stress
+- [`docs/languages.md`](docs/languages.md): per-language guide to the stress
   system, why TTS needs it, what stressonnx does, with citations.
-- [`docs/models.md`](docs/models.md) — every backend in depth: pipeline
-  stages, per-language rules, quality numbers, contracts.
-- [`docs/architecture.md`](docs/architecture.md) — package layout, the single
-  download layer, data flow.
-- [`benchmarks/RESULTS.md`](benchmarks/RESULTS.md) — the scoreboard and how to
+- [`docs/models.md`](docs/models.md): every backend in depth, with pipeline
+  stages, per-language rules, quality numbers, and contracts.
+- [`docs/architecture.md`](docs/architecture.md): package layout, the single
+  download layer, and data flow.
+- [`benchmarks/RESULTS.md`](benchmarks/RESULTS.md): the scoreboard and how to
   reproduce it.
-- [`examples/`](examples/) — runnable scripts, from basics to homograph demos.
+- [`examples/`](examples/): runnable scripts, from basics to homograph demos.
 
 ## Related projects
 
-- [phoonnx](https://github.com/TigreGotico/phoonnx) — ONNX TTS engine; calls
-  stressonnx before phonemization for Russian voices.
-- [bifonia](https://github.com/TigreGotico/bifonia) — European-Portuguese
+- [phoonnx](https://github.com/TigreGotico/phoonnx): an ONNX TTS engine that
+  calls stressonnx before phonemization for Russian voices.
+- [bifonia](https://github.com/TigreGotico/bifonia): European Portuguese
   homograph disambiguation by meaning (the "written stress, unwritten vowel
   quality" counterpart to this library).
-- [scriptconv](https://github.com/TigreGotico/scriptconv) — script detection
+- [scriptconv](https://github.com/TigreGotico/scriptconv): script detection
   and phoneme-notation conversion.
-- [silabificador](https://github.com/TigreGotico/silabificador) — Portuguese
+- [silabificador](https://github.com/TigreGotico/silabificador): Portuguese
   syllabification and stress by rule.
 
 ## License
 
-Apache-2.0.  Model attributions: RUAccent (Den4ikAI, Apache-2.0),
+Apache-2.0. Model attributions: RUAccent (Den4ikAI, Apache-2.0),
 silero_stress (snakers4, MIT).
