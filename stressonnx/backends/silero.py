@@ -19,7 +19,8 @@ import onnxruntime as ort
 
 from stressonnx._common import _RE_RU_COND, _RU_VOWELS, _softmax, lower_preserving_length, tokenize
 from stressonnx.download import _download_files
-from stressonnx.errors import ModelDownloadError, ModelLoadError, UnsupportedLanguageError
+from stressonnx.errors import ModelDownloadError, ModelLoadError
+from stressonnx.langs import resolve_lang
 from stressonnx.notation import STRESS_TOKEN, render_marks
 from stressonnx.registry import MAIN_LANGS, _MAIN_FILES, hf_dir
 
@@ -68,9 +69,7 @@ class _SileroStressor:
     """
 
     def __init__(self, lang: str, cache_dir: str | None = None) -> None:
-        if lang not in MAIN_LANGS:
-            raise UnsupportedLanguageError(lang, MAIN_LANGS)
-        self.lang = lang
+        self.lang = resolve_lang(lang, MAIN_LANGS)
         self._cache_dir = cache_dir
         self._loaded = False
         self._load_lock = threading.Lock()

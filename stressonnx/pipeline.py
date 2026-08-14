@@ -16,8 +16,9 @@ import time
 from dataclasses import dataclass
 
 from stressonnx.errors import ModelDownloadError, ModelLoadError
+from stressonnx.langs import resolve_lang
 from stressonnx.notation import STRESS_TOKEN, _apply_notation, render_marks
-from stressonnx.registry import DEFAULT_MODEL, LANGUAGES, MODEL_REGISTRY
+from stressonnx.registry import ALL_LANGS, DEFAULT_MODEL, LANGUAGES, MODEL_REGISTRY
 from stressonnx.stressor import make_stressor
 
 LOG = logging.getLogger("stressonnx")
@@ -139,6 +140,7 @@ class StressPipeline:
     # ------------------------------------------------------------------
 
     def _resolve(self, lang: str, model: str | None, prefer: str | None):
+        lang = resolve_lang(lang, ALL_LANGS)
         if model is None and prefer is not None:
             if prefer == "best":
                 order = _best_order(lang)

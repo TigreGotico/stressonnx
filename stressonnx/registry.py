@@ -10,6 +10,7 @@ from enum import Enum
 from typing import Protocol, runtime_checkable
 
 from stressonnx.errors import UnsupportedLanguageError
+from stressonnx.langs import resolve_lang
 
 # ---------------------------------------------------------------------------
 # Public data model
@@ -160,7 +161,7 @@ def lang_to_script(lang: str) -> Script:
     Parameters
     ----------
     lang:
-        A language tag from :data:`ALL_LANGS` (e.g. ``"ru"``, ``"aze_lat"``).
+        A language tag from :data:`ALL_LANGS` (e.g. ``"ru"``, ``"az-Latn"``).
 
     Returns
     -------
@@ -178,15 +179,12 @@ def lang_to_script(lang: str) -> Script:
 
         >>> lang_to_script("ru")
         <Script.CYRILLIC: 'cyrillic'>
-        >>> lang_to_script("kat")
+        >>> lang_to_script("ka")
         <Script.GEORGIAN: 'georgian'>
-        >>> lang_to_script("aze_lat")
+        >>> lang_to_script("az-Latn")
         <Script.LATIN: 'latin'>
     """
-    try:
-        return LANG_SCRIPT[lang]
-    except KeyError:
-        raise UnsupportedLanguageError(lang, LANG_SCRIPT) from None
+    return LANG_SCRIPT[resolve_lang(lang, LANG_SCRIPT)]
 
 
 # Convenience sets — scripts present in each model family
