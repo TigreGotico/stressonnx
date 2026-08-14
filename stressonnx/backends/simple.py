@@ -14,7 +14,8 @@ from typing import Callable, Optional
 
 from stressonnx._common import SCRIPT_VOWELS, lower_preserving_length, tokenize
 from stressonnx.download import LOG, _download_files
-from stressonnx.errors import ModelDownloadError, ModelLoadError, UnsupportedLanguageError
+from stressonnx.errors import ModelDownloadError, ModelLoadError
+from stressonnx.langs import resolve_lang
 from stressonnx.notation import STRESS_TOKEN, render_marks
 from stressonnx.registry import LANGUAGES, SIMPLE_LANGS, _OOV_RULES, _SIMPLE_FILES
 
@@ -204,8 +205,7 @@ class SimpleStressor:
     """
 
     def __init__(self, lang: str, cache_dir: str | None = None) -> None:
-        if lang not in SIMPLE_LANGS:
-            raise UnsupportedLanguageError(lang, SIMPLE_LANGS)
+        lang = resolve_lang(lang, SIMPLE_LANGS)
         self.lang = lang
         spec = LANGUAGES[lang]
         self._hf_lang = spec["hf"]["simple"]

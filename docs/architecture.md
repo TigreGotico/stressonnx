@@ -1,4 +1,4 @@
-# stressonnx — architecture and design
+# stressonnx: architecture and design
 
 > Per-language linguistic background lives in [languages.md](languages.md).
 
@@ -7,14 +7,14 @@
 stressonnx is a pure-onnxruntime word-stress / accentuation library for
 Russian, Ukrainian, Belarusian, and 23 other Slavic, Baltic, Turkic, Uralic,
 Caucasian, and Mongolic languages, addressed by canonical BCP-47 tags
-(`ru`, `uk`, `be`, `az-Latn`, …).
+(`ru`, `uk`, `be`, `az-Latn`, and so on).
 
-Runtime dependencies: `onnxruntime`, `numpy`, `huggingface_hub`,
-`tokenizers` (Russian only).  No torch at runtime.
+Runtime dependencies: `onnxruntime`, `numpy`, `huggingface_hub`, and
+`tokenizers` (Russian only). No torch at runtime.
 
 All ONNX models and vocabulary files are hosted at
 [TigreGotico/stressonnx-models](https://huggingface.co/TigreGotico/stressonnx-models)
-(a public HF repo) and downloaded on first use.
+(a public HF repo) and download on first use.
 
 ---
 
@@ -25,18 +25,18 @@ monolithic file:
 
 | Module | Responsibility |
 |--------|---------------|
-| `stressonnx/langs.py` | `load_languages()` — loads every `stressonnx/languages/<tag>.json` spec into the registry tables. |
-| `stressonnx/registry.py` | `Script`, `StressNotation`, `ModelEntry`, `StressorBackend` Protocol; `MODEL_REGISTRY`, `DEFAULT_MODEL`; language-set constants (`RUACCENT_LANGS`, `MAIN_LANGS`, `SIMPLE_LANGS`, `ALL_LANGS`), all built from `stressonnx/languages/*.json`; `LANG_SCRIPT` + `lang_to_script()`; per-family file lists (`_MAIN_FILES`, `_SIMPLE_FILES`); `_OOV_RULES`. |
+| `stressonnx/langs.py` | `load_languages()` loads every `stressonnx/languages/<tag>.json` spec into the registry tables. |
+| `stressonnx/registry.py` | `Script`, `StressNotation`, `ModelEntry`, `StressorBackend` Protocol, `MODEL_REGISTRY`, `DEFAULT_MODEL`, language-set constants (`RUACCENT_LANGS`, `MAIN_LANGS`, `SIMPLE_LANGS`, `ALL_LANGS`, all built from `stressonnx/languages/*.json`), `LANG_SCRIPT` + `lang_to_script()`, per-family file lists (`_MAIN_FILES`, `_SIMPLE_FILES`), `_OOV_RULES`. |
 | `stressonnx/languages/<tag>.json` | One file per language tag: `script`, `rule` (OOV rule name), `alpha`/`vowels` (alphabet and vowel inventory), `hf` (per-family HF subdirectory), measured `accuracy`/`rule_accuracy`, and the linguistic sources behind the rule. The registry is generated from these files at import time. |
-| `stressonnx/download.py` | The single download layer: `_download_files()` resolves model files via `huggingface_hub.hf_hub_download`, honoring the standard HF cache (`HF_HOME`, `HF_HUB_OFFLINE`) or an explicit `cache_dir` override; every fetch is pinned to `HF_REPO_REVISION` (a commit hash) and logged. |
+| `stressonnx/download.py` | The single download layer. `_download_files()` resolves model files via `huggingface_hub.hf_hub_download`, honoring the standard HF cache (`HF_HOME`, `HF_HUB_OFFLINE`) or an explicit `cache_dir` override. Every fetch is pinned to `HF_REPO_REVISION` (a commit hash) and logged. |
 | `stressonnx/errors.py` | Typed exceptions: `StressonnxError` (base), `UnsupportedLanguageError` (`ValueError` subclass), `ModelDownloadError`, `ModelLoadError`. |
-| `stressonnx/notation.py` | `STRESS_TOKEN` (U+0301); `render_marks()` — the single offset→string renderer; `to_plus_notation()`, `_apply_notation()`, `_plus_to_diacritic()`. |
+| `stressonnx/notation.py` | `STRESS_TOKEN` (U+0301), `render_marks()` (the single offset-to-string renderer), `to_plus_notation()`, `_apply_notation()`, `_plus_to_diacritic()`. |
 | `stressonnx/_common.py` | Small helpers shared by more than one backend: `_softmax`, `SCRIPT_VOWELS` (per-script vowel supersets used by the vowel-ordinal vocabulary format), `lower_preserving_length`, `_RE_SPLIT` (shared tokenizer boundary regex), `_RE_RU_COND`, `_UNSTRESSED_HYPHEN_CLITICS`. |
-| `stressonnx/stressor.py` | `make_stressor()` — the model-aware backend factory. |
-| `stressonnx/pipeline.py` | `StressPipeline` — an isolated engine instance with its own backend cache and failure policy: `.stress()`, `.stress_batch()`, `.analyze()`, `.warm_up()`; `StressResult`, `StressedWord`; `DEFAULT_PIPELINE`, the shared instance the module-level functions delegate to; `FALLBACK_PRIORITY`. |
-| `stressonnx/backends/ruaccent.py` | `RuAccentStressor` — the `ruaccent` family. |
-| `stressonnx/backends/silero.py` | `_SileroStressor` — the `silero` family (`ru`, `uk`, `be`). |
-| `stressonnx/backends/simple.py` | `SimpleStressor` — the `simple` family (26 languages, every canonical tag). |
+| `stressonnx/stressor.py` | `make_stressor()`, the model-aware backend factory. |
+| `stressonnx/pipeline.py` | `StressPipeline`, an isolated engine instance with its own backend cache and failure policy: `.stress()`, `.stress_batch()`, `.analyze()`, `.warm_up()`, `StressResult`, `StressedWord`, `DEFAULT_PIPELINE` (the shared instance the module-level functions delegate to), `FALLBACK_PRIORITY`. |
+| `stressonnx/backends/ruaccent.py` | `RuAccentStressor`, the `ruaccent` family. |
+| `stressonnx/backends/silero.py` | `_SileroStressor`, the `silero` family (`ru`, `uk`, `be`). |
+| `stressonnx/backends/simple.py` | `SimpleStressor`, the `simple` family (26 languages, every canonical tag). |
 | `stressonnx/backends/__init__.py` | Re-exports the three backend classes. |
 | `stressonnx/__init__.py` | Assembles the public API: `stress()`, `stress_batch()`, `analyze()`, `warm_up()`, `to_plus_notation()`, and re-exports from every module above. |
 
@@ -61,29 +61,30 @@ stress("замок", "ru", model="ruaccent")
 
 Module-level `stress()`, `stress_batch()`, `analyze()`, and `warm_up()` are
 thin wrappers over one shared `StressPipeline` instance
-(`stressonnx.pipeline.DEFAULT_PIPELINE`); `StressPipeline()` builds a private
+(`stressonnx.pipeline.DEFAULT_PIPELINE`). `StressPipeline()` builds a private
 instance with its own cache and failure policy for callers that want
-isolation (e.g. per-tenant caches, a scoped failure cooldown, or explicit
-disposal).
+isolation, for example a per-tenant cache, a scoped failure cooldown, or
+explicit disposal.
 
 Four layers:
 
 1. **`StressPipeline.stress(text, lang, model=None, notation="diacritic",
-   fallback=False, prefer=None)`** — picks a model (explicit `model=`, a `prefer=`
+   fallback=False, prefer=None)`** picks a model (explicit `model=`, a `prefer=`
    capability strategy, or the language's default), and calls the cached
-   backend.  Notation conversion via `_apply_notation()`.  When
+   backend. Notation conversion runs through `_apply_notation()`. When
    `fallback=True` and the selected model's files cannot be fetched
-   (`ModelDownloadError`/`ModelLoadError`), walks `FALLBACK_PRIORITY`
-   (`"ruaccent"`, `"silero"`, `"simple"`) for the same language, logging a
-   warning at each hop; every language falls back to `model="simple"`.
-2. **`StressPipeline.analyze(text, lang, ...)`** — calls `.stress()` for the
+   (`ModelDownloadError`/`ModelLoadError`), the pipeline walks
+   `FALLBACK_PRIORITY` (`"ruaccent"`, `"silero"`, `"simple"`) for the same
+   language, logging a warning at each hop. Every language falls back to
+   `model="simple"`.
+2. **`StressPipeline.analyze(text, lang, ...)`** calls `.stress()` for the
    marked string, then aligns the U+0301 marks back onto the original input
    (`difflib.SequenceMatcher` on yo-neutralized copies) to produce a
    `StressResult` of `StressedWord` spans with offsets into the untouched
    input.
-4. **`make_stressor(model, lang, cache_dir=None)`** — factory.  Consults
-   `MODEL_REGISTRY`, validates the `(model, lang)` pair, and returns the
-   appropriate backend.
+4. **`make_stressor(model, lang, cache_dir=None)`** is the factory. It
+   consults `MODEL_REGISTRY`, validates the `(model, lang)` pair, and returns
+   the appropriate backend.
 
 ---
 
@@ -107,8 +108,8 @@ class ModelDownloadError(StressonnxError):
 
 `stress(..., fallback=True)` catches `ModelDownloadError` internally and
 retries with the next model in `FALLBACK_PRIORITY` for the same language,
-re-raising only once the chain is exhausted.  With `fallback=False` (the
-default) the error propagates on the first failure.
+re-raising only once the chain is exhausted. With `fallback=False` (the
+default), the error propagates on the first failure.
 
 ---
 
@@ -126,7 +127,7 @@ class ModelEntry:
     input_scripts: frozenset[Script]  # writing systems the model accepts
 ```
 
-`input_scripts` enables phoonnx (and other callers) to guard against script
+`input_scripts` lets phoonnx (and other callers) guard against script
 mismatches before delegating to stressonnx:
 
 ```python
@@ -144,7 +145,7 @@ class Script(str, Enum):
     GEORGIAN = "georgian"   # ka
 ```
 
-Mirrors the script taxonomy used in phoonnx's `Alphabet` enum.  New
+This mirrors the script taxonomy used in phoonnx's `Alphabet` enum. New
 writing systems can be added here when new language families are registered.
 
 ### `StressNotation` (str enum)
@@ -155,7 +156,7 @@ class StressNotation(str, Enum):
     PLUS      = "plus"        # + before the stressed vowel
 ```
 
-Inheriting `str` means plain string literals work: `notation="plus"`
+Inheriting `str` means plain string literals work: `notation="plus"` is
 accepted wherever `StressNotation` is expected.
 
 ### `StressorBackend` (runtime-checkable Protocol)
@@ -166,15 +167,15 @@ class StressorBackend(Protocol):
     def __call__(self, text: str) -> str: ...
 ```
 
-All three backend classes satisfy this protocol.  `make_stressor()` return
-type is `StressorBackend`.
+All three backend classes satisfy this protocol. `make_stressor()` returns
+type `StressorBackend`.
 
 ---
 
 ## Script routing
 
 `LANG_SCRIPT: dict[str, Script]` maps every language tag to its writing
-system.  `lang_to_script(lang)` is the public accessor — it raises
+system. `lang_to_script(lang)` is the public accessor. It raises
 `UnsupportedLanguageError` (also catchable as plain `ValueError`) for
 unknown tags.
 
@@ -188,24 +189,25 @@ lang_to_script("ka")       # Script.GEORGIAN
 ### Relationship to phoonnx
 
 phoonnx uses an `Alphabet` enum to describe both phonetic representations
-(IPA, ARPA, SAMPA, …) and writing scripts (UNICODE, HANGUL, KANA, PINYIN,
-…).  When phoonnx needs to insert stress marks before phonemisation, it will:
+(IPA, ARPA, SAMPA, and so on) and writing scripts (UNICODE, HANGUL, KANA,
+PINYIN, and so on). When phoonnx needs to insert stress marks before
+phonemisation, it will:
 
 1. Resolve the language's writing system with `stressonnx.lang_to_script(lang)`.
 2. Verify the script appears in `ModelEntry.input_scripts` for the chosen model.
-3. Call `stressonnx.stress(text, lang)` — receiving combining-acute output.
+3. Call `stressonnx.stress(text, lang)` to receive combining-acute output.
 4. Feed the stressed text to its phonemiser.
 
-The `Script` values (`"cyrillic"`, `"latin"`, …) are kept compatible with
-phoonnx's naming so the mapping layer in phoonnx is trivial.
+The `Script` values (`"cyrillic"`, `"latin"`, and so on) stay compatible
+with phoonnx's naming, so the mapping layer in phoonnx is trivial.
 
 ---
 
 ## Model registry
 
-`MODEL_REGISTRY` (in `stressonnx/registry.py`) maps model-id → `ModelEntry`.
-`DEFAULT_MODEL` maps language tag → model-id, derived at import time with
-priority: `ruaccent > silero > simple` (the same order as
+`MODEL_REGISTRY` (in `stressonnx/registry.py`) maps model-id to `ModelEntry`.
+`DEFAULT_MODEL` maps language tag to model-id, derived at import time with
+priority `ruaccent > silero > simple` (the same order as
 `FALLBACK_PRIORITY`).
 
 ```python
@@ -235,77 +237,77 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
 ```
 
 `be` is served by both `silero` (the default, neural) and `simple` (via
-`model="simple"`, vocabulary-only).  Both are counted in `ALL_LANGS`; only
-the neural entry is the key `DEFAULT_MODEL["be"]` resolves to — the
-`simple` path is always explicit.
+`model="simple"`, vocabulary-only). Both are counted in `ALL_LANGS`. Only
+the neural entry is the key `DEFAULT_MODEL["be"]` resolves to. The `simple`
+path stays always explicit.
 
 ---
 
 ## Backend classes
 
-### `RuAccentStressor` — ruaccent family (`stressonnx/backends/ruaccent.py`)
+### `RuAccentStressor`: ruaccent family (`stressonnx/backends/ruaccent.py`)
 
-Homograph-aware Russian pipeline.  Four ONNX models loaded lazily from
+A homograph-aware Russian pipeline. Four ONNX models load lazily from
 `ru_ruaccent/` in the HF repo:
 
 | Model | Architecture | Purpose |
 |-------|-------------|---------|
 | `nn_stress_usage` | BERT token classifier | STRESS / NO_STRESS per word |
-| `nn_yo_homograph` | DistilBERT token classifier | е→ё restoration (not все/всё disambiguation — see `docs/models.md`) |
+| `nn_yo_homograph` | DistilBERT token classifier | е→ё restoration (not все/всё disambiguation, see `docs/models.md`) |
 | `nn_omograph` | RoBERTa NLI (turbo3.1) | Pick stressed variant from homograph dict |
 | `nn_accent` | RoFormer char-level | Accentuate words not in the accent dict, for words with 2+ vowels |
 
 Tokenizers use the `tokenizers` library (HuggingFace fast tokenizer JSON
-format) — no torch, no transformers required.  Input passes through an
-aggressive normalization regex first (`_ruaccent_norm`), so unsupported
+format), so no torch and no transformers are required. Input passes through
+an aggressive normalization regex first (`_ruaccent_norm`), so unsupported
 symbols are dropped rather than preserved.
 
-### `_SileroStressor` — silero family (`stressonnx/backends/silero.py`)
+### `_SileroStressor`: silero family (`stressonnx/backends/silero.py`)
 
-Neural ONNX pipeline exported from silero_stress (MIT).
-Supports `ru`, `uk`, and `be`.
+A neural ONNX pipeline exported from silero_stress (MIT).
+It supports `ru`, `uk`, and `be`.
 
 Pipeline per word:
-1. Tokenise sentence → `(raw_tokens, clean_tokens, prediction_mask)`.
+1. Tokenise the sentence into `(raw_tokens, clean_tokens, prediction_mask)`.
 2. Compute fastText-style n-gram embeddings (mean-pool from the embedding
    matrix).
-3. Run ONNX MLP heads → `stress_logits [N, K]` (+ `yo_logits` for `ru`).
-4. Decode: exceptions dict → skip sets → argmax position → insert U+0301
-   (+ е→ё restoration for `ru`, via `_process_yo_lang`; `uk`/`be` use the
-   simpler path with no yo logic).
+3. Run ONNX MLP heads to get `stress_logits [N, K]` (plus `yo_logits` for `ru`).
+4. Decode: check the exceptions dict, then skip sets, then argmax position,
+   then insert U+0301, plus е→ё restoration for `ru` via `_process_yo_lang`
+   (`uk` and `be` use the simpler path with no yo logic).
 
 Single-vowel words are always force-stressed on that vowel, and a word
-already containing U+0301 is returned unchanged (idempotent).
+already containing U+0301 comes back unchanged (idempotent).
 
-Files: `accentor.onnx`, `embedding.npy`, `ngram_dict.txt.gz`,
-`exceptions.txt.gz`, `skip_stress_words.txt.gz`, `skip_yo_words.txt.gz`,
-`meta.json` — under `<lang>/` in the HF repo.
+Files under `<lang>/` in the HF repo: `accentor.onnx`, `embedding.npy`,
+`ngram_dict.txt.gz`, `exceptions.txt.gz`, `skip_stress_words.txt.gz`,
+`skip_yo_words.txt.gz`, `meta.json`.
 
-### `SimpleStressor` — simple family (`stressonnx/backends/simple.py`)
+### `SimpleStressor`: simple family (`stressonnx/backends/simple.py`)
 
-Vocabulary + rule-based pipeline.  No ONNX inference.  Supports all 26
+A vocabulary and rule-based pipeline. No ONNX inference. Supports all 26
 canonical languages.
 
 Pipeline per word:
-1. Tokenise sentence (shared boundary regex, hyphen-aware).
-2. Look up clean lowercase token in `vocab` dict → stressed vowel ordinal,
-   resolved to an input offset via `SCRIPT_VOWELS[script]`.
-3. OOV fallback: if the word has exactly one vowel, always stress it;
-   otherwise apply the per-language positional rule (`"last"`, `"first"`,
+1. Tokenise the sentence (shared boundary regex, hyphen-aware).
+2. Look up the clean lowercase token in the `vocab` dict for a stressed
+   vowel ordinal, resolved to an input offset via `SCRIPT_VOWELS[script]`.
+3. OOV fallback: if the word has exactly one vowel, always stress it.
+   Otherwise apply the per-language positional rule (`"last"`, `"first"`,
    `"none"`, or `"kat"`).
-4. `mark_offsets()` collects the offsets; `render_marks()` turns them
-   into the marked string (and `analyze()` consumes them directly).
+4. `mark_offsets()` collects the offsets. `render_marks()` turns them into
+   the marked string (`analyze()` consumes them directly).
 
-A word already containing U+0301 is returned unchanged (idempotent).
+A word already containing U+0301 comes back unchanged (idempotent).
 
-`stress(text, "be", model="simple")` routes here directly — the `simple`
+`stress(text, "be", model="simple")` routes here directly. The `simple`
 family serves every language, including `ru`/`uk`/`be`, without any
-`*_simple` pseudo-language; it downloads the same vocab HF subdir as the
+`*_simple` pseudo-language. It downloads the same vocab HF subdir as the
 language's other models.
 
-Files: `vocab.gz`, `meta.json` — under `<lang>/` in the HF repo.  `vocab.gz`
+Files under `<lang>/` in the HF repo: `vocab.gz`, `meta.json`. `vocab.gz`
 lines are `word<space>vowel_ordinal` (see `docs/models.md` and
-`export/ADDING_A_LANGUAGE.md`); `meta.json` carries
+`export/ADDING_A_LANGUAGE.md`). `meta.json` carries
 `"vocab_format": "vowel_ordinal_v2"`.
 
 A research-only Russian model, a character-level seq2seq Transformer
@@ -316,8 +318,8 @@ has no backend class and is not part of `MODEL_REGISTRY`.
 
 ## Notation pipeline
 
-All backends produce combining-acute output internally.  The notation
-conversion happens at the boundary layers only:
+All backends produce combining-acute output internally. Notation conversion
+happens only at the boundary layers:
 
 ```
 backend(text)            →  text with U+0301   (always)
@@ -332,16 +334,16 @@ implementation called from `StressPipeline.stress()`.
 ## File download and cache layout
 
 `stressonnx.download._download_files(hf_subdir, filenames, cache_dir=None)`
-is the single download layer every backend goes through — no backend
+is the single download layer every backend goes through. No backend
 constructs a model path itself.
 
 - **`cache_dir=None` (default):** files live in the standard Hugging Face
-  cache.  `hf_hub_download` handles reuse, `HF_HOME` relocation, and
+  cache. `hf_hub_download` handles reuse, `HF_HOME` relocation, and
   `HF_HUB_OFFLINE` semantics, and the models are shared with every other HF
-  consumer on the machine — there is no stressonnx-specific cache directory.
+  consumer on the machine. There is no stressonnx-specific cache directory.
 - **Explicit `cache_dir=...`:** the layout is exactly
   `cache_dir/<hf_subdir>/<file>` (never a doubled `hf_subdir/hf_subdir/`
-  path).  Existing files under that path are used as-is without touching the
+  path). Existing files under that path are used as-is without touching the
   network.
 
 ```
@@ -380,3 +382,6 @@ constructs a model path itself.
 4. Export ONNX artefacts and upload to
    `TigreGotico/stressonnx-models` (see `export/ADDING_A_LANGUAGE.md`).
 5. Add tests in `tests/`.
+
+---
+[← Models](models.md) · [Home](../README.md)

@@ -1,7 +1,8 @@
 """make_stressor: the model-aware backend factory."""
 from stressonnx.backends import RuAccentStressor, _SileroStressor, SimpleStressor
-from stressonnx.registry import DEFAULT_MODEL, MODEL_REGISTRY
+from stressonnx.registry import ALL_LANGS, DEFAULT_MODEL, MODEL_REGISTRY
 from stressonnx.errors import UnsupportedLanguageError
+from stressonnx.langs import resolve_lang
 
 
 def make_stressor(
@@ -36,6 +37,9 @@ def make_stressor(
     ValueError
         If the combination of *model* and *lang* is unsupported.
     """
+    if lang is not None:
+        lang = resolve_lang(lang, ALL_LANGS)
+
     if model is None:
         if lang is None:
             raise ValueError("At least one of 'model' or 'lang' must be provided.")

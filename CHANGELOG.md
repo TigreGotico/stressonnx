@@ -1,12 +1,20 @@
 # Changelog
 
-## [0.0.2a1](https://github.com/TigreGotico/stressonnx/tree/0.0.2a1) (2026-07-22)
+## [0.0.3a2](https://github.com/TigreGotico/stressonnx/tree/0.0.3a2) (2026-08-14)
 
-[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.1...0.0.2a1)
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a1...0.0.3a2)
 
 **Merged pull requests:**
 
-- fix\(ci\): use token-based PyPI publishing instead of OIDC [\#10](https://github.com/TigreGotico/stressonnx/pull/10) ([JarbasAl](https://github.com/JarbasAl))
+- fix: resolve BCP-47 regional/script tags in all lang lookups [\#14](https://github.com/TigreGotico/stressonnx/pull/14) ([JarbasAl](https://github.com/JarbasAl))
+
+## [0.0.3a1](https://github.com/TigreGotico/stressonnx/tree/0.0.3a1) (2026-07-30)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.2...0.0.3a1)
+
+**Merged pull requests:**
+
+- docs: rewrite README in Simplified Technical English [\#12](https://github.com/TigreGotico/stressonnx/pull/12) ([JarbasAl](https://github.com/JarbasAl))
 
 
 
