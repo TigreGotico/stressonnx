@@ -248,3 +248,24 @@ def test_pipeline_stress_routes_regional_tag_to_normalized_backend(monkeypatch):
     assert calls, "make_stressor was never called"
     _model, called_lang = calls[0]
     assert called_lang == "ru"
+
+
+# A script subtag that names the script the language is written in resolves
+# to the bare language.
+@pytest.mark.parametrize("tag,expected", [
+    ("ru-Cyrl", "ru"),
+    ("kk-Cyrl", "kk"),
+    ("kk-Cyrl-KZ", "kk"),
+    ("uk-Cyrl-UA", "uk"),
+    ("be_cyrl_by", "be"),
+    ("hy-Armn", "hy"),
+    ("ka-Geor-GE", "ka"),
+    ("lv-Latn-LV", "lv"),
+])
+def test_resolve_lang_own_script_subtag_resolves_to_bare_language(tag, expected):
+    assert resolve_lang(tag, ALL_LANGS) == expected
+
+
+def test_stress_accepts_own_script_subtag():
+    from stressonnx import stress
+    assert stress("привет", "ru-Cyrl", model="silero") == stress("привет", "ru", model="silero")
