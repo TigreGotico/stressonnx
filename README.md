@@ -50,7 +50,7 @@ with sense-dependent pronunciation needs a bifonia-style diacritic restorer.
 | Model id | Languages | What it is | Measured quality |
 |----------|-----------|------------|------------------|
 | `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), Apache-2.0) | 0.938 word accuracy, **0.820 on homographs** |
-| `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё | ru 0.914 / uk 0.785 / be 0.873 |
+| `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё; the `uk` variant looks words up in a dictionary layer from [ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) (MIT) first | ru 0.914 / uk 0.821 / be 0.873² |
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
 
 ¹ `ru uk be bg mk sl lv hy ka kk ky tt ba cv sah kjh tg udm mdf myv kbd xal
@@ -61,6 +61,13 @@ Udmurt, Moksha, Erzya, Kabardian, Kalmyk, Azerbaijani (both scripts), Uzbek
 (both scripts). Every language, including ru/uk/be, has a torch-free,
 ONNX-free rule/vocabulary path (`model="simple"`), so `fallback=True` always
 bottoms out in a model that needs nothing but a small vocabulary file.
+
+² Word accuracy on russtress UD-treebank gold, scored by `benchmarks/run.py`.
+ru and be use model revision `b8ba7af`. uk uses the bundle with the
+dictionary layer; the neural model alone (revision `b8ba7af`) scores 0.785.
+The `run.py` scorer counts a `й` before the stressed vowel as a vowel in the
+output only. With vowels counted on composed text, uk scores 0.844 with the
+layer and 0.808 without it.
 
 Numbers come from the committed, reproducible
 [benchmark scoreboard](benchmarks/RESULTS.md) (annotated UD-treebank gold;
@@ -84,8 +91,9 @@ Runtime dependencies: `onnxruntime`, `numpy`, `huggingface_hub`, and
 
 - `razdel` for better Russian sentence splitting inside the ruaccent pipeline
   (`pip install razdel`). Without it the whole input is processed as one span.
-- `pip install stressonnx[export]` adds torch + silero_stress, only for
-  re-exporting models from a checkout. Never needed at runtime.
+- `pip install stressonnx[export]` adds torch, silero_stress and
+  ukrainian-word-stress, only for re-exporting models from a checkout.
+  Never needed at runtime.
 
 ---
 
@@ -308,4 +316,6 @@ Pick your entry point:
 ## License
 
 Apache-2.0. Model attributions: RUAccent (Den4ikAI, Apache-2.0),
-silero_stress (snakers4, MIT).
+silero_stress (snakers4, MIT), ukrainian-word-stress (lang-uk, MIT; the
+Ukrainian dictionary layer of the `silero` model, whose word forms upstream
+derives from "Dictionaries of Ukraine" by ULIF).

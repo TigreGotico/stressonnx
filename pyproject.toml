@@ -31,6 +31,8 @@ Homepage = "https://github.com/TigreGotico/stressonnx"
 export = [
     "torch",
     "silero_stress",
+    # the Ukrainian dictionary layer tracks this exact release
+    "ukrainian-word-stress==2.1.0",
 ]
 test = [
     "pytest",
