@@ -25,7 +25,9 @@ Pipeline, a port of ``StressRNN.put_stress`` with its defaults
 
 Upstream reads ``+`` and ``'`` as stress marks already in the text; here only
 U+0301 is, and ``+`` and ``'`` are word boundaries like any other symbol.
-Any whitespace separates words; upstream splits on the space only, so a tab
+An underscore in the input is a word boundary; upstream keeps it in the word,
+which its transfer step then never matches, and every later word stays
+unmarked.  Any whitespace separates words; upstream splits on the space only, so a tab
 desynchronises its transfer step and the rest of the text stays unmarked.  A
 prediction that lands in the padding before the word is read modulo the word
 length, the vowel upstream's negative index names, instead of the mark
@@ -93,15 +95,18 @@ def _vowel_indices(word: str) -> list:
 
 def _load_exceptions(path: str) -> dict:
     """``word → stressed vowel index`` from the upstream ``word+`` / ``word'``
-    lines; the first line of a repeated word wins, as upstream."""
+    lines; the first line of a repeated word wins, as upstream.  A line whose
+    mark does not follow a vowel (``щегольк+ов``) is dropped, so the word
+    falls to the network."""
     d = {}
     with gzip.open(path, "rt", encoding="utf-8") as fh:
         for line in fh:
             line = line.rstrip("\n")
             for symbol in ("'", "+"):
                 if symbol in line:
-                    word = line.replace(symbol, "")
-                    d.setdefault(word, line.find(symbol) - 1)
+                    idx = line.find(symbol) - 1
+                    if idx >= 0 and line[idx] in _VOWELS:
+                        d.setdefault(line.replace(symbol, ""), idx)
                     break
     return d
 
@@ -166,6 +171,7 @@ class StressRnnStressor:
     def _words_with_context(text: str) -> list:
         """Lowercase words of *text*, each two-vowel word prefixed with the
         last three letters of the previous word and ``_``."""
+        text = text.replace("_", " ")
         words = _RE_NOT_WORD.sub(" ", _RE_CLAUSE.sub(" _ ", text).lower()).split(" ")
         out = []
         for i, word in enumerate(words):

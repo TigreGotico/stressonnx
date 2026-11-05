@@ -349,7 +349,7 @@ Klim, Apache-2.0), itself a maintained fork of
 upstream file as shipped: a bidirectional LSTM (64 units each way) over a
 one-hot encoding of the word's letters, 40 positions by 36 symbols, with a
 softmax over the 40 positions. Before the network, a word is looked up in
-an exception dictionary of 92 276 forms built from A. A. Zaliznyak's
+an exception dictionary of 91 851 words (92 276 lines) built from A. A. Zaliznyak's
 Grammatical Dictionary, and a word with one vowel is stressed on it.
 
 ```

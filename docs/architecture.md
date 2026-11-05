@@ -413,7 +413,9 @@ constructs a model path itself.
 │   └── …           ← silero Russian
 ├── ru_stressrnn/
 │   ├── model.onnx
-│   └── exception_dictionary.txt.gz
+│   ├── exception_dictionary.txt.gz
+│   ├── meta.json
+│   └── LICENSE.stressrnn
 ├── be/
 │   └── …            ← shared by both silero (default) and simple (model="simple")
 ├── kk/

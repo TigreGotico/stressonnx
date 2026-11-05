@@ -92,6 +92,17 @@ def test_keeps_every_input_character(stressrnn):
     assert out.startswith("Приве́т,")
 
 
+def test_underscore_does_not_silence_later_words(stressrnn):
+    assert stressrnn("а_б дом привет") == "а́_б до́м приве́т"
+
+
+def test_dictionary_consonant_entry_falls_to_the_network(stressrnn):
+    text = "щегольков либо"
+    marks, _ = stressrnn.mark_offsets(text)
+    assert all(text[o] in "аеиоуэюяыё" for o in marks), [text[o] for o in marks]
+    assert 18 not in marks
+
+
 def test_premarked_word_is_left_alone(stressrnn):
     assert stressrnn("за́мок стоит") == "за́мок стои́т"
 

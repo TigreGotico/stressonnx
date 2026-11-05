@@ -13,9 +13,12 @@ subset of target words present in the RUAccent omograph dictionary.
 |------|-------|------|----------|----------------|---------------|---------------|---------------|
 | ru | ruaccent | 11116 | 0.938 | 724 | 0.820 | 1.8 | 20.8 |
 | ru | silero | 11124 | 0.914 | 724 | 0.381 | 0.2 | 0.2 |
+| ru | stressrnn | 11124 | 0.891 (0.908 at threshold 0.0) | — | — | 0.2 | 0.5 |
 | uk | silero | 12252 | 0.785 | — | — | 0.2 | 0.2 |
 | be | silero | 2902 | 0.873 | — | — | 0.1 | 0.2 |
 | be | simple | 2902 | 0.433 | — | — | 0.0 | 0.0 |
+
+`stressrnn` was scored on the same rows one model per process on ser9 (`knowledge/wiki/audits/stressonnx-bench/artifacts/stressrnn/bench_ru.py`); the russtress file is the corpus its BiLSTM was trained on, so its number is optimistic.
 
 **Annotation-noise ceiling:** on Russian targets covered by the RUAccent
 pronunciation dictionary with a single unambiguous stress, the gold
