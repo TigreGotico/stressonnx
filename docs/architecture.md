@@ -235,7 +235,7 @@ with phoonnx's naming, so the mapping layer in phoonnx is trivial.
 `MODEL_REGISTRY` (in `stressonnx/registry.py`) maps model-id to `ModelEntry`.
 `DEFAULT_MODEL` maps language tag to model-id, derived at import time with
 priority `ruaccent > silero > simple` (the same order as
-`FALLBACK_PRIORITY`). `stressrnn` and `uk_accentor` are in the registry but in neither
+`FALLBACK_PRIORITY`). `stressrnn` and `uk-accentor` are in the registry but in neither
 `DEFAULT_MODEL`, `FALLBACK_PRIORITY` nor a `prefer=` order.
 
 ```python
@@ -270,7 +270,7 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         description="…",
         input_scripts=frozenset({Script.CYRILLIC}),
     ),
-    "uk_accentor": ModelEntry(
+    "uk-accentor": ModelEntry(
         langs=frozenset({"uk"}),
         family="uk_accentor",
         hf_subdir="ukr_accentor",
@@ -377,7 +377,7 @@ Transformer in `encoder.onnx` and `decoder.onnx` with a SentencePiece
 sentence punctuation and halve long chunks, beam-search each chunk in
 numpy (beam 2, repetition penalty 1.2, length penalty 1, as CTranslate2
 runs it upstream), decode, align the output with the stripped input by
-`difflib` and keep only the inserted U+0301 as marks. `mark_offsets()`
+`difflib` and keep only the inserted U+0301 after a vowel as marks. `mark_offsets()`
 returns the offsets and an empty ё list; a pre-marked word keeps its mark.
 
 Files under `ukr_accentor/` in the HF repo: `encoder.onnx`, `decoder.onnx`,

@@ -24,7 +24,7 @@ def make_stressor(
     model:
         Model-id string, a key of :data:`MODEL_REGISTRY`: ``"ruaccent"``,
         ``"ruaccent-big-poetry"``, ``"silero"``, ``"simple"``, ``"kubataba"``
-        or ``"stressrnn"``, ``"uk_accentor"``.
+        or ``"stressrnn"``, ``"uk-accentor"``.
         When *None*, the default model for *lang* is used (see
         :data:`DEFAULT_MODEL`).
     lang:

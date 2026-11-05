@@ -294,7 +294,7 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         ),
         input_scripts=_CYRILLIC_ONLY,
     ),
-    "uk_accentor": ModelEntry(
+    "uk-accentor": ModelEntry(
         langs=frozenset(UK_ACCENTOR_LANGS),
         family="uk_accentor",
         hf_subdir="ukr_accentor",

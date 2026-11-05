@@ -21,10 +21,10 @@ Model families
     Character BiLSTM with a Zaliznyak exception dictionary, ported from
     StressRNN (dbklim/StressRNN, Apache-2.0).  Never a default and never
     picked by ``prefer=``; pass ``model="stressrnn"``.
-``"uk_accentor"`` (``uk``, selectable only):
+``"uk-accentor"`` (``uk``, selectable only):
     Seq2seq Transformer ported from ukrainian-accentor-transformer
     (Theodotus1243, MIT).  Never a default and never picked by
-    ``prefer=``; pass ``model="uk_accentor"``.
+    ``prefer=``; pass ``model="uk-accentor"``.
 
 ``"simple"`` (default for the other rule/vocabulary languages):
     Vocabulary + rules; no ONNX inference.  Languages: ``az-Cyrl``,

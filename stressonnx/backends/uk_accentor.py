@@ -17,14 +17,17 @@ repetition penalty 1.2, length penalty 1):
 3. Translate each chunk with ``encoder.onnx`` and ``decoder.onnx``, beam
    search in numpy; join the hypotheses and decode them to text.
 4. Align the decoded text with the stripped input (``difflib``): a U+0301
-   the model inserted becomes a mark on the input character before it;
-   every other difference is dropped.  The result is the input with marks
-   inserted, never a letter the model rewrote.
+   the model inserted becomes a mark on the input character before it when
+   that character is a vowel; every other difference is dropped.  The
+   result is the input with marks inserted, never a letter the model
+   rewrote.
 
 A word that already carries a stress mark keeps it, and the model's marks on
 that word are dropped; upstream strips and re-marks every word.  Upstream
 also reads the text in its original form, where this port works on the NFC
-form and maps every offset back.
+form and maps every offset back.  Upstream decodes up to 256 pieces per
+chunk whatever the input; this port stops at ``2 * len(pieces) + 20``, which
+only cuts short the inputs the model never ends with an end token.
 """
 import difflib
 import json
@@ -36,7 +39,7 @@ import onnxruntime as ort
 from stressonnx.download import _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.notation import STRESS_TOKEN, composed, has_stress_mark, in_form_of, render_marks
-from stressonnx.registry import _UK_ACCENTOR_FILES, hf_dir
+from stressonnx.registry import _UK_ACCENTOR_FILES, LANGUAGES, hf_dir
 
 _MAX_CHUNK = 30
 _SPLIT_PIECES = frozenset({".", ",", "!", "?"})
@@ -44,7 +47,12 @@ _BEAM = 2
 _REPETITION_PENALTY = 1.2
 _MAX_DECODING_LENGTH = 256
 _MIN_DECODING_LENGTH = 1
+_DECODING_LENGTH_MARGIN = 20
 _UNK_SURFACE = " ⁇ "
+# the model also writes U+0301 after a consonant (хр́е́ще́ною́); only a
+# vowel can carry stress, and ``is_stress_base`` would keep р (syllabic in
+# Slovene, never in Ukrainian)
+_VOWELS = frozenset(LANGUAGES["uk"]["vowels"])
 
 
 def _split_at_punctuation(pieces: list) -> list:
@@ -123,14 +131,14 @@ class UkAccentorStressor:
             except (ModelDownloadError, ModelLoadError):
                 raise
             except Exception as exc:
-                raise ModelLoadError("uk_accentor", exc) from exc
+                raise ModelLoadError("uk-accentor", exc) from exc
             self._loaded = True
 
     def _load(self) -> None:
         from tokenizers import Tokenizer
 
         data = _download_files(hf_dir(self.lang, "uk_accentor"), _UK_ACCENTOR_FILES,
-                               self._cache_dir, model_id="uk_accentor")
+                               self._cache_dir, model_id="uk-accentor")
         self._tokenizer = Tokenizer.from_file(data["tokenizer.json"])
         with open(data["tokenizer.json"], encoding="utf-8") as fh:
             self._tokenizer_pieces = [piece for piece, _ in json.load(fh)["model"]["vocab"]]
@@ -188,7 +196,11 @@ class UkAccentorStressor:
         alive = np.zeros((_BEAM, 0), dtype=np.int64)
         scores = np.array([0.0] + [-np.inf] * (_BEAM - 1), dtype=np.float32)
         finished = []
-        for step in range(_MAX_DECODING_LENGTH):
+        # the decoder reads the whole prefix at every step, so a chunk the
+        # model never ends costs 256**2 / 2 token positions without this
+        # bound; the output of a chunk the model does end is unchanged
+        max_length = min(_MAX_DECODING_LENGTH, 2 * len(pieces) + _DECODING_LENGTH_MARGIN)
+        for step in range(max_length):
             prefix = np.concatenate([np.full((_BEAM, 1), self._bos, dtype=np.int64), alive], axis=1)
             logits = self._decoder.run(None, {"prefix_ids": prefix, "memory": memory})[0]
             if step < _MIN_DECODING_LENGTH:
@@ -202,7 +214,7 @@ class UkAccentorStressor:
             candidates = np.argsort(-flat, kind="stable")[: 2 * _BEAM]
             vocab = logits.shape[1]
             cand_beam, cand_piece, cand_score = candidates // vocab, candidates % vocab, flat[candidates]
-            last = step + 1 == _MAX_DECODING_LENGTH
+            last = step + 1 == max_length
             kept = []
             spare = _BEAM
             for k in range(_BEAM):
@@ -256,7 +268,8 @@ class UkAccentorStressor:
         marks = []
         for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(
                 a=output, b=clean, autojunk=False).get_opcodes():
-            if tag == "delete" and i2 - i1 == 1 and output[i1] == STRESS_TOKEN and j1 > 0:
+            if (tag == "delete" and i2 - i1 == 1 and output[i1] == STRESS_TOKEN and j1 > 0
+                    and clean[j1 - 1].lower() in _VOWELS):
                 marks.append(j1 - 1)
         return [clean_to_text[o] for o in marks if not self._word_is_marked(text, clean_to_text[o])]
 

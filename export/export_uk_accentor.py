@@ -316,6 +316,12 @@ def main(out_dir: Path) -> None:
                             "ctranslate2/model.bin and re-exported to ONNX",
             "training_data": "lang-uk News corpus, stressed with ukrainian-word-stress "
                              "(per the upstream README)",
+            "training_data_license": "ukrainian-word-stress labels: MIT. lang-uk News corpus: "
+                                     "a row of the UberText section of "
+                                     "https://lang.org.ua/en/corpora/, which states the "
+                                     "texts are distributed on condition of Fair Use for "
+                                     "statistical and scientific analysis; the row itself "
+                                     "carries no licence field",
         },
         "backend": "uk_accentor",
         "lang": "uk",

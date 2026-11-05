@@ -15,6 +15,6 @@
   "vowels": "аеєиіїоуюя",
   "accuracy": {
     "silero": 0.843,
-    "uk_accentor": 0.795
+    "uk-accentor": 0.795
   }
 }

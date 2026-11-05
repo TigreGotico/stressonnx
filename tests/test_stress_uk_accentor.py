@@ -1,4 +1,4 @@
-"""uk_accentor: the ukrainian-accentor-transformer seq2seq model as a selectable
+"""uk-accentor: the ukrainian-accentor-transformer seq2seq model as a selectable
 Ukrainian model.
 
 The expected strings are the output of upstream ukrainian-accentor-transformer
@@ -19,7 +19,8 @@ import pytest
 
 from stressonnx import DEFAULT_MODEL, MODEL_REGISTRY, UkAccentorStressor, make_stressor
 from stressonnx.backends.uk_accentor import _split_at_punctuation, _split_long
-from stressonnx.pipeline import FALLBACK_PRIORITY, _PREFER_ORDERS
+from stressonnx.pipeline import FALLBACK_PRIORITY, _PREFER_ORDERS, StressPipeline
+from stressonnx.registry import LANGUAGES
 
 CACHE_DIR = os.environ.get("STRESSONNX_TEST_CACHE_DIR")
 
@@ -56,7 +57,7 @@ CASE_IDS = ["readme-test", "readme", "chunks", "two-marks", "hash", "unmarked", 
 
 @pytest.fixture(scope="module")
 def accentor():
-    return make_stressor(model="uk_accentor", lang="uk", cache_dir=CACHE_DIR)
+    return make_stressor(model="uk-accentor", lang="uk", cache_dir=CACHE_DIR)
 
 
 @pytest.mark.parametrize("text,expected", CASES, ids=CASE_IDS)
@@ -65,7 +66,7 @@ def test_matches_upstream(accentor, text, expected):
 
 
 def test_registry_entry():
-    entry = MODEL_REGISTRY["uk_accentor"]
+    entry = MODEL_REGISTRY["uk-accentor"]
     assert entry.langs == frozenset({"uk"})
     assert entry.family == "uk_accentor"
     assert entry.hf_subdir == "ukr_accentor"
@@ -73,19 +74,19 @@ def test_registry_entry():
 
 def test_never_selected_by_default_or_prefer():
     assert DEFAULT_MODEL["uk"] == "silero"
-    assert "uk_accentor" not in FALLBACK_PRIORITY
+    assert "uk-accentor" not in FALLBACK_PRIORITY
     for order in _PREFER_ORDERS.values():
-        assert "uk_accentor" not in order
+        assert "uk-accentor" not in order
 
 
 def test_make_stressor_returns_uk_accentor():
-    assert isinstance(make_stressor(model="uk_accentor", lang="uk"), UkAccentorStressor)
-    assert isinstance(make_stressor(model="uk_accentor", lang="uk-UA"), UkAccentorStressor)
+    assert isinstance(make_stressor(model="uk-accentor", lang="uk"), UkAccentorStressor)
+    assert isinstance(make_stressor(model="uk-accentor", lang="uk-UA"), UkAccentorStressor)
 
 
 def test_make_stressor_rejects_other_language():
     with pytest.raises(ValueError, match="does not support language"):
-        make_stressor(model="uk_accentor", lang="ru")
+        make_stressor(model="uk-accentor", lang="ru")
 
 
 def test_punctuation_digits_and_latin_pass_through(accentor):
@@ -146,6 +147,33 @@ def test_mark_offsets_point_at_vowels(accentor):
     assert marks == [4, 9, 21]
     assert [text[o] for o in marks] == ["і", "о", "а"]
     assert marks == _offsets_of_marks("Приві́т хло́пче, як спра́ви.")
+
+
+def test_marks_after_a_consonant_are_dropped(accentor):
+    # the model writes U+0301 after the р of хрещеною and after the ю;
+    # a stressed index is an offset of a vowel, so the р mark goes
+    text = "ути хрещеною мат"
+    vowels = set(LANGUAGES["uk"]["vowels"])
+    pipe = StressPipeline()
+    pipe._singletons[("uk", "uk-accentor")] = accentor
+    words = pipe.analyze(text, lang="uk", model="uk-accentor").words
+    letters = {w.text: [w.text[i] for i in w.stressed_indices] for w in words}
+    assert letters == {"ути": ["и"], "хрещеною": ["е", "е", "ю"], "мат": []}
+    for word, marked in letters.items():
+        assert all(ch in vowels for ch in marked), (word, marked)
+    assert words[1].stressed_index == 2
+
+
+def test_decoder_steps_are_bounded_by_the_source_length(accentor, monkeypatch):
+    # the model never writes an end token for this input, so the beam
+    # search runs to its bound: 2 pieces + 20 steps, not upstream's 256
+    text = "и"
+    pieces = accentor._encode(text)
+    steps = []
+    run = accentor._decoder.run
+    monkeypatch.setattr(accentor._decoder, "run", lambda *a, **k: steps.append(1) or run(*a, **k))
+    assert accentor(text) == "и"
+    assert len(steps) == 2 * len(pieces) + 20
 
 
 def test_mark_offsets_on_decomposed_text_index_base_letters(accentor):
