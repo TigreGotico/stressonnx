@@ -9,14 +9,13 @@ a rendering of those offsets, never the other way around.
 import gzip
 import re
 import threading
-import unicodedata
 from typing import Callable, Optional
 
 from stressonnx._common import SCRIPT_VOWELS, lower_preserving_length, tokenize
 from stressonnx.download import LOG, _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.langs import resolve_lang
-from stressonnx.notation import STRESS_TOKEN, composed, in_form_of, render_marks
+from stressonnx.notation import composed, has_stress_mark, in_form_of, render_marks
 from stressonnx.registry import LANGUAGES, SIMPLE_LANGS, _OOV_RULES, _SIMPLE_FILES
 
 
@@ -298,7 +297,7 @@ class SimpleStressor:
             pos += len(raw_word)
             if not need:
                 continue
-            if STRESS_TOKEN in unicodedata.normalize("NFD", raw_word):
+            if has_stress_mark(raw_word):
                 continue
             raw_lower = lower_preserving_length(raw_word)
             ordinal = self._word_ordinal(clean_word, raw_lower)

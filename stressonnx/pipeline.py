@@ -13,11 +13,12 @@ import difflib
 import logging
 import threading
 import time
+import unicodedata
 from dataclasses import dataclass
 
 from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.langs import resolve_lang
-from stressonnx.notation import STRESS_TOKEN, _apply_notation, in_form_of, render_marks
+from stressonnx.notation import STRESS_TOKEN, _apply_notation, in_form_of, is_stress_base, render_marks
 from stressonnx.registry import ALL_LANGS, DEFAULT_MODEL, LANGUAGES, MODEL_REGISTRY
 from stressonnx.stressor import make_stressor
 
@@ -129,15 +130,19 @@ def _align_marks(original: str, marked: str):
     may also normalize (drop symbols, collapse whitespace).  A sequence
     alignment on yo-neutralized copies absorbs all of that; marks whose
     base character cannot be aligned are dropped rather than guessed.
+    A U+0301 after a consonant is part of that letter (``ќ``, ``ś`` in
+    NFD) and aligns as an ordinary character.
     Returns ``(mark_offsets, yo_offsets)`` into *original*.
     """
     stripped = []          # marked, minus stress marks
     mark_positions = []    # indices into `stripped` of each mark's base char
+    base, base_pos = "", -1
     for ch in marked:
-        if ch == STRESS_TOKEN:
-            if stripped:
-                mark_positions.append(len(stripped) - 1)
+        if ch == STRESS_TOKEN and is_stress_base(base):
+            mark_positions.append(base_pos)
         else:
+            if not unicodedata.combining(ch):
+                base, base_pos = ch, len(stripped)
             stripped.append(ch)
     stripped = "".join(stripped)
 

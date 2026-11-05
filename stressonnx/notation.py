@@ -1,10 +1,42 @@
 """Stress-mark notation: token, insertion, and format conversions."""
 import unicodedata
 
+from stressonnx._common import SCRIPT_VOWELS
 from stressonnx.download import LOG
 from stressonnx.registry import StressNotation
 
 STRESS_TOKEN = "́"  # combining acute accent — placed AFTER the stressed vowel
+
+#: Base letters a stress mark can follow: every vowel of every supported
+#: script, reduced to its base letter (ё → е, ӧ → о), plus r and р.  A
+#: syllabic r carries stress like a vowel: the Slovene dictionary (SSKJ²)
+#: writes ``vŕh``, and no supported alphabet has an acute r letter.  A
+#: U+0301 after any other letter is part of that letter (Macedonian ѓ ќ,
+#: Latin ś ć ń ź).
+_STRESS_BASES = frozenset(
+    unicodedata.normalize("NFD", v)[0] for vs in SCRIPT_VOWELS.values() for v in vs
+) | {"r", "р"}
+
+
+def is_stress_base(ch: str) -> bool:
+    """True when a U+0301 after *ch* marks stress rather than spelling a letter."""
+    return unicodedata.normalize("NFD", ch.lower())[:1] in _STRESS_BASES
+
+
+def has_stress_mark(text: str) -> bool:
+    """True when *text* carries a U+0301 on a vowel or a syllabic r, composed
+    or not.
+
+    ``"во́да"``, ``"dünyá"`` and ``"vŕh"`` are stressed; ``"куќа"`` and
+    ``"Gdańsk"`` are not — their acute belongs to a consonant letter.
+    """
+    base = ""
+    for ch in unicodedata.normalize("NFD", text):
+        if not unicodedata.combining(ch):
+            base = ch
+        elif ch == STRESS_TOKEN and is_stress_base(base):
+            return True
+    return False
 
 
 def _insert_stress(raw_word: str, idx: int, vowels: str | None = None) -> str:
@@ -25,17 +57,18 @@ def _insert_stress(raw_word: str, idx: int, vowels: str | None = None) -> str:
 
 
 def _decompose_acute(text: str) -> str:
-    """Split precomposed acute-accented characters into base + U+0301.
+    """Split precomposed acute-accented vowels (and ``ŕ``) into base + U+0301.
 
     Latin stress output (e.g. ``aze_lat``) may reach a consumer NFC-composed
-    (``"á"`` instead of ``"a" + U+0301``); only characters whose canonical
+    (``"á"`` instead of ``"a" + U+0301``); only vowels whose canonical
     decomposition ends in U+0301 are expanded — everything else (``ё``,
-    ``ö``, ``й`` …) is left untouched, so this is NOT a general NFD pass.
+    ``ö``, ``й``, and consonant letters such as ``ќ`` or ``ś``) is left
+    untouched, so this is NOT a general NFD pass.
     """
     out = []
     for ch in text:
         decomp = unicodedata.normalize("NFD", ch)
-        if len(decomp) > 1 and decomp[-1] == STRESS_TOKEN:
+        if len(decomp) > 1 and decomp[-1] == STRESS_TOKEN and is_stress_base(decomp[0]):
             out.append(decomp)
         else:
             out.append(ch)
@@ -48,9 +81,10 @@ def to_plus_notation(text: str) -> str:
     ``"приве́т"`` → ``"прив+ет"``
 
     Useful for models that were trained on ``+``-marked text.  Operates on
-    any script — it moves every U+0301 (combining acute, including
-    NFC-precomposed forms like ``á``) from after its base character to a
-    ``+`` before it.
+    any script — it moves every U+0301 that follows a vowel or a syllabic
+    r (combining acute, including NFC-precomposed forms like ``á`` and
+    ``ŕ``) from after the letter to a ``+`` before it.  An acute that is
+    part of a consonant letter (``ќ``, ``ś``) stays where it is.
     """
     text = _decompose_acute(text)
     result = []
@@ -61,7 +95,7 @@ def to_plus_notation(text: str) -> str:
         if end < len(text) and unicodedata.combining(text[end]):
             continue
         letter = text[start:end]
-        if STRESS_TOKEN in letter[1:]:
+        if STRESS_TOKEN in letter[1:] and is_stress_base(letter[0]):
             letter = "+" + letter[0] + letter[1:].replace(STRESS_TOKEN, "")
         result.append(letter)
         start = end
