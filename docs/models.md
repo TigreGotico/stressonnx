@@ -311,7 +311,10 @@ homographs from a short context window. It is a valid alternative when:
   n-gram generalisation, which degrades for non-Cyrillic stems.
 - **The Ukrainian and Belarusian models are verified to match** the
   original silero outputs exactly (see `export/verify_e2e.py`). The Russian
-  model is verified numerically at export (max |diff| < 1e-3).
+  model is verified numerically at export: the largest difference from the
+  upstream logits is below 3e-5 of the largest logit for the stress and ё
+  heads. For the homosolver it is below 1e-4 of the largest logit (or of 1,
+  when all logits are smaller), and every logit keeps its sign.
 
 ---
 

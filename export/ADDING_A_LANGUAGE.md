@@ -244,7 +244,7 @@ The script:
   `meta.json`
   (containing `family`, `has_yo`, `alpha`, `vowels`, and embedding stats).
 - Verifies the ONNX classifier's output matches the original PyTorch output
-  (max absolute difference < 1e-3).
+  (the largest difference is below 3e-5 of the largest logit).
 
 **Upload:**
 

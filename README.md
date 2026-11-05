@@ -310,6 +310,6 @@ Pick your entry point:
 Apache-2.0. Model attributions: RUAccent (Den4ikAI, Apache-2.0),
 [silero-stress](https://github.com/snakers4/silero-stress) (Copyright (c)
 2020-present Silero Team, MIT). The `silero` model files are derived from
-silero-stress 1.5; each model directory carries the upstream licence text
-as `LICENSE.silero-stress`, and its `meta.json` names the source package
-and version.
+silero-stress 1.5. Each model directory (`ru`, `ukr`, `bel`) carries the
+upstream licence text as `LICENSE.silero-stress`. The `ru` `meta.json` also
+names the source package, version, licence and URL.

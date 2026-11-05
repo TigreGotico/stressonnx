@@ -122,7 +122,9 @@ def test_silero_ru_bundle_with_homosolver_does_not_warn(caplog, model_cache_dir)
 
 
 def test_silero_ru_homosolver_chunks_match_one_batch(silero_ru):
-    """Chunks padded to the batch width give the logits of one batch."""
+    """The homosolver has no attention mask, so padding changes the logits.
+    Every chunk must be padded to the width of the widest row of the whole
+    batch, which here sits in the last chunk."""
     import numpy as np
 
     silero_ru._ensure_loaded()
@@ -131,24 +133,42 @@ def test_silero_ru_homosolver_chunks_match_one_batch(silero_ru):
     classify = solver._classify
     solver._classify = lambda r: (rows.extend(r), classify(r))[1]
     try:
-        text = ("Старинный замок стоит на горе. Он открыл замок ключом. " * 40
-                + "Мука для хлеба и настоящая мука. Все еще идет дождь.")
-        solver.resolve(text)
+        for text in ["Он открыл замок.", "Где мука?", "Это мука."] * 25:
+            solver.resolve(text)
+        short_width = max(len(r) for r in rows)
+        solver.resolve(
+            "В старинном городе, где улицы узкие, а дома высокие и каменные, "
+            "путники долго шли по дороге к горе и наконец увидели замок, "
+            "который стоял над рекой, окружённый лесом, полями и озёрами.")
     finally:
         del solver._classify
-    assert len(rows) > 64
     width = max(len(r) for r in rows)
+    assert len(rows) > 64 and width > 4 * short_width
+    assert max(len(r) for r in rows[:-32]) == short_width
 
-    def logits(chunk):
-        ids = np.full((len(chunk), width), solver._pad_id, dtype=np.int64)
-        for i, r in enumerate(chunk):
-            ids[i, : len(r)] = r
-        feed = {"input_ids": ids,
-                "homo_start": np.array([r.index(solver._start_id) for r in chunk]),
-                "homo_end": np.array([r.index(solver._end_id) for r in chunk])}
-        return solver._sess.run(None, feed)[0]
+    ids = np.full((len(rows), width), solver._pad_id, dtype=np.int64)
+    for i, r in enumerate(rows):
+        ids[i, : len(r)] = r
+    (whole,) = solver._sess.run(None, {
+        "input_ids": ids,
+        "homo_start": np.array([r.index(solver._start_id) for r in rows]),
+        "homo_end": np.array([r.index(solver._end_id) for r in rows])})
 
-    whole = logits(rows)
-    chunked = np.concatenate([logits(rows[i:i + 32]) for i in range(0, len(rows), 32)])
-    np.testing.assert_array_equal(chunked, whole)
-    assert solver._classify(rows) == [int(v > 0) for v in whole[:, 0]]
+    session = solver._sess
+    chunks = []
+
+    class _Recorder:
+        def run(self, names, feed):
+            out = session.run(names, feed)
+            chunks.append(out[0])
+            return out
+
+    solver._sess = _Recorder()
+    try:
+        picks = solver._classify(rows)
+    finally:
+        solver._sess = session
+    chunked = np.concatenate(chunks)
+    assert len(chunks) > 2
+    np.testing.assert_allclose(chunked, whole, rtol=0, atol=1e-4 * np.abs(whole).max())
+    assert picks == [int(v > 0) for v in whole[:, 0]]
