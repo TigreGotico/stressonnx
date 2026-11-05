@@ -20,52 +20,80 @@ by a machine (an LLM, a dictionary tool, a context model) or by an
 undocumented method.  Silver rows show agreement with that labeller, not
 correctness, and no claim that one model is best rests on them.
 
-The training data of silero and ruaccent is unpublished, so overlap with
-these sets cannot be established.
+The training data of silero, ruaccent and ruaccent-big-poetry is
+unpublished, so overlap with these sets cannot be established.  The set
+notes name the overlap of stressrnn and kubataba, whose training corpora
+are published.
 
 ## ru
 
 Leader on each GOLD set, against the runner-up:
 
-- russtress: ruaccent 0.947 vs silero 0.918, McNemar p = 3e-50.
-- wiktionary: ruaccent 0.964 vs silero 0.948, McNemar p = 3e-115.
+- russtress: ruaccent 0.947 vs silero 0.944, McNemar p = 0.062.
+- wiktionary: silero 0.984 vs ruaccent 0.964, McNemar p < 1e-300.
 
 ### ru / russtress — GOLD
 
 Source: https://github.com/MashaPo/russtress (none stated).  Scored: middle word of each window.
 Rows in: 11124; rows scored: 11124; targets: 11124.
+This file is the training corpus of StressRNN, so the stressrnn score is optimistic: it is not a held-out measurement.
 Labels agree with the RUAccent accent dictionary, unambiguous entries on 88.9% of 1749 targets the dictionary covers.
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| ruaccent | GOLD | 11124 | 0 | 0.947 | 0.943–0.951 | 0.833 (724) | 11.2 | 1.1 |
-| silero | GOLD | 11124 | 0 | 0.918 | 0.913–0.923 | 0.381 (724) | 0.2 | 0.3 |
-| simple | GOLD | 11124 | 0 | 0.142 | 0.135–0.149 | 0.227 (724) | 0.0 | 0.1 |
+| ruaccent | GOLD | 11124 | 0 | 0.947 | 0.943–0.951 | 0.833 (724) | 30.3 | 3.8 |
+| ruaccent-big-poetry | GOLD | 11124 | 0 | 0.942 | 0.937–0.946 | 0.753 (724) | 26.3 | 4.2 |
+| silero | GOLD | 11124 | 0 | 0.944 | 0.940–0.948 | 0.753 (724) | 0.8 | 0.4 |
+| stressrnn | GOLD | 11124 | 0 | 0.892 | 0.886–0.897 | 0.767 (724) | 0.7 | 0.3 |
+| simple | GOLD | 11124 | 0 | 0.142 | 0.135–0.149 | 0.227 (724) | 0.1 | 0.3 |
+| kubataba | GOLD | 11124 | 0 | 0.888 | 0.882–0.893 | 0.816 (724) | 372.4 | 0.3 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
-- ruaccent vs silero: 11124 common targets, ruaccent only right 406, silero only right 87, p = 3e-50.
+- ruaccent vs ruaccent-big-poetry: 11124 common targets, ruaccent only right 114, ruaccent-big-poetry only right 56, p = 1e-05.
+- ruaccent vs silero: 11124 common targets, ruaccent only right 173, silero only right 139, p = 0.062.
+- ruaccent vs stressrnn: 11124 common targets, ruaccent only right 749, stressrnn only right 133, p = 8e-105.
 - ruaccent vs simple: 11124 common targets, ruaccent only right 8995, simple only right 37, p < 1e-300.
-- silero vs simple: 11124 common targets, silero only right 8734, simple only right 95, p < 1e-300.
+- ruaccent vs kubataba: 11124 common targets, ruaccent only right 830, kubataba only right 171, p = 2e-104.
+- ruaccent-big-poetry vs silero: 11124 common targets, ruaccent-big-poetry only right 138, silero only right 162, p = 0.184.
+- ruaccent-big-poetry vs stressrnn: 11124 common targets, ruaccent-big-poetry only right 748, stressrnn only right 190, p = 7e-79.
+- ruaccent-big-poetry vs simple: 11124 common targets, ruaccent-big-poetry only right 8944, simple only right 44, p < 1e-300.
+- ruaccent-big-poetry vs kubataba: 11124 common targets, ruaccent-big-poetry only right 834, kubataba only right 233, p = 8e-80.
+- silero vs stressrnn: 11124 common targets, silero only right 743, stressrnn only right 161, p = 6e-90.
+- silero vs simple: 11124 common targets, silero only right 8967, simple only right 43, p < 1e-300.
+- silero vs kubataba: 11124 common targets, silero only right 824, kubataba only right 199, p = 7e-91.
+- stressrnn vs simple: 11124 common targets, stressrnn only right 8510, simple only right 168, p < 1e-300.
+- stressrnn vs kubataba: 11124 common targets, stressrnn only right 497, kubataba only right 454, p = 0.173.
+- simple vs kubataba: 11124 common targets, simple only right 157, kubataba only right 8456, p < 1e-300.
 
 ### ru / wiktionary — GOLD
 
 Source: https://kaikki.org/dictionary/Russian/ (CC-BY-SA).  Scored: marked polysyllabic words.
 Rows in: 26494; rows scored: 24419; targets: 137221.
 Dropped while loading: Latin letters: transliteration or gloss (rows): 378; acute not on a vowel (targets): 14; example of an affix entry (rows): 1583; monosyllabic token (targets): 828; no usable target (rows): 114; token carries 2+ acutes (targets): 532.
+Not run: kubataba, about 1.4 s per row on this set (60 sampled rows), about 10 hours for the set; not run
 Labels agree with the RUAccent accent dictionary, unambiguous entries on 92.0% of 25918 targets the dictionary covers.
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| ruaccent | GOLD | 137221 | 0 | 0.964 | 0.962–0.966 | 0.926 (9410) | 112.5 | 1.6 |
-| silero | GOLD | 137221 | 0 | 0.948 | 0.946–0.949 | 0.402 (9410) | 1.0 | 0.3 |
+| ruaccent | GOLD | 137221 | 0 | 0.964 | 0.962–0.965 | 0.926 (9410) | 145.9 | 2.7 |
+| ruaccent-big-poetry | GOLD | 137221 | 0 | 0.962 | 0.960–0.963 | 0.893 (9410) | 135.1 | 4.6 |
+| silero | GOLD | 137221 | 0 | 0.984 | 0.984–0.985 | 0.908 (9410) | 1.5 | 0.2 |
+| stressrnn | GOLD | 137221 | 0 | 0.914 | 0.912–0.915 | 0.739 (9410) | 0.6 | 0.1 |
 | simple | GOLD | 137221 | 0 | 0.180 | 0.177–0.182 | 0.264 (9410) | 0.2 | 0.1 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
-- ruaccent vs silero: 137221 common targets, ruaccent only right 6155, silero only right 3878, p = 3e-115.
-- ruaccent vs simple: 137221 common targets, ruaccent only right 108841, simple only right 1202, p < 1e-300.
-- silero vs simple: 137221 common targets, silero only right 106792, simple only right 1430, p < 1e-300.
+- ruaccent vs ruaccent-big-poetry: 137221 common targets, ruaccent only right 631, ruaccent-big-poetry only right 320, p = 4e-24.
+- ruaccent vs silero: 137221 common targets, ruaccent only right 1258, silero only right 4063, p < 1e-300.
+- ruaccent vs stressrnn: 137221 common targets, ruaccent only right 10258, stressrnn only right 3394, p < 1e-300.
+- ruaccent vs simple: 137221 common targets, ruaccent only right 108806, simple only right 1204, p < 1e-300.
+- ruaccent-big-poetry vs silero: 137221 common targets, ruaccent-big-poetry only right 1263, silero only right 4379, p < 1e-300.
+- ruaccent-big-poetry vs stressrnn: 137221 common targets, ruaccent-big-poetry only right 10134, stressrnn only right 3581, p < 1e-300.
+- ruaccent-big-poetry vs simple: 137221 common targets, ruaccent-big-poetry only right 108628, simple only right 1337, p < 1e-300.
+- silero vs stressrnn: 137221 common targets, silero only right 10486, stressrnn only right 817, p < 1e-300.
+- silero vs simple: 137221 common targets, silero only right 110750, simple only right 343, p < 1e-300.
+- stressrnn vs simple: 137221 common targets, stressrnn only right 103150, simple only right 2412, p < 1e-300.
 
 ### ru / homograph-eval — SILVER
 
@@ -77,35 +105,65 @@ Every target is a homograph, so a one-stress dictionary disagrees by design; thi
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| ruaccent | SILVER | 1727 | 0 | 0.888 | 0.872–0.902 | 0.896 (1660) | 106.4 | 1.4 |
-| silero | SILVER | 1727 | 0 | 0.223 | 0.203–0.241 | 0.197 (1660) | 0.4 | 0.2 |
+| ruaccent | SILVER | 1727 | 0 | 0.888 | 0.872–0.902 | 0.896 (1660) | 267.8 | 3.8 |
+| ruaccent-big-poetry | SILVER | 1727 | 0 | 0.852 | 0.834–0.867 | 0.858 (1660) | 274.9 | 2.9 |
+| silero | SILVER | 1727 | 0 | 0.816 | 0.797–0.834 | 0.814 (1660) | 4.9 | 0.4 |
+| stressrnn | SILVER | 1727 | 0 | 0.521 | 0.499–0.543 | 0.509 (1660) | 0.6 | 0.2 |
 | simple | SILVER | 1727 | 0 | 0.347 | 0.324–0.369 | 0.351 (1660) | 0.1 | 0.1 |
+| kubataba | SILVER | 1727 | 0 | 0.583 | 0.561–0.606 | 0.575 (1660) | 928.6 | 0.3 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
-- ruaccent vs silero: 1727 common targets, ruaccent only right 1201, silero only right 52, p = 7e-285.
+- ruaccent vs ruaccent-big-poetry: 1727 common targets, ruaccent only right 164, ruaccent-big-poetry only right 101, p = 1e-04.
+- ruaccent vs silero: 1727 common targets, ruaccent only right 230, silero only right 105, p = 7e-12.
+- ruaccent vs stressrnn: 1727 common targets, ruaccent only right 729, stressrnn only right 94, p = 2e-122.
 - ruaccent vs simple: 1727 common targets, ruaccent only right 981, simple only right 47, p = 4e-228.
-- silero vs simple: 1727 common targets, silero only right 270, simple only right 485, p = 4e-15.
+- ruaccent vs kubataba: 1727 common targets, ruaccent only right 635, kubataba only right 108, p = 1e-91.
+- ruaccent-big-poetry vs silero: 1727 common targets, ruaccent-big-poetry only right 230, silero only right 168, p = 0.002.
+- ruaccent-big-poetry vs stressrnn: 1727 common targets, ruaccent-big-poetry only right 694, stressrnn only right 122, p = 7e-98.
+- ruaccent-big-poetry vs simple: 1727 common targets, ruaccent-big-poetry only right 945, simple only right 74, p = 3e-193.
+- ruaccent-big-poetry vs kubataba: 1727 common targets, ruaccent-big-poetry only right 587, kubataba only right 123, p = 3e-73.
+- silero vs stressrnn: 1727 common targets, silero only right 689, stressrnn only right 179, p = 3e-71.
+- silero vs simple: 1727 common targets, silero only right 890, simple only right 81, p = 6e-173.
+- silero vs kubataba: 1727 common targets, silero only right 588, kubataba only right 186, p = 2e-49.
+- stressrnn vs simple: 1727 common targets, stressrnn only right 610, simple only right 311, p = 4e-23.
+- stressrnn vs kubataba: 1727 common targets, stressrnn only right 135, kubataba only right 243, p = 3e-08.
+- simple vs kubataba: 1727 common targets, simple only right 248, kubataba only right 655, p = 5e-43.
 
 ### ru / prose-accents — SILVER
 
 Source: https://huggingface.co/datasets/nevmenandr/accentual-syllabic-verse-in-russian-prose (MIT).  Scored: marked polysyllabic words (ru-accent-poet labels, fixed sample).
 Rows in: 2211; rows scored: 2200; targets: 16839.
-Sample: every 46th file of the sorted list, the first 200 sentences of 4 to 40 tokens per file.
+Sample: every 46th file of the sorted list, the first 200 sentences of 4 to 40 tokens per file.  kubataba was trained on sentence pairs cut from this corpus, so its score here is agreement with its own training labels.
 Dropped while loading: no usable target (rows): 11.
 Labels agree with the RUAccent accent dictionary, unambiguous entries on 90.9% of 3953 targets the dictionary covers.
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| ruaccent | SILVER | 16839 | 0 | 0.863 | 0.854–0.871 | 0.829 (1298) | 98.4 | 2.4 |
-| silero | SILVER | 16839 | 0 | 0.923 | 0.918–0.926 | 0.361 (1298) | 1.0 | 0.3 |
-| simple | SILVER | 16839 | 0 | 0.214 | 0.208–0.221 | 0.272 (1298) | 0.2 | 0.1 |
+| ruaccent | SILVER | 16839 | 0 | 0.863 | 0.854–0.871 | 0.829 (1298) | 190.5 | 3.3 |
+| ruaccent-big-poetry | SILVER | 16839 | 0 | 0.862 | 0.854–0.870 | 0.826 (1298) | 199.8 | 3.2 |
+| silero | SILVER | 16839 | 0 | 0.959 | 0.956–0.962 | 0.816 (1298) | 5.3 | 0.3 |
+| stressrnn | SILVER | 16839 | 0 | 0.921 | 0.916–0.926 | 0.836 (1298) | 2.0 | 0.2 |
+| simple | SILVER | 16839 | 0 | 0.214 | 0.208–0.221 | 0.272 (1298) | 0.2 | 0.2 |
+| kubataba | SILVER | 16839 | 0 | 0.968 | 0.965–0.971 | 0.946 (1298) | 2082.6 | 0.3 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
-- ruaccent vs silero: 16839 common targets, ruaccent only right 778, silero only right 1786, p = 2e-90.
+- ruaccent vs ruaccent-big-poetry: 16839 common targets, ruaccent only right 76, ruaccent-big-poetry only right 72, p = 0.805.
+- ruaccent vs silero: 16839 common targets, ruaccent only right 181, silero only right 1806, p < 1e-300.
+- ruaccent vs stressrnn: 16839 common targets, ruaccent only right 844, stressrnn only right 1826, p = 3e-82.
 - ruaccent vs simple: 16839 common targets, ruaccent only right 11411, simple only right 496, p < 1e-300.
-- silero vs simple: 16839 common targets, silero only right 12124, simple only right 201, p < 1e-300.
+- ruaccent vs kubataba: 16839 common targets, ruaccent only right 267, kubataba only right 2033, p < 1e-300.
+- ruaccent-big-poetry vs silero: 16839 common targets, ruaccent-big-poetry only right 194, silero only right 1823, p < 1e-300.
+- ruaccent-big-poetry vs stressrnn: 16839 common targets, ruaccent-big-poetry only right 843, stressrnn only right 1829, p = 8e-83.
+- ruaccent-big-poetry vs simple: 16839 common targets, ruaccent-big-poetry only right 11425, simple only right 514, p < 1e-300.
+- ruaccent-big-poetry vs kubataba: 16839 common targets, ruaccent-big-poetry only right 273, kubataba only right 2043, p < 1e-300.
+- silero vs stressrnn: 16839 common targets, silero only right 949, stressrnn only right 306, p = 7e-77.
+- silero vs simple: 16839 common targets, silero only right 12628, simple only right 88, p < 1e-300.
+- silero vs kubataba: 16839 common targets, silero only right 301, kubataba only right 442, p = 3e-07.
+- stressrnn vs simple: 16839 common targets, stressrnn only right 12130, simple only right 233, p < 1e-300.
+- stressrnn vs kubataba: 16839 common targets, stressrnn only right 214, kubataba only right 998, p = 3e-121.
+- simple vs kubataba: 16839 common targets, simple only right 76, kubataba only right 12757, p < 1e-300.
 
 ### ru / ruslan-stressed — SILVER
 
@@ -113,26 +171,36 @@ Source: https://huggingface.co/datasets/stilletto/ruslan-stressed (CC-BY-4.0).  
 Rows in: 22200; rows scored: 22185; targets: 176255.
 ё is left unmarked by the set's convention, so words stressed on ё are not targets.
 Dropped while loading: monosyllabic token (targets): 63147; no usable target (rows): 15; token carries 2+ acutes (targets): 639.
+Not run: kubataba, about 2.2 s per row on this set (60 sampled rows), about 14 hours for the set; not run
 Labels agree with the RUAccent accent dictionary, unambiguous entries on 90.8% of 29767 targets the dictionary covers.
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| ruaccent | SILVER | 176255 | 0 | 0.948 | 0.947–0.950 | 0.928 (10255) | 122.7 | 1.8 |
-| silero | SILVER | 176255 | 0 | 0.945 | 0.944–0.946 | 0.436 (10255) | 1.1 | 0.2 |
+| ruaccent | SILVER | 176255 | 0 | 0.948 | 0.947–0.950 | 0.928 (10255) | 153.3 | 3.1 |
+| ruaccent-big-poetry | SILVER | 176255 | 0 | 0.947 | 0.946–0.948 | 0.908 (10255) | 147.1 | 5.7 |
+| silero | SILVER | 176255 | 0 | 0.974 | 0.973–0.975 | 0.914 (10255) | 2.0 | 0.3 |
+| stressrnn | SILVER | 176255 | 0 | 0.917 | 0.916–0.919 | 0.807 (10255) | 1.0 | 0.1 |
 | simple | SILVER | 176255 | 0 | 0.152 | 0.150–0.153 | 0.252 (10255) | 0.2 | 0.1 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
-- ruaccent vs silero: 176255 common targets, ruaccent only right 6696, silero only right 6096, p = 1e-07.
-- ruaccent vs simple: 176255 common targets, ruaccent only right 141521, simple only right 1082, p < 1e-300.
-- silero vs simple: 176255 common targets, silero only right 141375, simple only right 1536, p < 1e-300.
+- ruaccent vs ruaccent-big-poetry: 176255 common targets, ruaccent only right 528, ruaccent-big-poetry only right 327, p = 6e-12.
+- ruaccent vs silero: 176255 common targets, ruaccent only right 1694, silero only right 6224, p < 1e-300.
+- ruaccent vs stressrnn: 176255 common targets, ruaccent only right 11047, stressrnn only right 5587, p < 1e-300.
+- ruaccent vs simple: 176255 common targets, ruaccent only right 141511, simple only right 1083, p < 1e-300.
+- ruaccent-big-poetry vs silero: 176255 common targets, ruaccent-big-poetry only right 1691, silero only right 6422, p < 1e-300.
+- ruaccent-big-poetry vs stressrnn: 176255 common targets, ruaccent-big-poetry only right 10994, stressrnn only right 5735, p < 1e-300.
+- ruaccent-big-poetry vs simple: 176255 common targets, ruaccent-big-poetry only right 141456, simple only right 1229, p < 1e-300.
+- silero vs stressrnn: 176255 common targets, silero only right 11608, stressrnn only right 1618, p < 1e-300.
+- silero vs simple: 176255 common targets, silero only right 145436, simple only right 478, p < 1e-300.
+- stressrnn vs simple: 176255 common targets, stressrnn only right 137135, simple only right 2167, p < 1e-300.
 
 ## uk
 
 Leader on each GOLD set, against the runner-up:
 
-- russtress: silero 0.807 vs simple 0.534, McNemar p < 1e-300.
-- wiktionary: silero 0.865 vs simple 0.726, McNemar p = 1e-154.
+- russtress: silero 0.843 vs simple 0.534, McNemar p < 1e-300.
+- wiktionary: silero 0.905 vs simple 0.726, McNemar p = 3e-280.
 
 ### uk / russtress — GOLD
 
@@ -143,12 +211,12 @@ Labels agree with the stressonnx simple-uk vocabulary (English Wiktionary headwo
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| silero | GOLD | 12252 | 0 | 0.807 | 0.800–0.814 | — | 0.2 | 0.2 |
-| simple | GOLD | 12252 | 0 | 0.534 | 0.526–0.543 | — | 0.0 | 0.0 |
+| silero | GOLD | 12252 | 0 | 0.843 | 0.837–0.850 | — | 0.2 | 1.0 |
+| simple | GOLD | 12252 | 0 | 0.534 | 0.526–0.543 | — | 0.0 | 0.1 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
-- silero vs simple: 12252 common targets, silero only right 4054, simple only right 715, p < 1e-300.
+- silero vs simple: 12252 common targets, silero only right 4139, simple only right 353, p < 1e-300.
 
 ### uk / wiktionary — GOLD
 
@@ -160,12 +228,12 @@ Labels agree with the stressonnx simple-uk vocabulary (English Wiktionary headwo
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| silero | GOLD | 10801 | 0 | 0.865 | 0.858–0.871 | — | 0.2 | 0.1 |
-| simple | GOLD | 10801 | 0 | 0.726 | 0.716–0.735 | — | 0.1 | 0.0 |
+| silero | GOLD | 10801 | 0 | 0.905 | 0.899–0.910 | — | 0.6 | 0.5 |
+| simple | GOLD | 10801 | 0 | 0.726 | 0.716–0.735 | — | 0.1 | 0.1 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
-- silero vs simple: 10801 common targets, silero only right 2411, simple only right 911, p = 1e-154.
+- silero vs simple: 10801 common targets, silero only right 2531, simple only right 600, p = 3e-280.
 
 ### uk / uk-tts-stressed — SILVER
 
@@ -177,12 +245,12 @@ Labels agree with the stressonnx simple-uk vocabulary (English Wiktionary headwo
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| silero | SILVER | 6322 | 0 | 0.841 | 0.833–0.851 | — | 0.5 | 0.2 |
-| simple | SILVER | 6322 | 0 | 0.587 | 0.574–0.600 | — | 0.1 | 0.0 |
+| silero | SILVER | 6322 | 0 | 0.904 | 0.898–0.912 | — | 0.7 | 0.3 |
+| simple | SILVER | 6322 | 0 | 0.587 | 0.574–0.600 | — | 0.2 | 0.1 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
-- silero vs simple: 6322 common targets, silero only right 2106, simple only right 499, p = 1e-233.
+- silero vs simple: 6322 common targets, silero only right 2193, simple only right 187, p < 1e-300.
 
 ## be
 
@@ -203,8 +271,8 @@ Every target is a homograph, so a one-stress dictionary disagrees by design; thi
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| silero | GOLD | 1496 | 0 | 0.499 | 0.475–0.526 | — | 0.6 | 0.1 |
-| simple | GOLD | 1496 | 0 | 0.425 | 0.400–0.451 | — | 0.2 | 0.0 |
+| silero | GOLD | 1496 | 0 | 0.499 | 0.475–0.526 | — | 3.2 | 0.3 |
+| simple | GOLD | 1496 | 0 | 0.425 | 0.400–0.451 | — | 0.4 | 0.1 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
@@ -219,8 +287,8 @@ Labels agree with the stressonnx simple-be vocabulary (exported from silero_stre
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| silero | GOLD | 2902 | 0 | 0.908 | 0.898–0.917 | — | 0.2 | 0.1 |
-| simple | GOLD | 2902 | 0 | 0.435 | 0.416–0.452 | — | 0.0 | 0.0 |
+| silero | GOLD | 2902 | 0 | 0.908 | 0.898–0.917 | — | 0.3 | 0.3 |
+| simple | GOLD | 2902 | 0 | 0.435 | 0.416–0.452 | — | 0.1 | 0.0 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
@@ -235,8 +303,8 @@ Labels agree with the stressonnx simple-be vocabulary (exported from silero_stre
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| silero | GOLD | 12390 | 0 | 0.950 | 0.946–0.955 | — | 0.2 | 0.1 |
-| simple | GOLD | 12390 | 0 | 0.387 | 0.378–0.395 | — | 0.1 | 0.0 |
+| silero | GOLD | 12390 | 0 | 0.950 | 0.946–0.955 | — | 1.1 | 0.3 |
+| simple | GOLD | 12390 | 0 | 0.387 | 0.378–0.395 | — | 0.1 | 0.1 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
@@ -251,8 +319,8 @@ Labels agree with the stressonnx simple-be vocabulary (exported from silero_stre
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| silero | GOLD | 22965 | 0 | 0.949 | 0.946–0.952 | — | 1.1 | 0.1 |
-| simple | GOLD | 22965 | 0 | 0.510 | 0.503–0.517 | — | 0.3 | 0.0 |
+| silero | GOLD | 22965 | 0 | 0.949 | 0.946–0.952 | — | 4.0 | 0.2 |
+| simple | GOLD | 22965 | 0 | 0.510 | 0.503–0.517 | — | 1.2 | 0.1 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
@@ -268,8 +336,8 @@ Every target is a homograph, so a one-stress dictionary disagrees by design; thi
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| silero | SILVER | 2877 | 0 | 0.696 | 0.679–0.711 | — | 0.4 | 0.1 |
-| simple | SILVER | 2877 | 0 | 0.565 | 0.546–0.581 | — | 0.1 | 0.0 |
+| silero | SILVER | 2877 | 0 | 0.696 | 0.679–0.711 | — | 0.9 | 0.3 |
+| simple | SILVER | 2877 | 0 | 0.565 | 0.546–0.581 | — | 0.2 | 0.0 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
