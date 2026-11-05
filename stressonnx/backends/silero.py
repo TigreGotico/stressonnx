@@ -15,7 +15,6 @@ the resolver logs a warning and leaves the homographs of its skip lists
 unstressed.
 """
 import threading
-import unicodedata
 import gzip
 import json
 import os
@@ -29,7 +28,7 @@ from stressonnx.backends._silero_homosolver import HomoSolver
 from stressonnx.download import LOG, _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.langs import resolve_lang
-from stressonnx.notation import STRESS_TOKEN, composed, in_form_of, render_marks
+from stressonnx.notation import composed, has_stress_mark, in_form_of, render_marks
 from stressonnx.registry import (
     HF_REPO_REVISION,
     MAIN_LANGS,
@@ -375,7 +374,7 @@ class _SileroStressor:
                 continue
 
             raw_lower = lower_preserving_length(raw_word)
-            if STRESS_TOKEN in unicodedata.normalize("NFD", raw_word):
+            if has_stress_mark(raw_word):
                 continue
 
             if word_marks:

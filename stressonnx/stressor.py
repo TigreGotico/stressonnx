@@ -34,8 +34,11 @@ def make_stressor(
 
     Raises
     ------
+    UnsupportedLanguageError
+        If *lang* is unknown, or *model* does not serve it (``.model`` names
+        the model).  Also a :class:`ValueError`.
     ValueError
-        If the combination of *model* and *lang* is unsupported.
+        If *model* is unknown, or neither *model* nor *lang* pins the language.
     """
     if lang is not None:
         lang = resolve_lang(lang, ALL_LANGS)
@@ -57,10 +60,7 @@ def make_stressor(
     # One validation for every family: a given lang must be one the model
     # serves, and multi-language families cannot infer the language.
     if lang is not None and lang not in entry.langs:
-        raise ValueError(
-            f"Model {model!r} does not support language {lang!r}.  "
-            f"Supported: {sorted(entry.langs)}."
-        )
+        raise UnsupportedLanguageError(lang, entry.langs, model=model)
     if lang is None and len(entry.langs) > 1:
         raise ValueError(
             f"Model {model!r} supports multiple languages "

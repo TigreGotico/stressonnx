@@ -127,8 +127,17 @@ for w in result.words:
 ```
 
 `w.stressed_index` is the offset of the stressed vowel *within the word*
-(`None` if the word carries no mark). `w.yo_restored` is `True` when the
-backend rewrote е→ё inside that word. Offsets refer to `result.original`
+(`None` if the word carries no mark). A hyphenated compound can carry more
+than one mark. `w.stressed_indices` lists every marked offset in order, and
+`w.stressed_index` is the first of them:
+
+```python
+w, = analyze("Қазақстан-Ресей", "kk").words
+w.stressed_indices   # (7, 13)  'Қазақста́н-Ресе́й'
+w.stressed_index     # 7
+```
+
+`w.yo_restored` is `True` when the backend rewrote е→ё inside that word. Offsets refer to `result.original`
 exactly as passed in, so callers never need to re-parse the marked string to
 locate a word.
 
@@ -182,11 +191,25 @@ except ModelDownloadError as e:               # names the exact missing HF path
     out = text
 ```
 
+`UnsupportedLanguageError` also covers a model that does not serve the
+language, for example `stress(text, "kk", model="silero")`. Then `e.model`
+names the model, and `e.supported` lists the languages that model serves.
+
 `fallback=True` degrades down the quality chain with a logged warning per
 hop (it also engages on `ModelLoadError`, a corrupt cache, not just failed
-downloads). The default (`False`) raises immediately. A failed (lang, model)
-pair is not retried for 30 s, so an outage never triggers a download attempt
-per call.
+downloads). The default (`False`) raises immediately. A pipeline remembers
+each failed (lang, model) pair and raises the remembered error again without
+a new attempt:
+
+- After a `ModelDownloadError`, the pair is retried after 30 s, so an outage
+  never triggers a download attempt per call.
+- After a `ModelLoadError`, the pair is retried after 30 s. Each consecutive
+  load failure doubles the delay (60 s, 120 s …) up to 10 minutes, because a
+  reload rebuilds the model. Delete the corrupt files and the next retry
+  loads fresh ones. Call `warm_up(lang, model)` to load the pair at once and
+  clear the failure.
+
+A successful load clears the failure record.
 
 **Supply-chain pinning:** model files come from a commit-pinned revision of
 the HF repo (`HF_REPO_REVISION` in `stressonnx/registry.py`), so releases are

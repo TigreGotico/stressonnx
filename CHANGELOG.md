@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.0.3a10](https://github.com/TigreGotico/stressonnx/tree/0.0.3a10) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a9...0.0.3a10)
+
+**Merged pull requests:**
+
+- fix: treat U+0301 as stress only after a vowel [\#32](https://github.com/TigreGotico/stressonnx/pull/32) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a9](https://github.com/TigreGotico/stressonnx/tree/0.0.3a9) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a8...0.0.3a9)
+
+**Merged pull requests:**
+
+- fix: run the ruaccent backend on tokenizers 0.x and 1.x [\#31](https://github.com/TigreGotico/stressonnx/pull/31) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a8](https://github.com/TigreGotico/stressonnx/tree/0.0.3a8) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a7...0.0.3a8)
+
+**Merged pull requests:**
+
+- fix: keep every compound stress, type model/lang mismatch, bound failure retries [\#30](https://github.com/TigreGotico/stressonnx/pull/30) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a7](https://github.com/TigreGotico/stressonnx/tree/0.0.3a7) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a6...0.0.3a7)
