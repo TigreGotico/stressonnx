@@ -20,8 +20,11 @@ Runtime deps: onnxruntime, numpy, tokenizers (no torch, no transformers).
 import threading
 import gzip
 import json
+import os
 import re
+import tempfile
 import unicodedata
+from importlib.metadata import version
 
 import numpy as np
 import onnxruntime as ort
@@ -192,6 +195,68 @@ def _ruaccent_split_by_sentences(text: str) -> list:
         return [text]
 
 
+class _Tokenizer:
+    """A ``tokenizer.json`` with truncation off, on tokenizers 0.x and 1.x.
+
+    tokenizers 1.x has no ``Encoding.word_ids`` and refuses vocab keys that
+    hold NUL, so this class reads the file itself.  :meth:`word_ids` needs a
+    WordPiece model with a template post-processor, as the BERT tokenizers of
+    this pipeline have.
+    """
+
+    def __init__(self, path: str) -> None:
+        from tokenizers import Tokenizer
+
+        with open(path, encoding="utf-8") as fh:
+            spec = json.load(fh)
+        model = spec["model"]
+        self._tokenizers_1x = int(version("tokenizers").split(".")[0]) >= 1
+        if self._tokenizers_1x:
+            # NUL keys never match: the BertNormalizer (clean_text) deletes
+            # NUL from the input before the vocab lookup
+            model["vocab"] = {k: i for k, i in model["vocab"].items() if "\0" not in k}
+            with tempfile.TemporaryDirectory() as tmp:
+                sanitized = os.path.join(tmp, "tokenizer.json")
+                with open(sanitized, "w", encoding="utf-8") as fh:
+                    json.dump(spec, fh)
+                self._tok = Tokenizer.from_file(sanitized)
+            self._tok.truncation = None
+        else:
+            self._tok = Tokenizer.from_file(path)
+            self._tok.no_truncation()
+
+        if model["type"] == "WordPiece":
+            prefix = model["continuing_subword_prefix"]
+            self._continuation = frozenset(
+                i for k, i in model["vocab"].items() if k.startswith(prefix)
+            )
+            template = [next(iter(item)) for item in spec["post_processor"]["single"]]
+            self._lead = template.index("Sequence")
+            self._trail = len(template) - self._lead - 1
+
+    def encode(self, text: str, pair: str | None = None) -> tuple[list, list]:
+        """Token ids and attention mask of *text*, or of the pair (*text*, *pair*)."""
+        if self._tokenizers_1x:
+            enc = self._tok.encode(text if pair is None else (text, pair))
+        else:
+            enc = self._tok.encode(text, pair=pair)
+        return enc.ids, enc.attention_mask
+
+    def word_ids(self, ids: list) -> list:
+        """Word index of each token of one sequence, ``None`` for added specials.
+
+        A WordPiece token starts a new word unless it carries the
+        continuation prefix (``##``).
+        """
+        word_ids: list = [None] * len(ids)
+        word = -1
+        for i in range(self._lead, len(ids) - self._trail):
+            if ids[i] not in self._continuation:
+                word += 1
+            word_ids[i] = word
+        return word_ids
+
+
 class RuAccentStressor:
     """Homograph-aware Russian stress accentor backed by RUAccent ONNX models.
 
@@ -261,7 +326,7 @@ class RuAccentStressor:
         data = _download_files(MODEL_REGISTRY['ruaccent'].hf_subdir, _RUACCENT_FILES, self._cache_dir, model_id="ruaccent")
 
         try:
-            from tokenizers import Tokenizer as _Tokenizer  # type: ignore
+            import tokenizers  # noqa: F401
         except ImportError as exc:  # pragma: no cover
             raise ImportError(
                 "stressonnx 'ru' (RuAccentStressor) requires the 'tokenizers' "
@@ -287,9 +352,9 @@ class RuAccentStressor:
         )
 
         # Tokenizers (no transformers)
-        self._omograph_tok = _Tokenizer.from_file(data["nn_omograph/tokenizer.json"])
-        self._stress_usage_tok = _Tokenizer.from_file(data["nn_stress_usage/tokenizer.json"])
-        self._yo_hom_tok = _Tokenizer.from_file(data["nn_yo_homograph/tokenizer.json"])
+        self._omograph_tok = _Tokenizer(data["nn_omograph/tokenizer.json"])
+        self._stress_usage_tok = _Tokenizer(data["nn_stress_usage/tokenizer.json"])
+        self._yo_hom_tok = _Tokenizer(data["nn_yo_homograph/tokenizer.json"])
 
         # Char vocab for accent model
         with open(data["nn_accent/vocab.txt"], encoding="utf-8") as fh:
@@ -331,8 +396,8 @@ class RuAccentStressor:
         and each half is labelled on its own, so no word loses its label to
         truncation.
         """
-        enc = tok.encode(text)
-        if enc.overflowing:
+        ids, attention_mask = tok.encode(text)
+        if len(ids) > _MAX_TOKENS:
             words = text.split(" ")
             half = len(words) // 2
             if half:
@@ -343,8 +408,11 @@ class RuAccentStressor:
                         " ".join(part), sess, tok, id2label, has_tti
                     )
                 ]
-        input_ids = np.array([enc.ids], dtype=np.int64)
-        attn = np.array([enc.attention_mask], dtype=np.int64)
+            # one run without spaces: keep its head and the closing [SEP]
+            ids = ids[:_MAX_TOKENS - 1] + ids[-1:]
+            attention_mask = attention_mask[:_MAX_TOKENS - 1] + attention_mask[-1:]
+        input_ids = np.array([ids], dtype=np.int64)
+        attn = np.array([attention_mask], dtype=np.int64)
         feed: dict = {"input_ids": input_ids, "attention_mask": attn}
         if has_tti:
             feed["token_type_ids"] = np.zeros_like(input_ids)
@@ -352,7 +420,7 @@ class RuAccentStressor:
         probs = _softmax(logits)
 
         word_probs: dict = {}
-        for i, wid in enumerate(enc.word_ids):
+        for i, wid in enumerate(tok.word_ids(ids)):
             if wid is None:
                 continue
             word_probs.setdefault(wid, []).append(probs[i])
@@ -436,9 +504,9 @@ class RuAccentStressor:
         for pos, variants in found:
             probs = []
             for hyp in variants:
-                enc = self._omograph_encoding(context, pos, hyp)
-                input_ids = np.array([enc.ids], dtype=np.int64)
-                attn = np.array([enc.attention_mask], dtype=np.int64)
+                ids, attention_mask = self._omograph_encoding(context, pos, hyp)
+                input_ids = np.array([ids], dtype=np.int64)
+                attn = np.array([attention_mask], dtype=np.int64)
                 logits = self._omograph_sess.run(
                     None, {"input_ids": input_ids, "attention_mask": attn}
                 )[0][0]
@@ -462,9 +530,9 @@ class RuAccentStressor:
             tmp = words[lo:lo + size]
             tmp[pos - lo] = " <w>" + tmp[pos - lo] + "</w> "
             txt = _delete_spaces_before_punc(" ".join(tmp))
-            enc = self._omograph_tok.encode(txt, pair=hyp)
-            if len(enc.ids) <= _MAX_TOKENS or span == 0:
-                return enc
+            ids, attention_mask = self._omograph_tok.encode(txt, pair=hyp)
+            if len(ids) <= _MAX_TOKENS or span == 0:
+                return ids, attention_mask
             span //= 2
 
     def _process_accent(self, words: list, stress_usages: list) -> list:

@@ -10,15 +10,17 @@ class UnsupportedLanguageError(StressonnxError, ValueError):
     """Raised when a language tag is not supported (by the library or a model).
 
     An unsupported tag is an invalid argument value, so this is also a
-    :class:`ValueError`.
+    :class:`ValueError`.  ``model`` names the model that rejected the tag,
+    or is ``None`` when no stressonnx model serves it.
     """
 
-    def __init__(self, lang: str, supported) -> None:
+    def __init__(self, lang: str, supported, model: str | None = None) -> None:
         self.lang = lang
         self.supported = sorted(supported)
-        super().__init__(
-            f"Unsupported language {lang!r}.  Supported: {self.supported}."
-        )
+        self.model = model
+        prefix = (f"Unsupported language {lang!r}" if model is None
+                  else f"Model {model!r} does not support language {lang!r}")
+        super().__init__(f"{prefix}.  Supported: {self.supported}.")
 
 
 class ModelDownloadError(StressonnxError):

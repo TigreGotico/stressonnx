@@ -97,7 +97,8 @@ class StressonnxError(Exception):
     """Base class for all stressonnx errors."""
 
 class UnsupportedLanguageError(StressonnxError, ValueError):
-    """lang tag not recognized anywhere in the library.
+    """lang tag not recognized anywhere in the library, or not served by
+    the requested model (then .model names that model).
     Also a ValueError, so existing except ValueError: code keeps working."""
 
 class ModelDownloadError(StressonnxError):
@@ -106,10 +107,33 @@ class ModelDownloadError(StressonnxError):
     the exact repo path that failed."""
 ```
 
-`stress(..., fallback=True)` catches `ModelDownloadError` internally and
-retries with the next model in `FALLBACK_PRIORITY` for the same language,
-re-raising only once the chain is exhausted. With `fallback=False` (the
-default), the error propagates on the first failure.
+`stress(..., fallback=True)` catches `ModelDownloadError` and
+`ModelLoadError` internally and retries with the next model in
+`FALLBACK_PRIORITY` for the same language, re-raising only once the chain is
+exhausted. With `fallback=False` (the default), the error propagates on the
+first failure.
+
+Each pipeline remembers a failed (lang, model) pair together with the
+traceback of the failure. Until the retry time, later calls raise the
+remembered error again with that traceback, so the traceback does not grow
+in a long-running service.
+
+- A `ModelDownloadError` can come from a passing outage. The pair is tried
+  again after the cooldown (`failure_cooldown_s`, 30 s by default). A failed
+  download is fast, so a flat delay costs little and recovers quickly when
+  the outage ends.
+- A `ModelLoadError` is retried too, because the backends wrap every load
+  exception in it, including `MemoryError` and file-descriptor exhaustion,
+  and because an operator can delete corrupt files in a running service.
+  A reload rebuilds the model and can take seconds, so each consecutive
+  load failure doubles the delay, up to `MAX_LOAD_RETRY_S` (600 s) in
+  `stressonnx/pipeline.py`.
+
+A successful call clears the record and resets the delay. `warm_up()` loads
+the pair at once and clears the record when the load succeeds. A record is
+ignored and dropped when the backend already reports loaded, so a failure
+that a concurrent request stores after `warm_up()` cannot shadow the loaded
+model.
 
 ---
 
