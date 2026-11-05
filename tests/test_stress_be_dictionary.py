@@ -118,12 +118,25 @@ def test_capitalized_key_applies_inside_a_sentence(silero_be, text, expected):
     assert silero_be(text) == expected
 
 
-# the name Я+на is a capitalized form of the database; the pronoun яна́ at
-# the start of a sentence is capitalized too and stays with the model
+def test_capitalized_key_does_not_apply_at_sentence_start(silero_be):
+    """A name alone is a sentence start; its key stays unused there."""
+    silero_be._ensure_loaded()
+    assert "Інтэрфаксу" in silero_be._dictionary
+    assert silero_be._dictionary_ordinal("інтэрфаксу", "Інтэрфаксу", True) is None
+    assert silero_be._dictionary_ordinal("інтэрфаксу", "Інтэрфаксу", False) == 2
+
+
+# en-Wiktionary stresses the names Ста́лін and Ві́льня, so the common-noun
+# keys сталі́н and вільні́ are out of the layer, and the sentence start after
+# an initial or an abbreviation does not reach them
 @pytest.mark.parametrize("text,expected", [
-    ("Яна сядзіць.", "Яна́ сядзі́ць."),
-    ("Інтэрфаксу", "Інтэ́рфаксу"),
+    ("В. Сталін", "В. Ста́лін"),
+    ("Іосіф В. Сталін", "Іо́сіф В. Ста́лін"),
+    ("г. Вільні", "г. Ві́льні"),
+    ("Сталін", "Ста́лін"),
 ])
-def test_capitalized_key_does_not_apply_at_sentence_start(silero_be, text, expected):
+def test_name_wiktionary_contradicts_stays_with_the_model(silero_be, text, expected):
+    silero_be._ensure_loaded()
+    assert "сталін" not in silero_be._dictionary and "вільні" not in silero_be._dictionary
     assert silero_be(text) == expected
 

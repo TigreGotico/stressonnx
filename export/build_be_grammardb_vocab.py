@@ -73,7 +73,10 @@ RELEASE_ZIP_SHA256 = "393756f3cb5c94ab86cdbd64b95fa9d096775f559ae65de6375ebb6d55
 LICENSE_URL = f"https://raw.githubusercontent.com/Belarus/GrammarDB/{RELEASE_COMMIT}/LICENSE.txt"
 LICENSE_SHA256 = "3b2890eacd851373001c4a14623458e3adaf1b1967939aa9c38a318e28d61c00"
 #: kaikki.org wiktextract dump of en-Wiktionary Belarusian entries, the
-#: cross-check source; the site keeps no versions, so the file is pinned by hash
+#: cross-check source; the site keeps no versions, so the file is pinned by
+#: hash, and the pinned copy is archived gzipped as
+#: knowledge/wiki/audits/stressonnx-bench/artifacts/grammardb/kaikki.org-dictionary-Belarusian.jsonl.gz
+#: in the TigreGotico AgentWorkspaces tree (sha256 of the unpacked file below)
 KAIKKI_URL = "https://kaikki.org/dictionary/Belarusian/kaikki.org-dictionary-Belarusian.jsonl"
 KAIKKI_SHA256 = "7331d5ea2c55baa5c8b7e84e7005cff17f48b93a8b26d9b35d20db079d3300cf"
 ACUTE = "\u0301"
@@ -82,9 +85,10 @@ the grammar database of the Belarusian language, {RELEASE}
 ({UPSTREAM_URL}/releases/tag/{RELEASE}, commit {RELEASE_COMMIT}),
 by Aleś Bułojčyk and contributors, and is licensed under the Creative
 Commons Attribution-ShareAlike 4.0 International licence (CC-BY-SA-4.0).
-It holds, for every spelling with one stress in the database, the ordinal
-of the stressed vowel.  The other files of this bundle are derived from
-silero_stress and stay under the MIT licence.  The full licence text
+It holds a selection of the database's spellings with one stress, those
+the silero pipeline of this bundle stresses differently, each with the
+ordinal of its stressed vowel.  The other files of this bundle are derived
+from silero_stress and stay under the MIT licence.  The full licence text
 follows.
 
 """
@@ -260,9 +264,19 @@ def wiktionary_readings(path: str) -> dict:
 
 
 def wiktionary_disagrees(entries: dict, readings: dict) -> dict:
-    """Keys whose spelling en-Wiktionary stresses on another vowel: key → its ordinals."""
-    return {key: sorted(readings[key]) for key, (ordinal, _) in entries.items()
-            if key in readings and readings[key] != {ordinal}}
+    """Keys whose spelling en-Wiktionary stresses on another vowel: key → its ordinals.
+
+    The other case of the spelling counts too: a name Wiktionary stresses
+    otherwise (Ста́лін) drops the common-noun key (сталі́н), because the
+    runtime gives a name at the start of a sentence the lowercase key.
+    """
+    out = {}
+    for key, (ordinal, _) in entries.items():
+        other = key[:1].swapcase() + key[1:]
+        found = readings.get(key, set()) | readings.get(other, set())
+        if found and found != {ordinal}:
+            out[key] = sorted(found)
+    return out
 
 
 def pipeline_ordinals(stressor: _SileroStressor, words: list) -> list:

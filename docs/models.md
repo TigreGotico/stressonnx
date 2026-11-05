@@ -444,12 +444,13 @@ The layer holds only the spellings that have exactly one stress in the
 database and that the silero pipeline (exceptions table plus model)
 stresses differently. The pipeline already agrees with the database on
 the other 1.89 million spellings, so they are left out. This keeps the
-file at about 11 KB and about 2,500 entries. 190 of them override an
-entry of the upstream silero exceptions table, which stays in the bundle
-unchanged. 1,806 entries are spellings with an apostrophe (аб'ект), which
-the model stresses wrongly once the apostrophe is dropped; 522 are plain
-lowercase spellings (эканамі́ста, хлушу́) and 175 are capitalized names
-(Інтэрфа́ксу).
+file at about 11 KB and 2,493 entries. 184 of them override an entry of
+the upstream silero exceptions table, which stays in the bundle unchanged.
+2,318 keys are lowercase and 175 capitalized. 1,925 keys are not a plain
+spelling of the database's word list (`spellchecker/slovy-2008.txt`):
+they are apostrophe spellings (аб'ект) with the apostrophe dropped, which
+the model stresses wrongly in that shape. 568 keys are plain spellings
+(эканамі́ста, хлушу́, Інтэрфа́ксу).
 
 The neural model still decides these cases:
 
@@ -458,7 +459,7 @@ The neural model still decides these cases:
 - Spellings stressed differently inside a hyphenated compound of the
   database (ра́мбурсны against акцэ́птна-рамбу́рсны).
 - Spellings that en-Wiktionary (the kaikki dump) stresses on another
-  vowel.
+  vowel, in either case of the spelling.
 - Forms of paradigms the database marks `todo` (data not final); such a
   form also keeps the same spelling out of the layer.
 - Hyphenated compounds and multiword entries as a whole, which the
@@ -473,8 +474,12 @@ The neural model still decides these cases:
   сталі́на) does not reach `Сталін`, and the model keeps `Ста́лін`. At the
   start of a sentence, where a common word is capitalized too, it takes
   only the lowercase key, so the name `Я́на` does not reach the pronoun
-  `Яна́`. An all-caps token takes either key. A name and a common word of
-  one spelling that disagree give neither key.
+  `Яна́`. The runtime takes a sentence start after any `.`, `!`, `?` or
+  `…`, so also after an initial, an abbreviation, an ellipsis or a decimal
+  number, and a name alone is a sentence start. An all-caps token takes
+  either key. A name and a common word of one spelling that disagree give
+  neither key, and so do a lowercase key and its capitalized Wiktionary
+  spelling (сталі́н, Ста́лін).
 
 Each entry stores the ordinal of the stressed vowel, not a character
 offset, and the runtime maps it onto the token as written. A quote,
@@ -496,7 +501,7 @@ targets, 2,000 resamples):
 |---|---|---|---|---|---|---|
 | russtress (GOLD) | 2,902 | 0.908 | 0.923 | +0.015 [+0.010, +0.019] | 44 / 1 | p = 3e-12 |
 | wiktionary (GOLD) | 12,390 | 0.950 | 0.957 | +0.007 [+0.006, +0.009] | 92 / 3 | p = 7e-24 |
-| zascienak (GOLD) | 22,965 | 0.949 | 0.960 | +0.011 [+0.010, +0.012] | 253 / 0 | p = 1e-76 |
+| zascienak (GOLD) | 22,965 | 0.949 | 0.960 | +0.011 [+0.010, +0.012] | 252 / 0 | p = 3e-76 |
 | homographs-10x10 (GOLD) | 1,496 | 0.499 | 0.499 | 0 | 0 / 0 | n/a |
 | homographs-commonvoice (SILVER) | 2,877 | 0.696 | 0.696 | 0 | 0 / 0 | n/a |
 
@@ -508,12 +513,12 @@ model. The zascienak and the homograph sets come from the BelVoice
 project, whose author also maintains GrammarDB, and its card says the
 stress of ordinary words is set through the grammar database; the
 zascienak row is therefore not independent of the layer's source, which
-its 253 against 0 shows. The russtress rows (Toloka-annotated UD treebank
+its 252 against 0 shows. The russtress rows (Toloka-annotated UD treebank
 text) and the Wiktionary rows are independent of GrammarDB. On 75,174
 inflected forms of the English Wiktionary (kaikki, no context), which is
 also the cross-check source, the layer gives 0.957 against 0.954 without
-it, +0.0033 [+0.0029, +0.0038], 260 forms only right with the layer
-against 10 only right without it.
+it, +0.0034 [+0.0030, +0.0039], 259 forms only right with the layer
+against 0 only right without it.
 
 The case rule was measured on the same sets against two alternatives: a
 capitalized token that always takes the lowercase key when it has no
@@ -522,7 +527,8 @@ capitalized one, and one that never does. The rule gives 15 Wiktionary and
 "always", and loses none against either.
 
 `export/build_be_grammardb_vocab.py` rebuilds the layer from the pinned
-release archive. A rebuilt `accentor.onnx` or `exceptions.txt.gz` needs a
+release archive and the pinned kaikki dump, whose archived copy the script
+names. A rebuilt `accentor.onnx` or `exceptions.txt.gz` needs a
 rebuilt layer too, because the selection depends on the pipeline's own
 output.
 

@@ -101,6 +101,8 @@ def test_apostrophe_form_gets_both_keys(tmp_path, build, stressor):
 
 
 def test_wiktionary_disagreement_drops_the_key(build):
-    entries = {"выявы": (1, "выявы"), "хлушу": (1, "хлушу"), "рыкай": (0, "рыкай")}
-    readings = {"выявы": {0}, "хлушу": {1}, "рыкай": {0, 1}}
-    assert build.wiktionary_disagrees(entries, readings) == {"выявы": [0], "рыкай": [0, 1]}
+    entries = {"выявы": (1, "выявы"), "хлушу": (1, "хлушу"), "рыкай": (0, "рыкай"),
+               "сталін": (1, "сталін"), "Іосіф": (1, "іосіф")}
+    readings = {"выявы": {0}, "хлушу": {1}, "рыкай": {0, 1}, "Сталін": {0}, "іосіф": {1}}
+    assert build.wiktionary_disagrees(entries, readings) == {
+        "выявы": [0], "рыкай": [0, 1], "сталін": [0]}
