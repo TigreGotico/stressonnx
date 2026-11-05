@@ -25,6 +25,15 @@ def load_languages() -> dict:
     return langs
 
 
+#: ISO 15924 script subtag → the ``script`` value of a language file.
+_ISO_15924 = {
+    "Armn": "armenian",
+    "Cyrl": "cyrillic",
+    "Geor": "georgian",
+    "Latn": "latin",
+}
+
+
 def resolve_lang(lang: str, supported) -> str:
     """Normalize a BCP-47 tag to the canonical key used by *supported*.
 
@@ -40,10 +49,11 @@ def resolve_lang(lang: str, supported) -> str:
     2. language + script subtag, when the tag carries a 4-letter script
        subtag (``"uz-Latn-UZ"`` → ``"uz-Latn"``) — the script is never
        guessed, only read off the tag itself.  When the tag names a script
-       this way, that script decides the outcome: it either resolves to the
-       matching language+script entry or the tag is unsupported outright
-       (``"ru-Latn"`` must not silently fall back to the Cyrillic ``"ru"``
-       model);
+       this way, that script decides the outcome: it resolves to the
+       matching language+script entry, or to the bare language when that
+       language is written in the named script (``"ru-Cyrl"`` → ``"ru"``),
+       or the tag is unsupported outright (``"ru-Latn"`` must not silently
+       fall back to the Cyrillic ``"ru"`` model);
     3. bare language subtag (``"ru-RU"`` → ``"ru"``) — only reached when the
        tag carried no script subtag at all.
 
@@ -80,12 +90,17 @@ def resolve_lang(lang: str, supported) -> str:
         return hit
 
     if len(parts) >= 2 and len(parts[1]) == 4 and parts[1].isalpha():
-        hit = lookup.get(f"{lang_sub}-{parts[1].title()}".lower())
+        script = parts[1].title()
+        hit = lookup.get(f"{lang_sub}-{script}".lower())
         if hit is not None:
             return hit
         # The tag explicitly names a script; that script must decide the
-        # outcome rather than being silently discarded in favor of the
-        # bare language (which may use a different, wrong, script).
+        # outcome.  The bare language matches only when it is written in
+        # that script ("ru-Cyrl" → "ru"; "ru-Latn" is unsupported).
+        hit = lookup.get(lang_sub)
+        spec = load_languages().get(hit)
+        if spec is not None and _ISO_15924.get(script) == spec["script"]:
+            return hit
         raise UnsupportedLanguageError(lang, tags)
 
     hit = lookup.get(lang_sub)

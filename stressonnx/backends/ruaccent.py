@@ -94,6 +94,15 @@ def _fix_capital(source: str, target: str) -> str:
     )
 
 
+def _match_case(source: str, stressed: str) -> str:
+    """*stressed*, a lowercase marked form of *source*, in the case of *source*."""
+    letters = iter(source)
+    return "".join(
+        ch if ch == STRESS_TOKEN or not next(letters, "").isupper() else ch.upper()
+        for ch in stressed
+    )
+
+
 def _ruaccent_split_by_words(string: str):
     """Split *string* into (words, remaining_text_parts) preserving whitespace/punc.
 
@@ -381,17 +390,20 @@ class RuAccentStressor:
         Each omograph is scored against the *original* (pre-modification) context
         to avoid leaking prior stress decisions into subsequent classifications.
         """
-        # Snapshot original words so every omograph sees the same context
+        # Snapshot original words so every omograph sees the same context.
+        # Lookup and context are lowercase: the dictionary keys are, and the
+        # model reads a capitalized context word differently.
         original = list(splitted_text)
+        context = [w.lower() for w in original]
         found = [
             (i, self._omographs[w])
-            for i, w in enumerate(splitted_text)
+            for i, w in enumerate(context)
             if w in self._omographs
         ]
         for pos, variants in found:
             probs = []
             for hyp in variants:
-                enc = self._omograph_encoding(original, pos, hyp)
+                enc = self._omograph_encoding(context, pos, hyp)
                 input_ids = np.array([enc.ids], dtype=np.int64)
                 attn = np.array([enc.attention_mask], dtype=np.int64)
                 logits = self._omograph_sess.run(
@@ -399,7 +411,9 @@ class RuAccentStressor:
                 )[0][0]
                 e = np.exp(logits - logits.max())
                 probs.append(float(e[1] / e.sum()))
-            splitted_text[pos] = _plus_to_diacritic(variants[int(np.argmax(probs))])
+            splitted_text[pos] = _match_case(
+                original[pos], _plus_to_diacritic(variants[int(np.argmax(probs))])
+            )
         return splitted_text
 
     def _omograph_encoding(self, words: list, pos: int, hyp: str):
