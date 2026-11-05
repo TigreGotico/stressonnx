@@ -326,7 +326,7 @@ and are enabled.
 |------|-------|--------|------|------|
 | bg | 46,914 | English Wiktionary (kaikki.org, CC BY-SA) | none | Bulgarian stress is free/lexical (Scatton 1984) — dictionary lookup only, no positional guessing |
 | uk / simple | 49,809 | English Wiktionary (kaikki.org, CC BY-SA) | none | rule-free dictionary fallback below the silero neural model |
-| ru / simple | 108,972 | RUAccent pronunciation dictionary (Apache-2.0), unambiguous entries | none | rule-free dictionary fallback below ruaccent/silero |
+| ru / simple | 108,972 | RUAccent pronunciation dictionary (MIT), unambiguous entries | none | rule-free dictionary fallback below ruaccent/silero |
 | sl | 4,421 | English Wiktionary tonal-mark headwords (kaikki.org, CC BY-SA) | none | Slovene stress is free/lexical (Herrity 2000) |
 | mk | 1,667 | English Wiktionary (kaikki.org, CC BY-SA) | antepenultimate (Friedman 2001) | the vocabulary is deliberately *exceptions-only* — Wiktionary marks stress on Macedonian words precisely when they violate the antepenultimate default, so the 0.29 rule-vs-own-vocab score measures the rule on the words it is not meant for; regular words follow the rule |
 | lv | 107 | English Wiktionary (kaikki.org, CC BY-SA) | first (Nau 1998) | exceptions-only vocabulary, same caveat as mk |

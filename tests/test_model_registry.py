@@ -17,7 +17,7 @@ from stressonnx import (
 # ---------------------------------------------------------------------------
 
 def test_registry_keys():
-    assert set(MODEL_REGISTRY.keys()) == {"ruaccent", "silero", "simple"}
+    assert set(MODEL_REGISTRY.keys()) == {"ruaccent", "ruaccent-big-poetry", "silero", "simple"}
 
 
 def test_registry_families():

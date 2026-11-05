@@ -242,6 +242,15 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         hf_subdir="ru_ruaccent",
         description="…",
         input_scripts=frozenset({Script.CYRILLIC}),
+        variant="turbo3.1",       # the omograph model
+    ),
+    "ruaccent-big-poetry": ModelEntry(
+        langs=frozenset({"ru"}),
+        family="ruaccent",
+        hf_subdir="ru_ruaccent",
+        description="…",
+        input_scripts=frozenset({Script.CYRILLIC}),
+        variant="big_poetry",
     ),
     "silero": ModelEntry(
         langs=frozenset({"uk", "be", "ru"}),
@@ -259,6 +268,12 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
     ),
 }
 ```
+
+`variant` names the model a family backend loads when the family ships
+more than one. The two ruaccent ids share every file except the homograph
+model, so `make_stressor` passes `variant` on as
+`RuAccentStressor(omograph=...)`. An unknown model id or omograph name
+raises `UnknownModelError`, a `ValueError`.
 
 `be` is served by both `silero` (the default, neural) and `simple` (via
 `model="simple"`, vocabulary-only). Both are counted in `ALL_LANGS`. Only
@@ -279,6 +294,7 @@ A homograph-aware Russian pipeline. Four ONNX models load lazily from
 | `nn_stress_usage` | BERT token classifier | STRESS / NO_STRESS per word |
 | `nn_yo_homograph` | DistilBERT token classifier | е→ё restoration (not все/всё disambiguation, see `docs/models.md`) |
 | `nn_omograph` | RoBERTa NLI (turbo3.1) | Pick stressed variant from homograph dict |
+| `nn_omograph_big_poetry` | ruBERT NLI (big_poetry), instead of `nn_omograph` with `model="ruaccent-big-poetry"` | Same task; also reads the segment ids of the pair |
 | `nn_accent` | RoFormer char-level | Accentuate words not in the accent dict, for words with 2+ vowels |
 
 Tokenizers use the `tokenizers` library (HuggingFace fast tokenizer JSON
@@ -378,6 +394,8 @@ constructs a model path itself.
 ├── ru_ruaccent/
 │   ├── nn_omograph/model.onnx
 │   ├── nn_omograph/tokenizer.json
+│   ├── nn_omograph_big_poetry/model.onnx   (ruaccent-big-poetry only)
+│   ├── nn_omograph_big_poetry/tokenizer.json
 │   ├── nn_accent/model.onnx
 │   ├── nn_stress_usage/model.onnx
 │   ├── nn_yo_homograph/model.onnx

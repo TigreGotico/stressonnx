@@ -23,6 +23,20 @@ class UnsupportedLanguageError(StressonnxError, ValueError):
         super().__init__(f"{prefix}.  Supported: {self.supported}.")
 
 
+class UnknownModelError(StressonnxError, ValueError):
+    """Raised when a model id, or a model variant of a backend, is unknown.
+
+    An unknown name is an invalid argument value, so this is also a
+    :class:`ValueError`.  ``model`` holds the rejected name and
+    ``supported`` the names that exist.
+    """
+
+    def __init__(self, model: str, supported) -> None:
+        self.model = model
+        self.supported = sorted(supported)
+        super().__init__(f"Unknown model {model!r}.  Available models: {self.supported}.")
+
+
 class ModelDownloadError(StressonnxError):
     """Raised when a model file cannot be fetched from the Hugging Face Hub.
 
