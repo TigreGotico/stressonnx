@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a23](https://github.com/TigreGotico/stressonnx/tree/0.0.3a23) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a22...0.0.3a23)
+
+**Merged pull requests:**
+
+- test: score every Russian model on the committed scoreboard [\#61](https://github.com/TigreGotico/stressonnx/pull/61) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a22](https://github.com/TigreGotico/stressonnx/tree/0.0.3a22) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a21...0.0.3a22)
