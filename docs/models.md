@@ -418,6 +418,76 @@ Belarusian specifics:
   benchmark table above: silero (0.873 accuracy) is dramatically better
   here than the `simple` vocabulary fallback (0.433).
 
+### Belarusian dictionary layer
+
+The Belarusian silero bundle carries a dictionary layer built from
+[GrammarDB](https://github.com/Belarus/GrammarDB) RELEASE-202601, the
+grammar database of the Belarusian language (Aleś Bulojčyk and
+contributors, CC-BY-SA-4.0). The release lists about four million
+inflected forms, about two million distinct spellings, with `+` after the
+stressed vowel. Keyed like the runtime tokens, 1,895,605 keys have one
+stress and 21,441 have several readings. The layer lives in the bundle's `dictionary.txt.gz`, a
+separate file with its own notice `LICENSE.grammardb`, because the
+database is CC-BY-SA-4.0 and the silero files are MIT. The runtime reads
+it before the upstream exceptions table and the neural model.
+
+The layer holds only the spellings that have exactly one stress in the
+database and that the silero pipeline (exceptions table plus model)
+stresses differently. The pipeline already agrees with the database on
+the other 1.89 million spellings, so they are left out. This keeps the
+file at about 17 KB and about 4,500 entries. 199 of them override an
+entry of the upstream silero exceptions table, which stays in the bundle
+unchanged. 3,855 entries are spellings with an apostrophe (аб'ект), which
+the model stresses wrongly once the apostrophe is dropped or written as
+`’`; 619 are plain spellings (эканамі́ста, хлушу́).
+
+The neural model still decides these cases:
+
+- Homographs (за́мак/зама́к) and spellings with variant stress, which the
+  database lists with more than one stress.
+- Spellings whose case variants disagree on the stress.
+- Hyphenated compounds and multiword entries, which the tokenizer splits.
+- Forms the database lists without a stress mark.
+- Words outside the database.
+
+Each entry stores the ordinal of the stressed vowel, not a character
+offset, and the runtime maps it onto the token as written. A quote,
+apostrophe or soft hyphen in the token therefore does not move the mark,
+which is the defect the Ukrainian layer has with its character offsets.
+The layer is keyed like the runtime tokens: lowercase, with every
+character outside the silero alphabet removed. That alphabet keeps `’` but
+not the ASCII apostrophe, so the layer carries both keys: `з'ява`, `з’ява`
+and `зʼява` all find their entry.
+
+On the five Belarusian evaluation sets of `benchmarks/run.py` (ser9, two
+onnxruntime threads, the harness's bootstrap over rows and exact McNemar on
+the targets both scored; the difference column is a paired bootstrap over
+targets, 2,000 resamples):
+
+| Set (tier) | Targets | silero | with layer | Difference [95% CI] | Layer only right / model only right | McNemar |
+|---|---|---|---|---|---|---|
+| russtress (GOLD) | 2,902 | 0.908 | 0.924 | +0.016 [+0.011, +0.021] | 50 / 4 | p = 4e-11 |
+| wiktionary (GOLD) | 12,390 | 0.950 | 0.958 | +0.008 [+0.006, +0.010] | 104 / 6 | p = 3e-24 |
+| zascienak (GOLD) | 22,965 | 0.949 | 0.963 | +0.014 [+0.012, +0.016] | 321 / 0 | p = 5e-97 |
+| homographs-10x10 (GOLD) | 1,496 | 0.499 | 0.499 | 0 | 0 / 0 | — |
+| homographs-commonvoice (SILVER) | 2,877 | 0.696 | 0.696 | 0 | 0 / 0 | — |
+
+The homograph sets do not move because every homograph has several
+readings in the database and stays with the model. The zascienak and the
+homograph sets come from the BelVoice project, whose author also maintains
+GrammarDB, and its card says the stress of ordinary words is set through
+the grammar database; the zascienak row is therefore not independent of the
+layer's source, which its 321 against 0 shows. The russtress rows
+(Toloka-annotated UD treebank text) and the Wiktionary rows are
+independent of GrammarDB. A held-out measure on 75,174 inflected forms of
+the English Wiktionary (kaikki, no context) gives 0.954 without the layer
+and 0.957 with it, +0.0036 [+0.0032, +0.0041], 294 forms only right with
+the layer against 24 only right without it.
+`export/build_be_grammardb_vocab.py` rebuilds the layer from the pinned
+release archive. A rebuilt `accentor.onnx` or `exceptions.txt.gz` needs a
+rebuilt layer too, because the selection depends on the pipeline's own
+output.
+
 ### Why silero is also available for Russian
 
 The silero Russian model is accurate for unambiguous words and resolves

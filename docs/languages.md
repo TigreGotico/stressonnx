@@ -110,7 +110,10 @@ you is *which* syllable is stressed, and since the spelling of a word
 changes with stress position, TTS still needs the stress to read prosody
 and homographs correctly.
 
-**What stressonnx does.** `silero` neural model (default), **0.873**.
+**What stressonnx does.** `silero` neural model (default) with a
+dictionary layer from GrammarDB (CC-BY-SA-4.0), **0.924** on the
+russtress gold with the layer and 0.873 without it (see
+[docs/models.md](models.md#belarusian-dictionary-layer)).
 `model="simple"` is the vocabulary-only fallback (**0.433**, the measured
 cost of dropping the neural model, published so the trade-off is explicit).
 Rule `none`: the accentological literature treats Belarusian surface stress

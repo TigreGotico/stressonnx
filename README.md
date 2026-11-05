@@ -51,7 +51,7 @@ with sense-dependent pronunciation needs a bifonia-style diacritic restorer.
 |----------|-----------|------------|------------------|
 | `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), MIT) | 0.938 word accuracy, **0.820 on homographs** |
 | `ruaccent-big-poetry` | `ru` | The `ruaccent` pipeline with the RUAccent `big_poetry` homograph model in place of `turbo3.1` | lower than `ruaccent` on prose, see [docs/models.md](docs/models.md#the-big_poetry-omograph-model) |
-| `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё and resolves homographs; the `uk` variant looks words up in a dictionary layer from [ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) (MIT) first | ru 0.939 / uk 0.821 / be 0.873² |
+| `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё and resolves homographs; the `uk` variant looks words up in a dictionary layer from [ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) (MIT) first, and the `be` variant in one from [GrammarDB](https://github.com/Belarus/GrammarDB) (CC-BY-SA-4.0) | ru 0.939 / uk 0.821 / be 0.924² |
 | `stressrnn` | `ru` (selectable) | Character BiLSTM with a Zaliznyak exception dictionary, ported from [StressRNN](https://github.com/dbklim/StressRNN) (Apache-2.0; a fork of RusStress). No sentence context, no е→ё; 0.6 MB | ru 0.891 (0.908 with `accuracy_threshold=0.0`), scored on the model's own training corpus |
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
 | `kubataba` | `ru` (opt-in) | Character-level seq2seq Transformer exported from [Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor) (MIT); sentence-level, no homograph resolution, no ё restoration | 0.886 word accuracy, NFC scoring on the same rows where `silero` gets 0.945 and `ruaccent` 0.947; see docs/models.md |
@@ -66,8 +66,9 @@ ONNX-free rule/vocabulary path (`model="simple"`), so `fallback=True` always
 bottoms out in a model that needs nothing but a small vocabulary file.
 
 ² Word accuracy on russtress UD-treebank gold, scored by `benchmarks/run.py`.
-ru and be use model revision `b8ba7af`. uk uses the bundle with the
-dictionary layer; the neural model alone (revision `b8ba7af`) scores 0.785.
+ru uses model revision `b8ba7af`. uk and be use the bundles with their
+dictionary layers; the neural models alone (revision `b8ba7af`) score
+uk 0.785 and be 0.873.
 The `run.py` scorer counts a `й` before the stressed vowel as a vowel in the
 output only. With vowels counted on composed text, uk scores 0.844 with the
 layer and 0.808 without it.
@@ -340,7 +341,12 @@ upstream licence text as `LICENSE.silero-stress`. The `ru` `meta.json` also
 names the source package, version, licence and URL.
 The Ukrainian dictionary layer of the `silero` model comes from
 ukrainian-word-stress (lang-uk, MIT), whose word forms derive from
-"Dictionaries of Ukraine" by ULIF. The `kubataba` model is derived from
+"Dictionaries of Ukraine" by ULIF. The Belarusian dictionary layer
+(`bel/dictionary.txt.gz`) is derived from
+[GrammarDB](https://github.com/Belarus/GrammarDB) RELEASE-202601 (Aleś
+Bulojčyk and contributors) and is licensed CC-BY-SA-4.0; the bundle carries
+the notice and licence text as `LICENSE.grammardb`, and the other `bel`
+files stay MIT. The `kubataba` model is derived from
 [Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor)
 (kubataba, MIT). StressRNN (Vladislav Klim, Apache-2.0; BiLSTM
 from RusStress by Ponomareva and Milintsevich, exception dictionary from

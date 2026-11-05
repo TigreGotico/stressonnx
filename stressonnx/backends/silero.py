@@ -32,6 +32,7 @@ from stressonnx.notation import composed, has_stress_mark, in_form_of, render_ma
 from stressonnx.registry import (
     HF_REPO_REVISION,
     MAIN_LANGS,
+    _DICTIONARY_FILE,
     _HOMOSOLVER_FILES,
     _MAIN_FILES,
     _SKIP_FILES,
@@ -63,6 +64,19 @@ def _load_exceptions(path: str) -> dict:
                 continue
             w, s, y = line.split("\t")
             d[w] = (int(s), int(y))
+    return d
+
+
+def _load_dictionary(path: str) -> dict:
+    """``word<TAB>vowel ordinal`` lines → {word: ordinal}."""
+    d = {}
+    with gzip.open(path, "rt", encoding="utf-8") as fh:
+        for line in fh:
+            line = line.rstrip("\n")
+            if not line:
+                continue
+            w, o = line.split("\t")
+            d[w] = int(o)
     return d
 
 
@@ -142,6 +156,12 @@ class _SileroStressor:
         self._ngram_dict: dict = _load_ngram_dict(data["ngram_dict.txt.gz"])
         self._unk: int = self._ngram_dict["UNK"]
         self._exceptions: dict = _load_exceptions(data["exceptions.txt.gz"])
+        # a dictionary layer (bel: GrammarDB) keyed by vowel ordinal, so a
+        # quote or apostrophe in the token does not shift the mark
+        self._dictionary: dict = {}
+        if "dictionary_source" in meta:
+            layer = _download_files(subdir, [_DICTIONARY_FILE], self._cache_dir, model_id="silero")
+            self._dictionary = _load_dictionary(layer[_DICTIONARY_FILE])
         self._sess = ort.InferenceSession(
             data["accentor.onnx"],
             providers=["CPUExecutionProvider"],
@@ -398,6 +418,12 @@ class _SileroStressor:
                     marks.extend(
                         start + i for i, c in enumerate(raw_lower) if c == "ё"
                     )
+                continue
+
+            if clean_word in self._dictionary:
+                positions, _, _, _ = self._get_positions(
+                    raw_lower, [self._dictionary[clean_word]], [])
+                marks.extend(start + p for p in positions)
                 continue
 
             if clean_word in self._exceptions:
