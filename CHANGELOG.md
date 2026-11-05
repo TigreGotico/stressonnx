@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a7](https://github.com/TigreGotico/stressonnx/tree/0.0.3a7) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a6...0.0.3a7)
+
+**Merged pull requests:**
+
+- fix: handle ruaccent sentences past the 512-token model limit [\#21](https://github.com/TigreGotico/stressonnx/pull/21) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a6](https://github.com/TigreGotico/stressonnx/tree/0.0.3a6) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a5...0.0.3a6)
