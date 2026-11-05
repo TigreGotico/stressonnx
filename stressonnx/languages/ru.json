@@ -5,7 +5,8 @@
   "hf": {
     "simple": "ru_simple",
     "silero": "ru",
-    "ruaccent": "ru_ruaccent"
+    "ruaccent": "ru_ruaccent",
+    "stressrnn": "ru_stressrnn"
   },
   "sources": [
     "East Slavic accentology: stress is lexical/paradigmatic, not positional"
@@ -15,6 +16,7 @@
   "vowels": "аеёиоуыэюя",
   "accuracy": {
     "ruaccent": 0.938,
-    "silero": 0.914
+    "silero": 0.914,
+    "stressrnn": 0.891
   }
 }

@@ -134,6 +134,13 @@ _SKIP_FILES = [
     "skip_yo_words.txt.gz",
 ]
 
+# Files for the stressrnn family
+_STRESSRNN_FILES = [
+    "model.onnx",
+    "exception_dictionary.txt.gz",
+    "meta.json",
+]
+
 # Files for simple_accentor family (language metadata ships in
 # stressonnx/languages/, so only the vocabulary is fetched)
 _SIMPLE_FILES = [
@@ -159,6 +166,9 @@ RUACCENT_LANGS = {t for t, spec in LANGUAGES.items() if "ruaccent" in spec["hf"]
 
 #: Languages backed by the neural ONNX pipeline (main_accentor).
 MAIN_LANGS = {t for t, spec in LANGUAGES.items() if "silero" in spec["hf"]}
+
+#: Languages backed by the StressRNN character BiLSTM.
+STRESSRNN_LANGS = {t for t, spec in LANGUAGES.items() if "stressrnn" in spec["hf"]}
 
 #: Languages backed by vocabulary + rules (simple_accentor) — every language.
 SIMPLE_LANGS = {t for t, spec in LANGUAGES.items() if "simple" in spec["hf"]}
@@ -257,6 +267,18 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
             "a BERT homograph resolver picks the stress of dictionary "
             "homographs from context. "
             "Supports Ukrainian, Belarusian, and Russian."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+    ),
+    "stressrnn": ModelEntry(
+        langs=frozenset(STRESSRNN_LANGS),
+        family="stressrnn",
+        hf_subdir="ru_stressrnn",
+        description=(
+            "Character BiLSTM accentor from StressRNN (Klim, Apache-2.0; a "
+            "fork of RusStress by Ponomareva and Milintsevich) with a "
+            "Zaliznyak exception dictionary.  Russian only; selectable, "
+            "never a default."
         ),
         input_scripts=_CYRILLIC_ONLY,
     ),

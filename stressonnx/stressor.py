@@ -1,5 +1,11 @@
 """make_stressor: the model-aware backend factory."""
-from stressonnx.backends import KubatabaStressor, RuAccentStressor, _SileroStressor, SimpleStressor
+from stressonnx.backends import (
+    KubatabaStressor,
+    RuAccentStressor,
+    _SileroStressor,
+    SimpleStressor,
+    StressRnnStressor,
+)
 from stressonnx.registry import ALL_LANGS, DEFAULT_MODEL, MODEL_REGISTRY
 from stressonnx.errors import UnknownModelError, UnsupportedLanguageError
 from stressonnx.langs import resolve_lang
@@ -16,7 +22,8 @@ def make_stressor(
     ----------
     model:
         Model-id string, a key of :data:`MODEL_REGISTRY`: ``"ruaccent"``,
-        ``"ruaccent-big-poetry"``, ``"silero"``, ``"simple"`` or ``"kubataba"``.
+        ``"ruaccent-big-poetry"``, ``"silero"``, ``"simple"``, ``"kubataba"``
+        or ``"stressrnn"``.
         When *None*, the default model for *lang* is used (see
         :data:`DEFAULT_MODEL`).
     lang:
@@ -73,6 +80,8 @@ def make_stressor(
         return _SileroStressor(lang=lang, cache_dir=cache_dir)
     if entry.family == "simple":
         return SimpleStressor(lang=lang, cache_dir=cache_dir)
+    if entry.family == "stressrnn":
+        return StressRnnStressor(cache_dir=cache_dir)
     if entry.family == "kubataba":
         return KubatabaStressor(cache_dir=cache_dir)
     raise ValueError(f"Internal error: unknown family {entry.family!r}.")
