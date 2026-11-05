@@ -423,11 +423,11 @@ Belarusian specifics:
 
 The Belarusian silero bundle carries a dictionary layer built from
 [GrammarDB](https://github.com/Belarus/GrammarDB) RELEASE-202601, the
-grammar database of the Belarusian language (Aleś Bulojčyk and
+grammar database of the Belarusian language (Aleś Bułojčyk and
 contributors, CC-BY-SA-4.0). The release lists about four million
 inflected forms, about two million distinct spellings, with `+` after the
-stressed vowel. Keyed like the runtime tokens, 1,895,605 keys have one
-stress and 21,441 have several readings. The layer lives in the bundle's `dictionary.txt.gz`, a
+stressed vowel. Keyed like the runtime tokens, 1,896,721 keys have one
+stress and 25,029 have several readings. The layer lives in the bundle's `dictionary.txt.gz`, a
 separate file with its own notice `LICENSE.grammardb`, because the
 database is CC-BY-SA-4.0 and the silero files are MIT. The runtime reads
 it before the upstream exceptions table and the neural model.
@@ -436,29 +436,48 @@ The layer holds only the spellings that have exactly one stress in the
 database and that the silero pipeline (exceptions table plus model)
 stresses differently. The pipeline already agrees with the database on
 the other 1.89 million spellings, so they are left out. This keeps the
-file at about 17 KB and about 4,500 entries. 199 of them override an
+file at about 11 KB and about 2,500 entries. 190 of them override an
 entry of the upstream silero exceptions table, which stays in the bundle
-unchanged. 3,855 entries are spellings with an apostrophe (аб'ект), which
-the model stresses wrongly once the apostrophe is dropped or written as
-`’`; 619 are plain spellings (эканамі́ста, хлушу́).
+unchanged. 1,806 entries are spellings with an apostrophe (аб'ект), which
+the model stresses wrongly once the apostrophe is dropped; 522 are plain
+lowercase spellings (эканамі́ста, хлушу́) and 175 are capitalized names
+(Інтэрфа́ксу).
 
 The neural model still decides these cases:
 
-- Homographs (за́мак/зама́к) and spellings with variant stress, which the
-  database lists with more than one stress.
-- Spellings whose case variants disagree on the stress.
-- Hyphenated compounds and multiword entries, which the tokenizer splits.
+- Homographs (му́ка/мука́, па́ра/пара́, ру́кі/рукі́) and spellings with
+  variant stress, which the database lists with more than one stress.
+- Spellings stressed differently inside a hyphenated compound of the
+  database (ра́мбурсны against акцэ́птна-рамбу́рсны).
+- Spellings that en-Wiktionary (the kaikki dump) stresses on another
+  vowel.
+- Forms of paradigms the database marks `todo` (data not final); such a
+  form also keeps the same spelling out of the layer.
+- Hyphenated compounds and multiword entries as a whole, which the
+  tokenizer splits; each part is a token of its own.
 - Forms the database lists without a stress mark.
 - Words outside the database.
+- A capitalized word inside a sentence whose capitalized spelling the
+  database lacks, and a capitalized word at the start of a sentence whose
+  lowercase spelling it lacks. The layer keys a form the database writes
+  capitalized (Інтэрфа́ксу) by that spelling. Inside a sentence a
+  capitalized token takes only such a key, so `сталі́н` (genitive plural of
+  сталі́на) does not reach `Сталін`, and the model keeps `Ста́лін`. At the
+  start of a sentence, where a common word is capitalized too, it takes
+  only the lowercase key, so the name `Я́на` does not reach the pronoun
+  `Яна́`. An all-caps token takes either key. A name and a common word of
+  one spelling that disagree give neither key.
 
 Each entry stores the ordinal of the stressed vowel, not a character
 offset, and the runtime maps it onto the token as written. A quote,
 apostrophe or soft hyphen in the token therefore does not move the mark,
 which is the defect the Ukrainian layer has with its character offsets.
-The layer is keyed like the runtime tokens: lowercase, with every
-character outside the silero alphabet removed. That alphabet keeps `’` but
-not the ASCII apostrophe, so the layer carries both keys: `з'ява`, `з’ява`
-and `зʼява` all find their entry.
+The layer is keyed like the runtime tokens, with every character outside
+the silero alphabet removed. That alphabet keeps `’` but not the ASCII
+apostrophe, so the layer carries both keys: `з'ява`, `з’ява` and `зʼява`
+all find their entry. A word in single typographic quotes (`‘слова’`)
+keeps the closing `’` in its key, finds no entry and stays with the model,
+as on a bundle without the layer.
 
 On the five Belarusian evaluation sets of `benchmarks/run.py` (ser9, two
 onnxruntime threads, the harness's bootstrap over rows and exact McNemar on
@@ -467,23 +486,33 @@ targets, 2,000 resamples):
 
 | Set (tier) | Targets | silero | with layer | Difference [95% CI] | Layer only right / model only right | McNemar |
 |---|---|---|---|---|---|---|
-| russtress (GOLD) | 2,902 | 0.908 | 0.924 | +0.016 [+0.011, +0.021] | 50 / 4 | p = 4e-11 |
-| wiktionary (GOLD) | 12,390 | 0.950 | 0.958 | +0.008 [+0.006, +0.010] | 104 / 6 | p = 3e-24 |
-| zascienak (GOLD) | 22,965 | 0.949 | 0.963 | +0.014 [+0.012, +0.016] | 321 / 0 | p = 5e-97 |
-| homographs-10x10 (GOLD) | 1,496 | 0.499 | 0.499 | 0 | 0 / 0 | — |
-| homographs-commonvoice (SILVER) | 2,877 | 0.696 | 0.696 | 0 | 0 / 0 | — |
+| russtress (GOLD) | 2,902 | 0.908 | 0.923 | +0.015 [+0.010, +0.019] | 44 / 1 | p = 3e-12 |
+| wiktionary (GOLD) | 12,390 | 0.950 | 0.957 | +0.007 [+0.006, +0.009] | 92 / 3 | p = 7e-24 |
+| zascienak (GOLD) | 22,965 | 0.949 | 0.960 | +0.011 [+0.010, +0.012] | 253 / 0 | p = 1e-76 |
+| homographs-10x10 (GOLD) | 1,496 | 0.499 | 0.499 | 0 | 0 / 0 | n/a |
+| homographs-commonvoice (SILVER) | 2,877 | 0.696 | 0.696 | 0 | 0 / 0 | n/a |
 
-The homograph sets do not move because every homograph has several
-readings in the database and stays with the model. The zascienak and the
-homograph sets come from the BelVoice project, whose author also maintains
-GrammarDB, and its card says the stress of ordinary words is set through
-the grammar database; the zascienak row is therefore not independent of the
-layer's source, which its 321 against 0 shows. The russtress rows
-(Toloka-annotated UD treebank text) and the Wiktionary rows are
-independent of GrammarDB. A held-out measure on 75,174 inflected forms of
-the English Wiktionary (kaikki, no context) gives 0.954 without the layer
-and 0.957 with it, +0.0036 [+0.0032, +0.0041], 294 forms only right with
-the layer against 24 only right without it.
+The four targets the layer loses are database readings the gold
+contradicts: існуе́ (russtress існу́е), навіна́ (Wiktionary наві́на, twice)
+and ву́чняў (Wiktionary вучня́ў). The homograph sets do not move because
+every homograph has several readings in the database and stays with the
+model. The zascienak and the homograph sets come from the BelVoice
+project, whose author also maintains GrammarDB, and its card says the
+stress of ordinary words is set through the grammar database; the
+zascienak row is therefore not independent of the layer's source, which
+its 253 against 0 shows. The russtress rows (Toloka-annotated UD treebank
+text) and the Wiktionary rows are independent of GrammarDB. On 75,174
+inflected forms of the English Wiktionary (kaikki, no context), which is
+also the cross-check source, the layer gives 0.957 against 0.954 without
+it, +0.0033 [+0.0029, +0.0038], 260 forms only right with the layer
+against 10 only right without it.
+
+The case rule was measured on the same sets against two alternatives: a
+capitalized token that always takes the lowercase key when it has no
+capitalized one, and one that never does. The rule gives 15 Wiktionary and
+28 zascienak targets more than "never" and 3 Wiktionary targets more than
+"always", and loses none against either.
+
 `export/build_be_grammardb_vocab.py` rebuilds the layer from the pinned
 release archive. A rebuilt `accentor.onnx` or `exceptions.txt.gz` needs a
 rebuilt layer too, because the selection depends on the pipeline's own

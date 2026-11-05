@@ -281,6 +281,29 @@ class _SileroStressor:
         first_vowel_pos = vowel_ids[0] if vowel_ids else -1
         return stress_positions, yo_positions, num_vowels, first_vowel_pos
 
+    def _dictionary_ordinal(self, clean_word: str, raw_word: str, sentence_start: bool):
+        """Stressed-vowel ordinal of the dictionary layer for *raw_word*, or None.
+
+        The layer keys a form the database writes capitalized (a name) by its
+        capitalized spelling.  A lowercase token takes the lowercase key.  A
+        capitalized token inside a sentence takes the capitalized key, never
+        the lowercase one: the capital marks a name the database may not
+        hold.  At the start of a sentence, where a common word is
+        capitalized too, it takes the lowercase key, never the capitalized
+        one: a name there stays with the model.  An all-caps token takes
+        either key.
+        """
+        if not self._dictionary:
+            return None
+        letters = [c for c in raw_word if c.isalpha()]
+        if not letters or not letters[0].isupper():
+            return self._dictionary.get(clean_word)
+        capitalized = clean_word[:1].upper() + clean_word[1:]
+        if all(c.isupper() for c in letters):
+            ordinal = self._dictionary.get(clean_word)
+            return self._dictionary.get(capitalized) if ordinal is None else ordinal
+        return self._dictionary.get(clean_word if sentence_start else capitalized)
+
     def _exception_offsets(self, clean_word: str, raw_word: str, with_yo: bool):
         """(mark, yo) offsets within *raw_word* for an exceptions-dict entry."""
         exc_stress, exc_yo = self._exceptions[clean_word]
@@ -381,6 +404,7 @@ class _SileroStressor:
 
         marks, yo_out = [], []
         pos = 0
+        sentence_start = True
         for wi, (raw_word, clean_word, need) in enumerate(
             zip(raw_tokens, clean_tokens, prediction_mask)
         ):
@@ -391,7 +415,10 @@ class _SileroStressor:
             if not need:
                 marks.extend(start + o for o in word_marks)
                 yo_out.extend(start + o for o in word_yo)
+                if any(c in ".!?\u2026" for c in raw_word):
+                    sentence_start = True
                 continue
+            at_sentence_start, sentence_start = sentence_start, False
 
             raw_lower = lower_preserving_length(raw_word)
             if has_stress_mark(raw_word):
@@ -420,9 +447,9 @@ class _SileroStressor:
                     )
                 continue
 
-            if clean_word in self._dictionary:
-                positions, _, _, _ = self._get_positions(
-                    raw_lower, [self._dictionary[clean_word]], [])
+            ordinal = self._dictionary_ordinal(clean_word, raw_word, at_sentence_start)
+            if ordinal is not None:
+                positions, _, _, _ = self._get_positions(raw_lower, [ordinal], [])
                 marks.extend(start + p for p in positions)
                 continue
 

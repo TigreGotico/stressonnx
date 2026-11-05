@@ -87,8 +87,43 @@ def test_dictionary_form_keeps_case_and_quotes(silero_be, text, expected):
     assert silero_be(text) == expected
 
 
-def test_homograph_stays_with_the_model(silero_be):
-    """GrammarDB lists за́мак and зама́к, so the key is not in the layer."""
+@pytest.mark.parametrize("text,expected", [
+    ("мука", "му́ка"),
+    ("пара", "па́ра"),
+    ("рукі", "ру́кі"),
+])
+def test_homograph_stays_with_the_model(silero_be, text, expected):
+    """GrammarDB lists му́ка and мука́, so the key is not in the layer."""
     silero_be._ensure_loaded()
-    assert "замак" not in silero_be._dictionary
-    assert silero_be("замак") == "за́мак"
+    assert text not in silero_be._dictionary
+    assert silero_be(text) == expected
+
+
+# GrammarDB holds сталі+н (genitive plural of сталі+на) and the pipeline says
+# сталі́н; inside a sentence the capitalized token takes no lowercase key
+@pytest.mark.parametrize("text,expected", [
+    ("Іосіф Сталін", "Іо́сіф Ста́лін"),
+    ("Уладзімір Пуцін", "Уладзі́мір Пу́цін"),
+])
+def test_capitalized_name_inside_a_sentence_stays_with_the_model(silero_be, text, expected):
+    assert silero_be(text) == expected
+
+
+# Інтэрфа+ксу is a capitalized form of the database, keyed Інтэрфаксу
+@pytest.mark.parametrize("text,expected", [
+    ("паводле Інтэрфаксу", "паво́дле Інтэрфа́ксу"),
+    ("ІНТЭРФАКСУ", "ІНТЭРФА́КСУ"),
+])
+def test_capitalized_key_applies_inside_a_sentence(silero_be, text, expected):
+    assert silero_be(text) == expected
+
+
+# the name Я+на is a capitalized form of the database; the pronoun яна́ at
+# the start of a sentence is capitalized too and stays with the model
+@pytest.mark.parametrize("text,expected", [
+    ("Яна сядзіць.", "Яна́ сядзі́ць."),
+    ("Інтэрфаксу", "Інтэ́рфаксу"),
+])
+def test_capitalized_key_does_not_apply_at_sentence_start(silero_be, text, expected):
+    assert silero_be(text) == expected
+
