@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a19](https://github.com/TigreGotico/stressonnx/tree/0.0.3a19) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a18...0.0.3a19)
+
+**Merged pull requests:**
+
+- fix: set the Python floor to 3.11 and align docs with measured behaviour [\#52](https://github.com/TigreGotico/stressonnx/pull/52) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a18](https://github.com/TigreGotico/stressonnx/tree/0.0.3a18) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a17...0.0.3a18)
