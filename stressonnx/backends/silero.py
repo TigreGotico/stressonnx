@@ -21,7 +21,7 @@ from stressonnx._common import _RE_RU_COND, _RU_VOWELS, _softmax, lower_preservi
 from stressonnx.download import _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.langs import resolve_lang
-from stressonnx.notation import STRESS_TOKEN, render_marks
+from stressonnx.notation import STRESS_TOKEN, composed, in_form_of, render_marks
 from stressonnx.registry import MAIN_LANGS, _MAIN_FILES, hf_dir
 
 
@@ -235,9 +235,19 @@ class _SileroStressor:
 
     def __call__(self, sentence: str) -> str:
         marks, yo = self.mark_offsets(sentence)
-        return render_marks(sentence, marks, yo)
+        return in_form_of(sentence, render_marks(sentence, marks, yo))
 
     def mark_offsets(self, text: str):
+        """Offsets into *text* of stressed vowels and е→ё substitutions.
+
+        The work happens on the NFC form of *text*; each offset points at
+        the base character in *text* itself.
+        """
+        nfc, origin = composed(text)
+        marks, yo = self._composed_mark_offsets(nfc)
+        return [origin[o] for o in marks], [origin[o] for o in yo]
+
+    def _composed_mark_offsets(self, text: str):
         """Offsets (into *text*) of stressed vowels and е→ё substitutions.
 
         With yo enabled (``ru``) this is a port of silero_stress's

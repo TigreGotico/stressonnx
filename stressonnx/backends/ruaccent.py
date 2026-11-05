@@ -29,7 +29,7 @@ from stressonnx._common import _RU_VOWELS, _UNSTRESSED_HYPHEN_CLITICS, _softmax
 from stressonnx.download import _download_files
 from stressonnx.registry import MODEL_REGISTRY
 from stressonnx.errors import ModelDownloadError, ModelLoadError
-from stressonnx.notation import STRESS_TOKEN, _plus_to_diacritic
+from stressonnx.notation import STRESS_TOKEN, _plus_to_diacritic, composed, in_form_of
 
 # Files to download for the ru_ruaccent variant
 _RUACCENT_FILES = [
@@ -454,9 +454,12 @@ class RuAccentStressor:
 
     def __call__(self, text: str) -> str:
         self._ensure_loaded()
-        text = _ruaccent_norm(text)
+        original = text
+        # the normalize regex deletes combining marks; compose first so
+        # NFD й and ё survive it
+        text = _ruaccent_norm(composed(text)[0])
         sentences = _ruaccent_split_by_sentences(text)
         if not sentences:
-            return text
+            return in_form_of(original, text)
         outputs = [self._process_sentence(s) for s in sentences]
-        return "".join(outputs)
+        return in_form_of(original, "".join(outputs))

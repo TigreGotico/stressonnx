@@ -16,7 +16,7 @@ from stressonnx._common import SCRIPT_VOWELS, lower_preserving_length, tokenize
 from stressonnx.download import LOG, _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.langs import resolve_lang
-from stressonnx.notation import STRESS_TOKEN, render_marks
+from stressonnx.notation import STRESS_TOKEN, composed, in_form_of, render_marks
 from stressonnx.registry import LANGUAGES, SIMPLE_LANGS, _OOV_RULES, _SIMPLE_FILES
 
 
@@ -274,6 +274,16 @@ class SimpleStressor:
         return sum(1 for c in raw_lower[:idx] if c in self._ordinal_vowels)
 
     def mark_offsets(self, text: str):
+        """Offsets into *text* of stressed vowels and е→ё substitutions.
+
+        The work happens on the NFC form of *text*; each offset points at
+        the base character in *text* itself.
+        """
+        nfc, origin = composed(text)
+        marks, yo = self._composed_mark_offsets(nfc)
+        return [origin[o] for o in marks], [origin[o] for o in yo]
+
+    def _composed_mark_offsets(self, text: str):
         """Offsets (into *text*) of every stressed vowel — the primitive.
 
         Returns ``(mark_offsets, yo_offsets)``; the simple family never
@@ -305,4 +315,4 @@ class SimpleStressor:
 
     def __call__(self, sentence: str) -> str:
         marks, yo = self.mark_offsets(sentence)
-        return render_marks(sentence, marks, yo)
+        return in_form_of(sentence, render_marks(sentence, marks, yo))

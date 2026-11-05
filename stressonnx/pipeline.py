@@ -17,7 +17,7 @@ from dataclasses import dataclass
 
 from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.langs import resolve_lang
-from stressonnx.notation import STRESS_TOKEN, _apply_notation, render_marks
+from stressonnx.notation import STRESS_TOKEN, _apply_notation, in_form_of, render_marks
 from stressonnx.registry import ALL_LANGS, DEFAULT_MODEL, LANGUAGES, MODEL_REGISTRY
 from stressonnx.stressor import make_stressor
 
@@ -246,7 +246,7 @@ class StressPipeline:
         def runner(backend, t):
             if hasattr(backend, "mark_offsets"):
                 marks, yo = backend.mark_offsets(t)
-                return marks, yo, render_marks(t, marks, yo)
+                return marks, yo, in_form_of(t, render_marks(t, marks, yo))
             marked = backend(t)
             marks, yo = _align_marks(t, marked)
             return marks, yo, marked

@@ -54,25 +54,60 @@ def to_plus_notation(text: str) -> str:
     """
     text = _decompose_acute(text)
     result = []
-    i = 0
-    while i < len(text):
-        ch = text[i]
-        if i + 1 < len(text) and text[i + 1] == STRESS_TOKEN:
-            result.append("+")
-            result.append(ch)
-            i += 2  # skip the combining acute
-        else:
-            result.append(ch)
-            i += 1
+    start = 0
+    # one letter at a time: a base character and the combining marks after
+    # it, so the "+" lands before the base and not before another mark
+    for end in range(1, len(text) + 1):
+        if end < len(text) and unicodedata.combining(text[end]):
+            continue
+        letter = text[start:end]
+        if STRESS_TOKEN in letter[1:]:
+            letter = "+" + letter[0] + letter[1:].replace(STRESS_TOKEN, "")
+        result.append(letter)
+        start = end
     return "".join(result)
+
+
+def composed(text: str) -> tuple[str, list[int]]:
+    """*text* in NFC, and for each NFC character the offset in *text* of
+    the character it came from.
+
+    Each base character is composed with the combining marks that follow
+    it, so a vowel in the NFC form maps back to its base character in
+    *text*.
+    """
+    out, origin = [], []
+    start = 0
+    for end in range(1, len(text) + 1):
+        if end < len(text) and unicodedata.combining(text[end]):
+            continue
+        chunk = unicodedata.normalize("NFC", text[start:end])
+        out.append(chunk)
+        origin += [start + min(k, end - start - 1) for k in range(len(chunk))]
+        start = end
+    return "".join(out), origin
+
+
+def in_form_of(original: str, result: str) -> str:
+    """*result* in NFD when *original* is decomposed, else unchanged.
+
+    Backends work on composed text; a caller that sends NFD text gets NFD
+    text back.
+    """
+    if unicodedata.is_normalized("NFC", original):
+        return result
+    if unicodedata.is_normalized("NFD", original):
+        return unicodedata.normalize("NFD", result)
+    return result
 
 
 def render_marks(text: str, mark_offsets, yo_offsets=()) -> str:
     """Render stress marks (and е→ё substitutions) onto *text* by offset.
 
     Offsets index *text* itself; the combining acute is inserted after each
-    marked character, back to front so earlier offsets stay valid.  This is
-    the single place span-native backends turn positions into a string.
+    marked character and the combining marks that follow it, back to front
+    so earlier offsets stay valid.  This is the single place span-native
+    backends turn positions into a string.
     """
     chars = list(text)
     for o in yo_offsets:
@@ -80,7 +115,10 @@ def render_marks(text: str, mark_offsets, yo_offsets=()) -> str:
             chars[o] = "ё" if chars[o] == "е" else "Ё"
     for o in sorted(mark_offsets, reverse=True):
         if 0 <= o < len(chars):
-            chars.insert(o + 1, STRESS_TOKEN)
+            end = o + 1
+            while end < len(chars) and unicodedata.combining(chars[end]):
+                end += 1
+            chars.insert(end, STRESS_TOKEN)
     return "".join(chars)
 
 
