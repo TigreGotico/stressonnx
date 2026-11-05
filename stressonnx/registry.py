@@ -330,7 +330,7 @@ for _lang in SIMPLE_LANGS:
 # "last"  → last vowel
 # "first" → first vowel
 # "none"  → skip (return unchanged)
-# "kat"   → ≤3 vowels → first, else penultimate
+# "antepenult" → antepenultimate vowel, first for words with fewer than 3 vowels
 # Per-language OOV stress rule, from the language data files — see
 # SimpleStressor._accentuate_oov for the rule implementations and
 # benchmarks/RESULTS.md for measured accuracy.

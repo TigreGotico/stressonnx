@@ -119,7 +119,7 @@ stress("Сәлем Қазақстан", "kk")               # 'Сәле́м Қа
 
 # Pick a specific model, or a capability instead of a model id
 stress("красивый город", "ru", model="silero")    # 'краси́вый го́род'
-stress("красивый город", "ru", model="simple")    # 'краси́вый го́род'
+stress("старинный замок", "ru", model="simple")   # 'старинный за́мок'  (dictionary only: a word outside it stays unmarked)
 stress("красивый город", "ru", prefer="fast")     # 'краси́вый го́род'  (silero)
 
 # An isolated engine with its own cache and failure policy
@@ -142,7 +142,7 @@ for w in result.words:
 # замок 0 5 1 False
 # стоит 6 11 2 False
 # на 12 14 None False
-# горе 15 19 2 False
+# горе 15 19 3 False
 ```
 
 `w.stressed_index` is the offset of the stressed vowel *within the word*
