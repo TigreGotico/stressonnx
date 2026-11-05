@@ -54,6 +54,8 @@ class ModelLoadError(StressonnxError):
         self.model_id = model_id
         super().__init__(
             f"Model files for {model_id!r} are present but could not be "
-            f"loaded ({cause}).  The cache may be corrupt — delete the "
-            f"affected files and retry, or select another model via model=."
+            f"loaded ({cause}).  The files may be corrupt, or an installed "
+            f"dependency may be incompatible with them.  Check the cause, "
+            f"delete corrupt files and retry, or select another model via "
+            f"model=."
         )
