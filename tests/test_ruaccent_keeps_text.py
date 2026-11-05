@@ -104,6 +104,8 @@ def test_russian_words_keep_their_stress(accents, text):
     expected = text
     for word in ("Корова", "молоко", "хорошая", "страна"):
         expected = expected.replace(word, _from_dictionary(accents, word))
+    # ё is always stressed
+    expected = expected.replace("даёт", "даё" + STRESS_TOKEN + "т")
     assert stress(text, "ru", model="ruaccent") == expected
 
 
