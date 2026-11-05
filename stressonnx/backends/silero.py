@@ -1,4 +1,4 @@
-"""Main-accentor family (ukr / bel / ru) — silero neural pipeline.
+"""Main-accentor family (uk / be / ru) — silero neural pipeline.
 
 Neural ONNX pipeline exported from silero_stress.  Embedding-bag + MLP
 heads. Pipeline:
@@ -103,14 +103,14 @@ def _warn_no_homosolver(subdir: str, cache_dir: str | None) -> None:
 
 
 class _SileroStressor:
-    """Internal: lazy-load neural (silero) accentor for ``ukr``, ``bel``, or ``ru``.
+    """Internal: lazy-load neural (silero) accentor for ``uk``, ``be``, or ``ru``.
 
     Use :class:`Stressor` (the public wrapper) instead of this class directly.
 
     Parameters
     ----------
     lang:
-        Language tag: ``"ukr"``, ``"bel"``, or ``"ru"``.
+        Language tag: ``"uk"``, ``"be"``, or ``"ru"``.
     cache_dir:
         Override the model storage directory (default: the standard
         Hugging Face cache).

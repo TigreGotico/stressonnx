@@ -27,11 +27,11 @@ def make_stressor(
         When *None*, the default model for *lang* is used (see
         :data:`DEFAULT_MODEL`).
     lang:
-        Language tag (e.g. ``"ru"``, ``"ukr"``, ``"kaz"``).  Required when
+        Language tag (e.g. ``"ru"``, ``"uk"``, ``"kk"``).  Required when
         *model* is *None* so the default can be looked up.  Optional when
         *model* is given and the model supports only one language, but
         **required** when the model covers multiple languages (``"silero"``
-        covers both ``"ukr"`` and ``"bel"``).
+        covers both ``"uk"`` and ``"be"``).
     cache_dir:
         Override the HF download cache directory.
 
