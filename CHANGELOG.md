@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a12](https://github.com/TigreGotico/stressonnx/tree/0.0.3a12) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a11...0.0.3a12)
+
+**Merged pull requests:**
+
+- feat: resolve Russian homographs in the silero model with the silero-stress 1.5 homosolver [\#34](https://github.com/TigreGotico/stressonnx/pull/34) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a11](https://github.com/TigreGotico/stressonnx/tree/0.0.3a11) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a10...0.0.3a11)
