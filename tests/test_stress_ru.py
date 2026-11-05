@@ -37,6 +37,13 @@ def test_stress_ru_homographs(inp, expected):
     assert stress(inp, "ru") == expected
 
 
+@pytest.mark.parametrize("inp,expected", HOMOGRAPH_CASES)
+def test_stress_ru_homographs_sentence_initial(inp, expected):
+    """A capital letter does not change which homograph reading is chosen."""
+    from stressonnx import stress
+    assert stress(inp[0].upper() + inp[1:], "ru") == expected[0].upper() + expected[1:]
+
+
 def test_ruaccent_stressor_class():
     from stressonnx import RuAccentStressor
     s = RuAccentStressor()
