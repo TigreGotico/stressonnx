@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a18](https://github.com/TigreGotico/stressonnx/tree/0.0.3a18) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a17...0.0.3a18)
+
+**Merged pull requests:**
+
+- feat: stressrnn, the StressRNN character BiLSTM as a selectable Russian model [\#43](https://github.com/TigreGotico/stressonnx/pull/43) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a17](https://github.com/TigreGotico/stressonnx/tree/0.0.3a17) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a16...0.0.3a17)
