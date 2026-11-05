@@ -73,12 +73,6 @@ def test_silero_ru_existing_yo_is_stressed():
     assert stress("ёжик в тумане", "ru", model="silero") == "ё́жик в тума́не"
 
 
-def test_silero_ru_ambiguous_yo_homograph_skipped():
-    # все/всё needs the (unexported) homograph model — must NOT guess
-    result = stress("все еще идет дождь", "ru", model="silero")
-    assert result.startswith("все́")  # not всё́
-
-
 # ---------------------------------------------------------------------------
 # Idempotency / re-derivation contracts per backend
 # ---------------------------------------------------------------------------

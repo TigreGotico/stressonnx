@@ -10,6 +10,7 @@ Usage::
 """
 import argparse
 import gzip
+import importlib.metadata
 import json
 import os
 
@@ -27,6 +28,7 @@ args = parser.parse_args()
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 out_dir = args.out_dir or HERE
+os.makedirs(out_dir, exist_ok=True)
 lang = args.lang
 
 # ---------------------------------------------------------------------------
@@ -102,12 +104,6 @@ with gzip.open(os.path.join(out_dir, "exceptions.txt.gz"), "wt", encoding="utf-8
     for w, (s, y) in exceptions.items():
         f.write(f"{w}\t{s}\t{y}\n")
 
-# skip_stress / skip_yo  — these langs have no homosolver → empty
-with gzip.open(os.path.join(out_dir, "skip_stress_words.txt.gz"), "wt", encoding="utf-8") as f:
-    f.write("")
-with gzip.open(os.path.join(out_dir, "skip_yo_words.txt.gz"), "wt", encoding="utf-8") as f:
-    f.write("")
-
 # re_cond / vowels for the runtime.
 # We reconstruct the alphabet from the silero re_cond pattern by parsing its
 # character class, then store it as a plain string so the runtime can rebuild
@@ -118,7 +114,14 @@ _alpha_raw = _re.sub(r"\[|\]|'|\s", "", accentor.re_cond.replace("[^", ""))
 _alpha_chars = sorted(set(c for c in _alpha_raw if c not in (",",)))
 _alpha_str = "".join(_alpha_chars)
 
+dist = importlib.metadata.distribution("silero-stress")
+licence = next(f for f in dist.files if f.name == "LICENSE")
+with open(os.path.join(out_dir, "LICENSE.silero-stress"), "w", encoding="utf-8") as f:
+    f.write(licence.read_text(encoding="utf-8"))
+
 meta = {
+    "source": {"package": "silero-stress", "version": dist.version, "license": "MIT",
+               "url": "https://github.com/snakers4/silero-stress"},
     "family": "main_accentor",
     "has_yo": False,
     "alpha": _alpha_str,
@@ -126,8 +129,6 @@ meta = {
     "emb_dim": int(emb_dim),
     "n_ngrams": len(ngram_dict),
     "n_exceptions": len(exceptions),
-    "n_skip_stress": 0,
-    "n_skip_yo": 0,
     "unk_id": int(ngram_dict["UNK"]),
 }
 with open(os.path.join(out_dir, "meta.json"), "w") as f:
@@ -175,9 +176,11 @@ pooled = pool(test_words)
 with torch.no_grad():
     t_stress = m.stress_clf(torch.tensor(pooled)).numpy()
 
-d_stress = np.abs(o_stress - t_stress).max()
-print(f"stress max abs diff: {d_stress}")
-assert d_stress < 1e-3
+# relative to the largest logit: GEMM kernels differ per CPU, and
+# 2 * 128 terms * 2**-23 ≈ 3e-5 bounds the float32 reordering error
+d_stress = np.abs(o_stress - t_stress).max() / np.abs(t_stress).max()
+print(f"stress max diff / max logit: {d_stress}")
+assert d_stress < 3e-5
 
 with torch.no_grad():
     f_stress, _ = m(test_words)
