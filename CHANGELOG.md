@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a17](https://github.com/TigreGotico/stressonnx/tree/0.0.3a17) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a16...0.0.3a17)
+
+**Merged pull requests:**
+
+- feat: kubataba Russian seq2seq model as an opt-in registry entry [\#44](https://github.com/TigreGotico/stressonnx/pull/44) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a16](https://github.com/TigreGotico/stressonnx/tree/0.0.3a16) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a15...0.0.3a16)
