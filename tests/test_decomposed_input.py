@@ -59,3 +59,25 @@ def test_analyze_nfd_offsets_point_at_the_same_vowels(lang, model):
     want = [(w.text, stressed_letter(w)) for w in composed.words]
     got = [(nfc(w.text), stressed_letter(w)) for w in decomposed.words]
     assert got == want
+
+
+@pytest.mark.parametrize("text,lang,model", [
+    ("mājā", "lv", "simple"),
+    ("ещё ёлка", "ru", "silero"),
+])
+def test_nfd_plus_notation_puts_plus_before_the_letter(text, lang, model):
+    expected = stress(text, lang, model=model, notation="plus")
+    got = stress(nfd(text), lang, model=model, notation="plus")
+    assert nfc(got) == expected
+
+
+@pytest.mark.parametrize("lang,model", [("kk", "simple"), ("uk", "silero")])
+def test_mixed_form_output_minus_marks_is_the_input(lang, model):
+    text = "сәлем ай " + nfd("ай йод")
+    assert stress(text, lang, model=model).replace(STRESS_TOKEN, "") == text
+
+
+@pytest.mark.parametrize("lang,model", [("kk", "simple"), ("uk", "silero")])
+def test_mixed_form_stress_matches_analyze(lang, model):
+    text = "сәлем ай " + nfd("ай йод")
+    assert stress(text, lang, model=model) == analyze(text, lang, model=model).marked

@@ -314,6 +314,5 @@ class SimpleStressor:
         return offsets, []
 
     def __call__(self, sentence: str) -> str:
-        text, _ = composed(sentence)
-        marks, yo = self._composed_mark_offsets(text)
-        return in_form_of(sentence, render_marks(text, marks, yo))
+        marks, yo = self.mark_offsets(sentence)
+        return in_form_of(sentence, render_marks(sentence, marks, yo))

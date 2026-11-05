@@ -54,16 +54,17 @@ def to_plus_notation(text: str) -> str:
     """
     text = _decompose_acute(text)
     result = []
-    i = 0
-    while i < len(text):
-        ch = text[i]
-        if i + 1 < len(text) and text[i + 1] == STRESS_TOKEN:
-            result.append("+")
-            result.append(ch)
-            i += 2  # skip the combining acute
-        else:
-            result.append(ch)
-            i += 1
+    start = 0
+    # one letter at a time: a base character and the combining marks after
+    # it, so the "+" lands before the base and not before another mark
+    for end in range(1, len(text) + 1):
+        if end < len(text) and unicodedata.combining(text[end]):
+            continue
+        letter = text[start:end]
+        if STRESS_TOKEN in letter[1:]:
+            letter = "+" + letter[0] + letter[1:].replace(STRESS_TOKEN, "")
+        result.append(letter)
+        start = end
     return "".join(result)
 
 
