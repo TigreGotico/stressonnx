@@ -7,7 +7,7 @@
 | Situation | Recommendation |
 |-----------|---------------|
 | Russian general-purpose | `model="ruaccent"` (default), or `prefer="best"` |
-| Russian in memory-constrained environment | `model="silero"` (about 5 MB vs about 470 MB), or `prefer="smallest"`/`prefer="fast"` |
+| Russian in memory-constrained environment | `model="silero"` (about 50 MB vs about 470 MB), or `prefer="smallest"`/`prefer="fast"` |
 | Ukrainian / Belarusian | `model="silero"` (default) |
 | Turkic / Caucasian / minority languages | `model="simple"` (default) |
 | Don't care which model, just want a capability | `prefer="best"` / `"fast"` / `"smallest"` instead of a model id |
@@ -19,13 +19,13 @@ Full accuracy numbers, not just relative quality claims, live in
 | lang | model | accuracy | homograph accuracy |
 |------|-------|----------|--------------------|
 | ru | ruaccent | 0.938 | 0.820 |
-| ru | silero | 0.914 | 0.381 |
+| ru | silero | 0.939 | 0.742 |
 | be | silero | 0.873 | not measured |
 | be | simple | 0.433 | not measured |
 
-`ruaccent` beats `silero` on both plain accuracy and, by a wide margin, on
-homograph accuracy for Russian. The much larger download buys real
-correctness, not just parity. For Belarusian, `silero` (neural, the default)
+On Russian, `ruaccent` and `silero` have the same plain accuracy, and
+`ruaccent` is more accurate on homographs. Its larger download gives
+homograph resolution from a wider context. For Belarusian, `silero` (neural, the default)
 is substantially more accurate than `model="simple"` (vocabulary lookup).
 Use `model="simple"` only where ONNX inference is unavailable. See
 `benchmarks/RESULTS.md` for row counts, the annotation-noise ceiling, and
@@ -101,7 +101,7 @@ Calling a backend on text that already carries the combining acute
 |---------|-------------------------------|
 | `simple` | Skips: if U+0301 is already present in a token, that token comes back unchanged. |
 | `silero` | Skips: a word already containing the stress token short-circuits before any prediction. |
-| `ruaccent` | Strips and re-derives from scratch. Marks are not detected as "already done", yo-homograph and omograph resolution always re-run. |
+| `ruaccent` | Strips and re-derives from scratch. Marks are not detected as "already done", yo-homograph and omograph resolution always re-run. A word written with ё is always labelled as stressed, so it gets the same marks whether the input writes е or ё. A second run gives back the output of the first unless a restored ё changes what the stress-usage model reads for a neighbouring word. |
 
 If you need to guarantee a no-op on already-stressed text, prefer `simple`
 or `silero` for that language, or check for U+0301 yourself before calling.
@@ -163,7 +163,9 @@ The copy keeps only the Russian alphabet, ASCII letters and digits,
 whitespace, and a fixed set of punctuation. The output is the full input:
 every other character (`…`, `№`, `і`, `ў`, `é`, Greek, CJK, emoji) and
 every run of whitespace comes back unchanged. Only the stress marks and
-the е→ё restorations are added.
+the е→ё restorations are added. A U+0301 on a vowel or on р is a stress
+mark and is derived again; a U+0301 on another letter (Montenegrin `з́`)
+is part of that letter, so it comes back and its word gets no mark.
 
 The check for a changed word works on runs of letters and digits. A hyphen,
 an apostrophe or a space ends a run, so each part of a compound is checked
@@ -171,12 +173,14 @@ on its own. A run that loses a letter, digit or combining mark in the copy
 gets no mark, because the models saw a different word. For example, `Київ`
 reaches the models as `Кив`. Two runs that the copy joins into one, as in
 `молоко😀корова` or `молоко` U+200B `корова`, get no mark either. A soft
-hyphen, ZWJ, ZWNJ or WORD JOINER inside a word does not change the word.
+hyphen, ZWJ, ZWNJ or WORD JOINER inside a word does not change the word,
+and a letter dropped behind one of them is still at the word's edge:
+`молоко` U+00AD `і` gets no mark.
 
 ### Yo (ё) handling
 
 `nn_yo_homograph` decides, per occurrence of `е`, whether to rewrite it as
-`ё` (both are the same letter for stress purposes. `ё` is always stressed).
+`ё` (both are the same letter for stress purposes).
 This resolves plain е→ё **restoration**, recovering the true pronunciation
 of a word conventionally written with `е`, but it does **not** resolve
 **yo-homographs**: pairs where the surface form is ambiguous between two
@@ -184,6 +188,20 @@ different words depending on ё (`все` "everyone" vs `всё` "everything").
 Both spellings stay as `все` untouched, because the upstream model needed to
 disambiguate that specific pair has not been exported to ONNX. Every other
 known е→ё correction still applies.
+
+The models read the sentence as written, as upstream RUAccent does. A word
+that holds ё is then labelled as stressed whatever the stress-usage model
+said, because such a word always carries a stress. The mark position comes
+from the accent dictionary or, for a word absent from it, from the character
+model. The stress usually falls on the ё, and compounds place it elsewhere
+(`трёхле́тний`).
+A word gets the same stress whether the writer typed ё or е: `желтый` and
+`жёлтый` both give `жё́лтый`. A ё that the input already has stays, and it
+is not reported as a restoration. Words without ё keep the marks they get
+in upstream RUAccent. The stress-usage model reads a restored ё on the next
+run, so a second call can move a mark on a neighbouring word in rare
+sentences (`Вот оно, самое важное место` restores `самоё́`, and the second
+run marks `оно́`).
 
 ### Runtime details
 
@@ -226,7 +244,9 @@ known е→ё correction still applies.
 ### Architecture
 
 A fasttext-style n-gram embedding-bag plus MLP classification heads.
-Derived from [silero_stress](https://github.com/snakers4/silero-models) (MIT).
+Derived from [silero_stress](https://github.com/snakers4/silero-stress)
+(Copyright (c) 2020-present Silero Team, MIT). The ru bundle carries the
+upstream licence as `LICENSE.silero-stress`.
 
 ```
 Input word
@@ -247,11 +267,19 @@ argmax over character positions → stress index (+ yo index for ru)
 Insert U+0301 at that position (+ е→ё restoration for ru)
 ```
 
-Exceptions and skip-lists are consulted before the ONNX call:
+The exceptions dictionary is consulted before the ONNX call:
 `exceptions.txt.gz` (word → explicit stress index, plus an explicit yo index
-for `ru`) and `skip_stress_words.txt.gz` / `skip_yo_words.txt.gz` (words that
-should not receive a stress mark or a ё rewrite respectively, for example
-monosyllables and clitics).
+for `ru`).
+
+For `ru` a homograph resolver (the silero_stress homosolver) runs first. Each
+word of its dictionary (`homodict.json.gz`, about 2,200 words with two
+stressed variants each) gets the variant that its context selects. A phrase
+regex (`homophrases.json.gz`) decides when the context contains a known
+phrase. Otherwise a three-layer BERT (`homosolver.onnx`, 312 hidden units)
+reads up to 150 characters of cleaned context on each side of the word,
+written as `[HOMO] word [/HOMO]`, and a classifier over the marker and word
+vectors picks one of the two variants. The accentor then keeps the resolved
+stress and ё for those words.
 
 The original PyTorch model uses `nn.EmbeddingBag` with mode `"mean"`.
 Since `onnxruntime` does not support `EmbeddingBag` directly, the export
@@ -267,12 +295,10 @@ The Russian silero pipeline **does restore е→ё**. It runs a second MLP head
 (`yo_logits`) alongside the stress head and rewrites `е` to `ё` when the
 predicted yo-position coincides with the predicted stress position (`ё` is
 always stressed in Russian orthography, so it rewrites only where that
-constraint holds). What it does **not** do is resolve **yo-homographs**:
-words that are ambiguous purely because of the е/ё distinction, such as
-`все` ("everyone") vs `всё` ("everything"). Both stay written as `все`.
-Neither `silero` nor `ruaccent` (see above) disambiguates this specific
-pair. The upstream homograph-resolution model that would be needed has not
-been exported.
+constraint holds). **Yo-homographs**, words that are ambiguous purely
+because of the е/ё distinction such as `все` ("everyone") vs `всё`
+("everything"), go through the homograph resolver described above, which
+picks `все́` or `всё́` from the context.
 
 ### Why Ukrainian and Belarusian use this model
 
@@ -285,6 +311,64 @@ Ukrainian specifics:
 - No е/ё distinction to disambiguate.
 - Fewer systematic homograph pairs than Russian.
 
+### Ukrainian dictionary layer
+
+The Ukrainian silero bundle carries a dictionary layer built from
+[ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress)
+2.1.0 (lang-uk, MIT). That project ships about 2.9 million Ukrainian word
+forms with their stress, which it derives from
+["Dictionaries of Ukraine"](https://lcorp.ulif.org.ua/dictua/) (Словники
+України) by ULIF. The layer lives in the bundle's
+`exceptions.txt.gz`, which the runtime reads before it runs the neural
+model. No torch, Stanza or marisa-trie is needed at runtime.
+
+The layer holds only the forms that have exactly one stress in the
+dictionary and that the neural model stresses differently. The model
+already stresses the other 2.6 million unambiguous forms the same way as
+the dictionary, so they are left out. This keeps the file at about 350 KB
+and about 96,000 entries. The full set of unambiguous forms is about 9 MB
+compressed and costs about 470 MB of memory when loaded.
+
+The neural model still decides these cases:
+
+- Heteronyms (за́мок/замо́к, бло́хи/блохи́). Upstream resolves them with
+  Stanza part-of-speech tags, which this library does not run.
+- Forms that the Wiktionary vocabulary of the `simple` model stresses on
+  another vowel. For `його` and `кому` the dictionary has only the noun
+  forms йо́го (vocative of йо́га) and ко́му (accusative of ко́ма), and lacks
+  the pronouns його́ and кому́.
+- Forms with variant stress (по́ми́лка), which the dictionary marks twice.
+- Forms whose case or apostrophe variants disagree on the stress.
+- Hyphenated compounds and multiword entries, which the tokenizer splits.
+- Words outside the dictionary.
+
+The layer is keyed like the runtime tokens: lowercase, without the
+apostrophe. `м'яч`, `м’яч` and `мʼяч` therefore all find the same entry.
+The stored stress is a character offset into the word as the dictionary
+spells it, and the runtime applies that offset to the token as written.
+Some tokens therefore lose the mark on a layer word:
+
+- A word inside `'…'` or `‘…’` quotes, or with a leading `’` or backtick.
+  The quote stays in the token and moves the offset onto a consonant.
+- A word with a soft hyphen (U+00AD) before the stressed vowel.
+- A dictionary word with an apostrophe, written without it. 18,334 of the
+  96,245 entries have an apostrophe before the stressed vowel. Written
+  without it, 17,493 of them get no mark and 841 get the mark on another
+  vowel (`попамятаємо`).
+
+Every layer entry is a form that the neural model alone stresses
+differently from the dictionary. On these tokens the output therefore
+changes from a mark the dictionary rejects to no mark. Double quotes `"…"` and
+guillemets `«…»` split off and are not affected.
+
+On the russtress Ukrainian gold, the layer raises the `silero` accuracy
+from 0.785 to 0.821 with the `benchmarks/run.py` scorer. That scorer
+counts a `й` before the stressed vowel as a vowel in the output only.
+Counted on composed text, the figures are 0.808 and 0.844.
+`export/build_uk_word_stress_vocab.py` rebuilds the layer from the pinned
+upstream release. A rebuilt `accentor.onnx` needs a rebuilt layer too,
+because the selection depends on the model's own output.
+
 Belarusian specifics:
 - **Akane**: unstressed /o/ merges phonetically with /a/. Stress is needed
   to pronounce words correctly.
@@ -296,29 +380,30 @@ Belarusian specifics:
 
 ### Why silero is also available for Russian
 
-The silero Russian model exists and is accurate for unambiguous words. It is
-a valid alternative when:
+The silero Russian model is accurate for unambiguous words and resolves
+homographs from a short context window. It is a valid alternative when:
 - The about-470 MB ruaccent download is impractical.
-- The application does not need homograph disambiguation, for example
-  spelling pronunciation or read-aloud of unambiguous text.
-- Fast cold-start is required (silero ru downloads about 5 MB).
-
-It assigns the same stress to both readings of `замок`. For TTS of
-mixed-context text this is audible. See `benchmarks/RESULTS.md`: on
-Russian, `ruaccent` scores 0.820 homograph accuracy against `silero`'s 0.381.
+- Fast cold-start is required (silero ru downloads about 50 MB).
 
 ### Limitations
 
-- **No homograph disambiguation** for Russian. One-best prediction per word.
-- **No yo-homograph disambiguation.** е→ё restoration runs, but
-  `все`/`всё`-style ambiguity is left as-is (see above).
-- **Word-level context only.** The n-gram features are character-level. The
-  model has no access to surrounding words.
+- **Homograph resolution covers the homosolver dictionary only** (ru).
+  Other words get one-best prediction per word.
+- **Word-level context only** outside homographs. The n-gram features are
+  character-level and have no access to surrounding words.
+- **Long input costs time per homograph.** Each homograph that no phrase
+  rule settles is one BERT row. A 60,000-character text with 1,416 such
+  homographs takes about 14 s on two CPU threads, with about 300 MB peak
+  memory; the rows run in chunks of 32.
 - **Vocabulary coverage** is finite. Neologisms and foreign words rely on
   n-gram generalisation, which degrades for non-Cyrillic stems.
 - **The Ukrainian and Belarusian models are verified to match** the
-  original silero outputs exactly (see `export/verify_e2e.py`). The Russian
-  model is verified numerically at export (max |diff| < 1e-3).
+  original silero outputs exactly (see `export/verify_e2e.py`), except on
+  the Ukrainian dictionary layer, where the dictionary wins by design. The
+  Russian model is verified numerically at export: the largest difference
+  from the upstream logits is below 3e-5 of the largest logit for the stress
+  and ё heads. For the homosolver it is below 1e-4 of the largest logit (or
+  of 1, when all logits are smaller), and every logit keeps its sign.
 
 ---
 
@@ -405,7 +490,7 @@ dictionary path.
 - For **Georgian** and **Armenian**, the OOV heuristic is noticeably weaker
   than for the Turkic languages, so dictionary coverage matters more.
 - The vocabulary files are derived from
-  [silero_stress](https://github.com/snakers4/silero-models) (MIT) and
+  [silero_stress](https://github.com/snakers4/silero-stress) (MIT) and
   reflect the training data used there. Low-frequency or dialectal forms may
   be missing.
 - The original 20 `simple` vocabularies (the `be` dictionary path included)
@@ -527,11 +612,11 @@ mark at all.
 |---|---|---|---|
 | **Languages** | ru | uk, be, ru | 26 languages |
 | **Context** | Sentence (BERT) | Word (n-gram) | Word (dict) |
-| **Homograph resolution** | Yes (BERT + RoBERTa) | No | No |
+| **Homograph resolution** | Yes (BERT + RoBERTa) | ru only (BERT) | No |
 | **е→ё restoration (ru)** | Yes | Yes | N/A |
-| **Yo-homograph (все/всё) disambiguation** | No | No | N/A |
-| **ONNX inference** | 4 models | 1 model | None |
-| **Download size** | ~470 MB | ~5-10 MB | ~1-5 MB |
+| **Yo-homograph (все/всё) disambiguation** | No | ru only | N/A |
+| **ONNX inference** | 4 models | 1 model (2 for ru) | None |
+| **Download size** | ~470 MB | ~10 MB (ru ~50 MB) | ~1-5 MB |
 | **Cold-start latency** | High (4 sessions) | Low | Near-zero |
 | **Per-sentence latency** | ~50-200 ms | ~2-10 ms | <1 ms |
 | **Runtime deps** | onnxruntime, tokenizers | onnxruntime, numpy | numpy only |
