@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a11](https://github.com/TigreGotico/stressonnx/tree/0.0.3a11) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a10...0.0.3a11)
+
+**Merged pull requests:**
+
+- fix: keep every input character in ruaccent output [\#33](https://github.com/TigreGotico/stressonnx/pull/33) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a10](https://github.com/TigreGotico/stressonnx/tree/0.0.3a10) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a9...0.0.3a10)
