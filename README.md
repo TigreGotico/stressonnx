@@ -51,6 +51,7 @@ with sense-dependent pronunciation needs a bifonia-style diacritic restorer.
 |----------|-----------|------------|------------------|
 | `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), Apache-2.0) | 0.938 word accuracy, **0.820 on homographs** |
 | `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё | ru 0.914 / uk 0.785 / be 0.873 |
+| `stressrnn` | `ru` (selectable) | Character BiLSTM with a Zaliznyak exception dictionary, ported from [StressRNN](https://github.com/dbklim/StressRNN) (Apache-2.0; a fork of RusStress). No sentence context, no е→ё; 0.6 MB | ru 0.891 (0.908 with `accuracy_threshold=0.0`) |
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
 
 ¹ `ru uk be bg mk sl lv hy ka kk ky tt ba cv sah kjh tg udm mdf myv kbd xal
@@ -310,4 +311,6 @@ Pick your entry point:
 ## License
 
 Apache-2.0. Model attributions: RUAccent (Den4ikAI, Apache-2.0),
-silero_stress (snakers4, MIT).
+silero_stress (snakers4, MIT), StressRNN (Vladislav Klim, Apache-2.0; BiLSTM
+from RusStress by Ponomareva and Milintsevich, exception dictionary from
+A. A. Zaliznyak's Grammatical Dictionary via odict.ru).

@@ -37,7 +37,8 @@ monolithic file:
 | `stressonnx/backends/ruaccent.py` | `RuAccentStressor`, the `ruaccent` family. |
 | `stressonnx/backends/silero.py` | `_SileroStressor`, the `silero` family (`ru`, `uk`, `be`). |
 | `stressonnx/backends/simple.py` | `SimpleStressor`, the `simple` family (26 languages, every canonical tag). |
-| `stressonnx/backends/__init__.py` | Re-exports the three backend classes. |
+| `stressonnx/backends/stressrnn.py` | `StressRnnStressor`, the `stressrnn` family (`ru`, selectable only). |
+| `stressonnx/backends/__init__.py` | Re-exports the four backend classes. |
 | `stressonnx/__init__.py` | Assembles the public API: `stress()`, `stress_batch()`, `analyze()`, `warm_up()`, `to_plus_notation()`, and re-exports from every module above. |
 
 ### Data flow
@@ -191,7 +192,7 @@ class StressorBackend(Protocol):
     def __call__(self, text: str) -> str: ...
 ```
 
-All three backend classes satisfy this protocol. `make_stressor()` returns
+All four backend classes satisfy this protocol. `make_stressor()` returns
 type `StressorBackend`.
 
 ---
@@ -232,7 +233,8 @@ with phoonnx's naming, so the mapping layer in phoonnx is trivial.
 `MODEL_REGISTRY` (in `stressonnx/registry.py`) maps model-id to `ModelEntry`.
 `DEFAULT_MODEL` maps language tag to model-id, derived at import time with
 priority `ruaccent > silero > simple` (the same order as
-`FALLBACK_PRIORITY`).
+`FALLBACK_PRIORITY`). `stressrnn` is in the registry but in neither
+`DEFAULT_MODEL`, `FALLBACK_PRIORITY` nor a `prefer=` order.
 
 ```python
 MODEL_REGISTRY: dict[str, ModelEntry] = {
@@ -247,6 +249,13 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         langs=frozenset({"uk", "be", "ru"}),
         family="silero",
         hf_subdir=None,      # per-language: <lang>/
+        description="…",
+        input_scripts=frozenset({Script.CYRILLIC}),
+    ),
+    "stressrnn": ModelEntry(
+        langs=frozenset({"ru"}),
+        family="stressrnn",
+        hf_subdir="ru_stressrnn",
         description="…",
         input_scripts=frozenset({Script.CYRILLIC}),
     ),
@@ -307,6 +316,20 @@ already containing U+0301 comes back unchanged (idempotent).
 Files under `<lang>/` in the HF repo: `accentor.onnx`, `embedding.npy`,
 `ngram_dict.txt.gz`, `exceptions.txt.gz`, `skip_stress_words.txt.gz`,
 `skip_yo_words.txt.gz`, `meta.json`.
+
+### `StressRnnStressor`: stressrnn family (`stressonnx/backends/stressrnn.py`)
+
+A port of StressRNN (Apache-2.0) for `ru`: a character BiLSTM in
+`model.onnx` behind a Zaliznyak exception dictionary. Per text: split into
+tokens that keep every character and into lowercase words with clause marks
+and a three-letter context from the previous word; stress one-vowel words
+on their vowel, dictionary words at the dictionary index, the rest at the
+network's argmax when its probability reaches `accuracy_threshold` (0.75);
+transfer the stressed words back onto the tokens in order.
+`mark_offsets()` returns the offsets and an empty ё list.
+
+Files under `ru_stressrnn/` in the HF repo: `model.onnx`,
+`exception_dictionary.txt.gz`, `meta.json`, `LICENSE.stressrnn`.
 
 ### `SimpleStressor`: simple family (`stressonnx/backends/simple.py`)
 
@@ -386,6 +409,9 @@ constructs a model path itself.
 │   └── …
 ├── ru/
 │   └── …           ← silero Russian
+├── ru_stressrnn/
+│   ├── model.onnx
+│   └── exception_dictionary.txt.gz
 ├── be/
 │   └── …            ← shared by both silero (default) and simple (model="simple")
 ├── kk/

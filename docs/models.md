@@ -11,6 +11,7 @@
 | Ukrainian / Belarusian | `model="silero"` (default) |
 | Turkic / Caucasian / minority languages | `model="simple"` (default) |
 | Don't care which model, just want a capability | `prefer="best"` / `"fast"` / `"smallest"` instead of a model id |
+| Russian, the RusStress/StressRNN reading for comparison or parity with a system built on it | `model="stressrnn"` (never selected by default or by `prefer=`) |
 
 Full accuracy numbers, not just relative quality claims, live in
 [`../benchmarks/RESULTS.md`](../benchmarks/RESULTS.md), reproducible with
@@ -20,11 +21,16 @@ Full accuracy numbers, not just relative quality claims, live in
 |------|-------|----------|--------------------|
 | ru | ruaccent | 0.938 | 0.820 |
 | ru | silero | 0.914 | 0.381 |
+| ru | stressrnn | 0.891 (0.908 at threshold 0.0) | not measured |
 | be | silero | 0.873 | not measured |
 | be | simple | 0.433 | not measured |
 
 `ruaccent` beats `silero` on both plain accuracy and, by a wide margin, on
-homograph accuracy for Russian. The much larger download buys real
+homograph accuracy for Russian. `stressrnn` trails `silero` by 2.3 points
+(paired bootstrap 95% CI of the difference on the same 11 124 rows:
+-0.029 to -0.018) and `ruaccent` by 4.8 points (-0.053 to -0.043); the
+russtress file is also the corpus the StressRNN BiLSTM was trained on, so
+its number is optimistic. The much larger download buys real
 correctness, not just parity. For Belarusian, `silero` (neural, the default)
 is substantially more accurate than `model="simple"` (vocabulary lookup).
 Use `model="simple"` only where ONNX inference is unavailable. See
@@ -89,6 +95,7 @@ vowel:
 | `simple` | Always stressed. The one vowel present is marked, even under an OOV `"none"` rule (see `be`/`simple` below). |
 | `silero` | Always stressed. A word with exactly one vowel gets it marked regardless of the model's own prediction. |
 | `ruaccent` | The dictionary/neural accent path only fires for words with **more than one** vowel. A bare, dictionary-absent monosyllable is often left **unmarked**. Single-vowel entries hardcoded in the accent dictionary (for example `о` → `+о`) are still marked. |
+| `stressrnn` | Always stressed, prepositions and particles included (`на́`, `а́`), and so is every hyphen part (`кто́-то́`). This is upstream behaviour. |
 
 ---
 
@@ -102,6 +109,7 @@ Calling a backend on text that already carries the combining acute
 | `simple` | Skips: if U+0301 is already present in a token, that token comes back unchanged. |
 | `silero` | Skips: a word already containing the stress token short-circuits before any prediction. |
 | `ruaccent` | Strips and re-derives from scratch. Marks are not detected as "already done", yo-homograph and omograph resolution always re-run. |
+| `stressrnn` | Skips: a word that already carries U+0301 is left as it is. |
 
 If you need to guarantee a no-op on already-stressed text, prefer `simple`
 or `silero` for that language, or check for U+0301 yourself before calling.
@@ -319,6 +327,67 @@ Russian, `ruaccent` scores 0.820 homograph accuracy against `silero`'s 0.381.
 - **The Ukrainian and Belarusian models are verified to match** the
   original silero outputs exactly (see `export/verify_e2e.py`). The Russian
   model is verified numerically at export (max |diff| < 1e-3).
+
+---
+
+## `"stressrnn"`: character BiLSTM
+
+**Available for `ru`. Never a default, never chosen by `prefer=`.**
+
+A port of [StressRNN](https://github.com/dbklim/StressRNN) (Vladislav
+Klim, Apache-2.0), itself a maintained fork of
+[RusStress](https://github.com/MashaPo/russtress) (Ponomareva et al. 2017,
+*Automated Word Stress Detection in Russian*). The ONNX graph is the
+upstream file as shipped: a bidirectional LSTM (64 units each way) over a
+one-hot encoding of the word's letters, 40 positions by 36 symbols, with a
+softmax over the 40 positions. Before the network, a word is looked up in
+an exception dictionary of 92 276 forms built from A. A. Zaliznyak's
+Grammatical Dictionary, and a word with one vowel is stressed on it.
+
+```
+Input text
+      │
+      ├── tokens: runs of letters, digits, spaces, punctuation (every character kept)
+      │
+      └── words: lowercase, clause marks `_` at .,:?!…- and newlines,
+                 each 2+-vowel word prefixed with the last 3 letters of the previous word
+                        │
+          ┌─────────────┼──────────────────┐
+     1 vowel        in exception dict      else: one-hot [40 × 36] → model.onnx (BiLSTM)
+     → that vowel   → dictionary index     → argmax position, kept when p ≥ 0.75
+                        │
+                        ▼
+          stressed words transferred back onto the tokens in order → U+0301
+```
+
+The only context the network sees is the three-letter ending of the previous
+word, so homographs get one reading (`за́мок` always). There is no е→ё
+restoration. The threshold is upstream's default: a word the network is
+less than 75 % sure about stays unmarked; `StressRnnStressor(accuracy_threshold=0.0)`
+marks every word (0.908 on the scoreboard rows against 0.891).
+
+Differences from upstream `put_stress`, each a case upstream mishandles:
+only U+0301 counts as an existing stress mark (upstream also reads `+` and
+`'`), any whitespace separates words (a tab makes upstream leave the rest
+of the text unmarked), a prediction that lands in the padding before the
+word is read on the vowel it wraps to (upstream prints the mark before the
+first letter), and a word longer than 40 characters with its context is
+left unmarked (upstream indexes outside the input tensor). The upstream
+option `lemmatize_words` is not ported: it is off by default, it only
+changes the dictionary lookup, and it is the only use of pymorphy2 in
+upstream. The network never sees morphological features, so stressonnx
+needs no morphology dependency for this model.
+
+### Limitations
+
+- **Monosyllables, prepositions and particles are stressed**, as are both
+  parts of every hyphenated word: `кто́-то́`, `на́ го́ре`. For TTS this is
+  audible; `ruaccent` and `silero` mask these.
+- **No homograph or ё resolution.** One reading per spelling.
+- **Russian alphabet only.** A letter outside `а-яё` splits the word; the
+  parts are stressed as separate words.
+- **Below `silero`** on the scoreboard (0.891 vs 0.914) and the scoreboard
+  rows are the corpus the BiLSTM was trained on, so the gap is a lower bound.
 
 ---
 
@@ -543,7 +612,9 @@ mark at all.
 
 `prefer="best"` picks `ruaccent` where available. `prefer="fast"` and
 `prefer="smallest"` pick `silero` then `simple` for languages that have
-them.
+them. `stressrnn` (Russian, 0.6 MB, onnxruntime + numpy, Apache-2.0) is
+outside every strategy and the fallback chain: it is only reached by
+`model="stressrnn"`.
 
 An additional research-only Russian model, a character-level seq2seq
 Transformer (`kubataba`), is exported by `export/export_kubataba.py` but is

@@ -15,6 +15,11 @@ Model families
     Neural ONNX pipeline (embedding-bag + MLP heads) exported from
     silero_stress (MIT).
 
+``"stressrnn"`` (``ru``, selectable only):
+    Character BiLSTM with a Zaliznyak exception dictionary, ported from
+    StressRNN (dbklim/StressRNN, Apache-2.0).  Never a default and never
+    picked by ``prefer=``; pass ``model="stressrnn"``.
+
 ``"simple"`` (default for the other rule/vocabulary languages):
     Vocabulary + rules; no ONNX inference.  Languages: ``az-Cyrl``,
     ``az-Latn``, ``uz-Cyrl``, ``uz-Latn``, ``ba``, ``bg``, ``cv``,
@@ -64,6 +69,7 @@ from stressonnx.registry import (
     RUACCENT_LANGS,
     MAIN_LANGS,
     SIMPLE_LANGS,
+    STRESSRNN_LANGS,
     ALL_LANGS,
     LANG_SCRIPT,
     ModelEntry,
@@ -73,7 +79,7 @@ from stressonnx.registry import (
     lang_to_script,
 )
 from stressonnx.notation import STRESS_TOKEN, _apply_notation, to_plus_notation
-from stressonnx.backends import _SileroStressor, SimpleStressor, RuAccentStressor
+from stressonnx.backends import _SileroStressor, SimpleStressor, RuAccentStressor, StressRnnStressor
 from stressonnx.stressor import make_stressor
 from stressonnx.pipeline import (
     DEFAULT_PIPELINE,
@@ -169,12 +175,14 @@ __all__ = [
     "_SileroStressor",
     "SimpleStressor",
     "RuAccentStressor",
+    "StressRnnStressor",
     "make_stressor",
     "MODEL_REGISTRY",
     "DEFAULT_MODEL",
     "RUACCENT_LANGS",
     "MAIN_LANGS",
     "SIMPLE_LANGS",
+    "STRESSRNN_LANGS",
     "ALL_LANGS",
     "STRESS_TOKEN",
     "ModelEntry",
