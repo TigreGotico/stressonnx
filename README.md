@@ -225,8 +225,10 @@ sessions are thread-safe for inference).
   **strips and re-derives** (wrong input marks get corrected).
 - Monosyllables: `simple`/`silero` always stress them. `ruaccent` usually
   leaves bare single-vowel words unmarked.
-- `ruaccent` normalizes its input (drops symbols like `…`, collapses runs of
-  whitespace). It is not byte-layout-preserving; the other backends are.
+- Every backend gives back the input unchanged except for the added marks
+  and е→ё restorations. `ruaccent` also drops the stress marks already in
+  the input and derives them again. A word that the models cannot read
+  whole comes back with no mark: `Ки́їв` gives `Київ`.
 - Russian hyphenated clitics (`кто́-то`, `како́й-нибудь`, `-либо`, `-таки`,
   `-ка`) never receive a mark on the particle.
 
