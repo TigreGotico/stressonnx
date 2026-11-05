@@ -170,7 +170,12 @@ def test_silero_accentor_matches_upstream(lang, code, model_cache_dir):
     ours._ensure_loaded()
     np.testing.assert_array_equal(ours._W, ref.model.embedding.weight.detach().numpy())
     assert ours._ngram_dict == dict(ref.model.embedding.ngram_dict)
-    assert ours._exceptions == {w: tuple(v) for w, v in ref.exceptions.items()}
+    upstream_exceptions = {w: tuple(v) for w, v in ref.exceptions.items()}
+    if code == "ukr":
+        # silero ships no Ukrainian table: ours is the ukrainian-word-stress layer
+        assert not upstream_exceptions
+    else:
+        assert ours._exceptions == upstream_exceptions
     # pseudo-words glued from two real 4-grams: pooled vectors in the range
     # the heads see in use
     grams = sorted(g for g in ours._ngram_dict if len(g) == 4 and g.isalpha())
