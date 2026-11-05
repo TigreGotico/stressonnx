@@ -30,7 +30,11 @@ Homepage = "https://github.com/TigreGotico/stressonnx"
 [project.optional-dependencies]
 export = [
     "torch",
-    "silero_stress",
+    # torch.onnx needs onnx; the dynamo exporter (export_kubataba.py) needs onnxscript
+    "onnx",
+    "onnxscript",
+    # the exported files and the parity tests track this exact release
+    "silero_stress==1.5",
 ]
 test = [
     "pytest",

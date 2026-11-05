@@ -50,8 +50,8 @@ with sense-dependent pronunciation needs a bifonia-style diacritic restorer.
 | Model id | Languages | What it is | Measured quality |
 |----------|-----------|------------|------------------|
 | `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), Apache-2.0) | 0.938 word accuracy, **0.820 on homographs** |
-| `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё | ru 0.914 / uk 0.785 / be 0.873 |
-| `stressrnn` | `ru` (selectable) | Character BiLSTM with a Zaliznyak exception dictionary, ported from [StressRNN](https://github.com/dbklim/StressRNN) (Apache-2.0; a fork of RusStress). No sentence context, no е→ё; 0.6 MB | ru 0.891 (0.908 with `accuracy_threshold=0.0`) |
+| `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё and resolves homographs | ru 0.939 / uk 0.785 / be 0.873 |
+| `stressrnn` | `ru` (selectable) | Character BiLSTM with a Zaliznyak exception dictionary, ported from [StressRNN](https://github.com/dbklim/StressRNN) (Apache-2.0; a fork of RusStress). No sentence context, no е→ё; 0.6 MB | ru 0.891 (0.908 with `accuracy_threshold=0.0`), scored on the model's own training corpus |
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
 
 ¹ `ru uk be bg mk sl lv hy ka kk ky tt ba cv sah kjh tg udm mdf myv kbd xal
@@ -85,7 +85,7 @@ Runtime dependencies: `onnxruntime`, `numpy`, `huggingface_hub`, and
 
 - `razdel` for better Russian sentence splitting inside the ruaccent pipeline
   (`pip install razdel`). Without it the whole input is processed as one span.
-- `pip install stressonnx[export]` adds torch + silero_stress, only for
+- `pip install stressonnx[export]` adds torch, onnx and silero_stress, only for
   re-exporting models from a checkout. Never needed at runtime.
 
 ---
@@ -165,7 +165,7 @@ to_plus_notation("приве́т")                # 'прив+ет'  (handles NF
 
 Both Russian neural backends restore ё that writers commonly type as е:
 `зеленый → зелё́ный`. Genuinely ambiguous ё-homographs (все/всё) are resolved
-by `ruaccent` from context, and deliberately left untouched by `silero`.
+from context by `ruaccent` and by the homograph resolver of `silero`.
 
 ---
 
@@ -311,6 +311,10 @@ Pick your entry point:
 ## License
 
 Apache-2.0. Model attributions: RUAccent (Den4ikAI, Apache-2.0),
-silero_stress (snakers4, MIT), StressRNN (Vladislav Klim, Apache-2.0; BiLSTM
+[silero-stress](https://github.com/snakers4/silero-stress) (Copyright (c)
+2020-present Silero Team, MIT). The `silero` model files are derived from
+silero-stress 1.5. Each model directory (`ru`, `ukr`, `bel`) carries the
+upstream licence text as `LICENSE.silero-stress`. The `ru` `meta.json` also
+names the source package, version, licence and URL. StressRNN (Vladislav Klim, Apache-2.0; BiLSTM
 from RusStress by Ponomareva and Milintsevich, exception dictionary from
 A. A. Zaliznyak's Grammatical Dictionary via odict.ru).

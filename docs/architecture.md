@@ -314,8 +314,10 @@ Single-vowel words are always force-stressed on that vowel, and a word
 already containing U+0301 comes back unchanged (idempotent).
 
 Files under `<lang>/` in the HF repo: `accentor.onnx`, `embedding.npy`,
-`ngram_dict.txt.gz`, `exceptions.txt.gz`, `skip_stress_words.txt.gz`,
-`skip_yo_words.txt.gz`, `meta.json`.
+`ngram_dict.txt.gz`, `exceptions.txt.gz`, `meta.json`. The `ru` bundle adds
+the homograph resolver (`stressonnx/backends/_silero_homosolver.py`):
+`homosolver.onnx`, `homosolver_vocab.txt.gz`, `homodict.json.gz` and
+`homophrases.json.gz`, declared by a `homosolver` entry in `meta.json`.
 
 ### `StressRnnStressor`: stressrnn family (`stressonnx/backends/stressrnn.py`)
 
