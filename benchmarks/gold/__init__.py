@@ -34,7 +34,9 @@ class EvalSet:
 SETS = [
     EvalSet("russtress", "ru", GOLD, "none stated",
             "https://github.com/MashaPo/russtress", "middle word of each window",
-            lambda: russtress.load("ru")),
+            lambda: russtress.load("ru"),
+            note="This file is the training corpus of StressRNN, so the stressrnn score "
+                 "is optimistic: it is not a held-out measurement."),
     EvalSet("homograph-eval", "ru", SILVER, "CC-BY-4.0",
             "https://huggingface.co/datasets/inkoziev/HomographResolutionEval",
             "the homograph only", homograph_eval.load, homographs_only=True),
@@ -50,7 +52,9 @@ SETS = [
             "marked polysyllabic words (ru-accent-poet labels, fixed sample)",
             prose_accents.load,
             note=f"Sample: every {prose_accents.FILE_STEP}th file of the sorted list, the first "
-                 f"{prose_accents.PER_FILE} sentences of 4 to 40 tokens per file."),
+                 f"{prose_accents.PER_FILE} sentences of 4 to 40 tokens per file.  "
+                 "kubataba was trained on sentence pairs cut from this corpus, so its score "
+                 "here is agreement with its own training labels."),
     EvalSet("russtress", "uk", GOLD, "none stated",
             "https://github.com/MashaPo/russtress", "middle word of each window",
             lambda: russtress.load("uk")),
