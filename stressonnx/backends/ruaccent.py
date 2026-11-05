@@ -487,22 +487,20 @@ class RuAccentStressor:
             },
         )[0][0]
         probs = _softmax(logits)
-        result = list(word)
-        for i, (label_id, score) in enumerate(
-            zip(logits.argmax(axis=-1), probs.max(axis=-1))
-        ):
-            # position 0 is BOS and position len(word)+1 is EOS — a stress
-            # label there must not wrap around onto a real character
-            if not 0 < i <= len(result):
-                continue
-            label = self._accent_id2label[str(int(label_id))]
-            if (
-                label not in ("NO", "STRESS_SECONDARY")
-                and score >= 0.55
-                and lower[i - 1] in _RU_VOWELS
-            ):
-                result[i - 1] = result[i - 1] + STRESS_TOKEN
-        return "".join(result)
+        # The model labels each character on its own, so several vowels of
+        # one word can carry STRESS_PRIMARY (да́рья́).  A word has one primary
+        # stress: keep the vowel the model is most sure of.  Positions 0 and
+        # len(lower) + 1 are BOS and EOS.
+        candidates = [
+            i for i in range(1, len(lower) + 1)
+            if self._accent_id2label[str(int(logits[i].argmax()))] == "STRESS_PRIMARY"
+            and probs[i].max() >= 0.55
+            and lower[i - 1] in _RU_VOWELS
+        ]
+        if not candidates:
+            return word
+        at = max(candidates, key=lambda i: probs[i].max())
+        return word[:at] + STRESS_TOKEN + word[at:]
 
     @staticmethod
     def _has_punct(text: str) -> bool:
