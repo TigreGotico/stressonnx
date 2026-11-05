@@ -194,12 +194,12 @@ and a letter dropped behind one of them is still at the word's edge:
 `nn_yo_homograph` decides, per occurrence of `е`, whether to rewrite it as
 `ё` (both are the same letter for stress purposes).
 This resolves plain е→ё **restoration**, recovering the true pronunciation
-of a word conventionally written with `е`, but it does **not** resolve
-**yo-homographs**: pairs where the surface form is ambiguous between two
-different words depending on ё (`все` "everyone" vs `всё` "everything").
-Both spellings stay as `все` untouched, because the upstream model needed to
-disambiguate that specific pair has not been exported to ONNX. Every other
-known е→ё correction still applies.
+of a word conventionally written with `е`. It also resolves
+**yo-homographs**, pairs where the surface form is ambiguous between two
+different words depending on ё (`все` "everyone" vs `всё` "everything"),
+from the sentence context: `все люди пришли` stays `все`, and `он все
+знает` becomes `он всё зна́ет`. Either reading of this one-vowel word gets
+no acute from `ruaccent`.
 
 The models read the sentence as written, as upstream RUAccent does. A word
 that holds ё is then labelled as stressed whatever the stress-usage model
@@ -715,7 +715,7 @@ mark at all.
 | **Context** | Sentence (BERT) | Word (n-gram) | Word (dict) | Sentence (char seq2seq) |
 | **Homograph resolution** | Yes (BERT + RoBERTa) | ru only (BERT) | No | No |
 | **е→ё restoration (ru)** | Yes | Yes | N/A | No |
-| **Yo-homograph (все/всё) disambiguation** | No | ru only | N/A | No |
+| **Yo-homograph (все/всё) disambiguation** | Yes | ru only | N/A | No |
 | **ONNX inference** | 4 models | 1 model (2 for ru) | None | 2 graphs, autoregressive |
 | **Download size** | ~470 MB | ~10 MB (ru ~50 MB) | ~1-5 MB | ~31 MB |
 | **Cold-start latency** | High (4 sessions) | Low | Near-zero | Low |
