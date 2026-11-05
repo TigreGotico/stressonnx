@@ -7,7 +7,7 @@ TTS front-ends. Pure `onnxruntime + numpy` at runtime. No torch, ever.
 from stressonnx import stress
 
 stress("старинный замок стоит на горе", "ru")   # 'стари́нный за́мок сто́ит на горе́'
-stress("дверной замок надёжен", "ru")           # 'дверно́й замо́к надёжен'
+stress("дверной замок надёжен", "ru")           # 'дверно́й замо́к надё́жен'
 ```
 
 Same spelling, different word: за́мок is a castle, замо́к is a lock.
@@ -228,7 +228,10 @@ sessions are thread-safe for inference).
 - Every backend gives back the input unchanged except for the added marks
   and е→ё restorations. `ruaccent` also drops the stress marks already in
   the input and derives them again. A word that the models cannot read
-  whole comes back with no mark: `Ки́їв` gives `Київ`.
+  whole comes back with no mark: `Ки́їв` gives `Київ`. A word gets the
+  same marks whether it is written with ё or е. A second call gives back
+  the output of the first unless a restored ё changes how the models read
+  a neighbouring word.
 - Russian hyphenated clitics (`кто́-то`, `како́й-нибудь`, `-либо`, `-таки`,
   `-ка`) never receive a mark on the particle.
 

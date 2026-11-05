@@ -34,7 +34,8 @@ from stressonnx.download import _download_files
 from stressonnx.registry import MODEL_REGISTRY
 from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.notation import (
-    STRESS_TOKEN, _plus_to_diacritic, composed, in_form_of, render_marks,
+    STRESS_TOKEN, _plus_to_diacritic, composed, in_form_of, is_stress_base,
+    render_marks,
 )
 
 # Files to download for the ru_ruaccent variant
@@ -93,17 +94,24 @@ def _whole_words(text: str, kept: list, norm: str) -> set:
     its edge (``Київ`` reaches the models as ``Кив``), or when a dropped
     visible character or a ZERO WIDTH SPACE joined two words into one.
     Other dropped format characters (soft hyphen, ZWJ, ZWNJ, WORD JOINER)
-    sit inside the word they were in.
+    sit inside the word they were in, so the edge check looks past them.
     """
     dropped = set(range(len(text))).difference(kept)
+
+    def in_word(i: int) -> bool:
+        # UAX #29 rule WB4 ignores format characters inside a word; of the
+        # Cf characters only U+200B is a word boundary
+        return unicodedata.category(text[i]) == "Cf" and text[i] != "\u200b"
+
     whole = set()
     for m in re.finditer(r"\w+", norm):
         first, last = kept[m.start()], kept[m.end() - 1]
+        while first - 1 in dropped and in_word(first - 1):
+            first -= 1
+        while last + 1 in dropped and in_word(last + 1):
+            last += 1
         if any(
-            # UAX #29 rule WB4 ignores format characters inside a word; of
-            # the Cf characters only U+200B is a word boundary
-            unicodedata.category(text[i]) != "Cf" or text[i] == "\u200b"
-            for i in dropped.intersection(range(first, last))
+            not in_word(i) for i in dropped.intersection(range(first, last))
         ) or any(
             text[i].isalnum() or unicodedata.combining(text[i])
             for i in dropped.intersection((first - 1, last + 1))
@@ -583,6 +591,13 @@ class RuAccentStressor:
             sentence, self._stress_usage_sess, self._stress_usage_tok,
             self._stress_id2label, has_tti=True,
         )
+        # The usage model leaves a word written with ё unmarked but marks
+        # the same word written with е, whose ё the yo step then restores.
+        # ё carries the stress, so a word written with ё is always marked.
+        stress_usages = [
+            "STRESS" if i < len(words) and "ё" in words[i].lower() else label
+            for i, label in enumerate(stress_usages)
+        ]
         original = list(words)
         words = self._process_yo(words, sentence)
         words = self._process_omographs(words)
@@ -616,10 +631,18 @@ class RuAccentStressor:
         The models read *text* the way upstream RUAccent feeds them: composed
         (so NFD й and ё survive), without the characters outside the
         allow-list.  Marks found there map back onto the full text.  Stress
-        marks already in the input are dropped and derived again.
+        marks already in the input are dropped and derived again.  A U+0301
+        on a consonant is part of that letter and comes back unchanged.
         """
         self._ensure_loaded()
-        base = composed(text)[0].replace(STRESS_TOKEN, "")
+        base, letter = [], ""
+        for ch in composed(text)[0]:
+            if ch == STRESS_TOKEN and is_stress_base(letter):
+                continue
+            if not unicodedata.combining(ch):
+                letter = ch
+            base.append(ch)
+        base = "".join(base)
         kept = [i for i, c in enumerate(base) if _ruaccent_norm(c)]
         norm = "".join(base[i] for i in kept)
         marks, yo = [], []

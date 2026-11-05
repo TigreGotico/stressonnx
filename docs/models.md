@@ -101,7 +101,7 @@ Calling a backend on text that already carries the combining acute
 |---------|-------------------------------|
 | `simple` | Skips: if U+0301 is already present in a token, that token comes back unchanged. |
 | `silero` | Skips: a word already containing the stress token short-circuits before any prediction. |
-| `ruaccent` | Strips and re-derives from scratch. Marks are not detected as "already done", yo-homograph and omograph resolution always re-run. |
+| `ruaccent` | Strips and re-derives from scratch. Marks are not detected as "already done", yo-homograph and omograph resolution always re-run. A word written with ё is always labelled as stressed, so it gets the same marks whether the input writes е or ё. A second run gives back the output of the first unless a restored ё changes what the stress-usage model reads for a neighbouring word (4 of 1291 prose sentences in a sweep). |
 
 If you need to guarantee a no-op on already-stressed text, prefer `simple`
 or `silero` for that language, or check for U+0301 yourself before calling.
@@ -163,7 +163,9 @@ The copy keeps only the Russian alphabet, ASCII letters and digits,
 whitespace, and a fixed set of punctuation. The output is the full input:
 every other character (`…`, `№`, `і`, `ў`, `é`, Greek, CJK, emoji) and
 every run of whitespace comes back unchanged. Only the stress marks and
-the е→ё restorations are added.
+the е→ё restorations are added. A U+0301 on a vowel or on р is a stress
+mark and is derived again; a U+0301 on another letter (Montenegrin `з́`)
+is part of that letter, so it comes back and its word gets no mark.
 
 The check for a changed word works on runs of letters and digits. A hyphen,
 an apostrophe or a space ends a run, so each part of a compound is checked
@@ -171,7 +173,9 @@ on its own. A run that loses a letter, digit or combining mark in the copy
 gets no mark, because the models saw a different word. For example, `Київ`
 reaches the models as `Кив`. Two runs that the copy joins into one, as in
 `молоко😀корова` or `молоко` U+200B `корова`, get no mark either. A soft
-hyphen, ZWJ, ZWNJ or WORD JOINER inside a word does not change the word.
+hyphen, ZWJ, ZWNJ or WORD JOINER inside a word does not change the word,
+and a letter dropped behind one of them is still at the word's edge:
+`молоко` U+00AD `і` gets no mark.
 
 ### Yo (ё) handling
 
@@ -184,6 +188,19 @@ different words depending on ё (`все` "everyone" vs `всё` "everything").
 Both spellings stay as `все` untouched, because the upstream model needed to
 disambiguate that specific pair has not been exported to ONNX. Every other
 known е→ё correction still applies.
+
+The models read the sentence as written, as upstream RUAccent does. A word
+that holds ё is then labelled as stressed whatever the stress-usage model
+said, because Russian orthography always stresses ё. The mark position still
+comes from the accent dictionary or, for a word absent from it, from the
+character model, so a word with ё can in principle get its mark elsewhere.
+A word gets the same stress whether the writer typed ё or е: `желтый` and
+`жёлтый` both give `жё́лтый`. A ё that the input already has stays, and it
+is not reported as a restoration. Words without ё keep the marks they get
+in upstream RUAccent. The stress-usage model reads a restored ё on the next
+run, so a second call can move a mark on a neighbouring word in rare
+sentences (`Вот оно, самое важное место` restores `самоё́`, and the second
+run marks `оно́`).
 
 ### Runtime details
 
