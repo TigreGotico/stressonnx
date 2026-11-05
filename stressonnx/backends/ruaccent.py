@@ -21,6 +21,7 @@ import threading
 import gzip
 import json
 import re
+import unicodedata
 
 import numpy as np
 import onnxruntime as ort
@@ -29,7 +30,9 @@ from stressonnx._common import _RU_VOWELS, _UNSTRESSED_HYPHEN_CLITICS, _softmax
 from stressonnx.download import _download_files
 from stressonnx.registry import MODEL_REGISTRY
 from stressonnx.errors import ModelDownloadError, ModelLoadError
-from stressonnx.notation import STRESS_TOKEN, _plus_to_diacritic, composed, in_form_of
+from stressonnx.notation import (
+    STRESS_TOKEN, _plus_to_diacritic, composed, in_form_of, render_marks,
+)
 
 # Files to download for the ru_ruaccent variant
 _RUACCENT_FILES = [
@@ -51,7 +54,8 @@ _RUACCENT_FILES = [
     "meta.json",
 ]
 
-# Characters to strip from text before processing (matches RUAccent normalize regex)
+# Characters the models never see (matches RUAccent normalize regex).  They
+# stay in the output: marks found on the normalized text map back to the input.
 _RE_RUACCENT_NORM = re.compile(
     r"[^a-zA-Z0-9\sа-яА-ЯёЁ—.,!?:;\"“”‘’"
     r"(){}\[\]«»„“\"\-]"
@@ -75,6 +79,35 @@ _RU_SPLIT_RE = re.compile(r"[\w\u0301]+|[^\w\s\u0301]+")
 
 def _ruaccent_norm(text: str) -> str:
     return _RE_RUACCENT_NORM.sub("", text)
+
+
+def _whole_words(text: str, kept: list, norm: str) -> set:
+    """Offsets in *norm* that lie in a word the models saw as *text* spells it.
+
+    *norm* is *text* without the characters outside the allow-list, and
+    ``kept[i]`` is the offset in *text* of ``norm[i]``.  A word loses this
+    status when a letter, digit or combining mark was dropped from it or at
+    its edge (``Київ`` reaches the models as ``Кив``), or when a dropped
+    visible character or a ZERO WIDTH SPACE joined two words into one.
+    Other dropped format characters (soft hyphen, ZWJ, ZWNJ, WORD JOINER)
+    sit inside the word they were in.
+    """
+    dropped = set(range(len(text))).difference(kept)
+    whole = set()
+    for m in re.finditer(r"\w+", norm):
+        first, last = kept[m.start()], kept[m.end() - 1]
+        if any(
+            # UAX #29 rule WB4 ignores format characters inside a word; of
+            # the Cf characters only U+200B is a word boundary
+            unicodedata.category(text[i]) != "Cf" or text[i] == "\u200b"
+            for i in dropped.intersection(range(first, last))
+        ) or any(
+            text[i].isalnum() or unicodedata.combining(text[i])
+            for i in dropped.intersection((first - 1, last + 1))
+        ):
+            continue
+        whole.update(range(m.start(), m.end()))
+    return whole
 
 
 def _delete_spaces_before_punc(text: str) -> str:
@@ -473,32 +506,64 @@ class RuAccentStressor:
                     words[i] = "".join(result_chars)
         return words
 
-    def _process_sentence(self, sentence: str) -> str:
+    def _process_sentence(self, sentence: str) -> tuple[list, list]:
+        """Offsets into *sentence* of stressed vowels and е→ё substitutions."""
         words, remaining = _ruaccent_split_by_words(sentence)
         if not words:
-            return "".join(remaining)
+            return [], []
         stress_usages = self._predict_word_labels(
             sentence, self._stress_usage_sess, self._stress_usage_tok,
             self._stress_id2label, has_tti=True,
         )
+        original = list(words)
         words = self._process_yo(words, sentence)
         words = self._process_omographs(words)
         words = self._process_accent(words, stress_usages)
-        result = "".join(l + r for l, r in zip(remaining, words)) + remaining[-1]
-        return _delete_spaces_before_punc(result)
+
+        marks, yo = [], []
+        pos = 0
+        for gap, word, result in zip(remaining, original, words):
+            pos += len(gap)
+            # every step keeps the letters of a word and may only turn е
+            # into ё; a word that comes back otherwise contributes nothing
+            if len(result.replace(STRESS_TOKEN, "")) == len(word):
+                i = pos
+                for ch in result:
+                    if ch == STRESS_TOKEN:
+                        marks.append(i - 1)
+                        continue
+                    if ch in "ёЁ" and sentence[i] in "еЕ":
+                        yo.append(i)
+                    i += 1
+            pos += len(word)
+        return marks, yo
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
     def __call__(self, text: str) -> str:
+        """Stress *text*; every character except input stress marks comes back.
+
+        The models read *text* the way upstream RUAccent feeds them: composed
+        (so NFD й and ё survive), without the characters outside the
+        allow-list.  Marks found there map back onto the full text.  Stress
+        marks already in the input are dropped and derived again.
+        """
         self._ensure_loaded()
-        original = text
-        # the normalize regex deletes combining marks; compose first so
-        # NFD й and ё survive it
-        text = _ruaccent_norm(composed(text)[0])
-        sentences = _ruaccent_split_by_sentences(text)
-        if not sentences:
-            return in_form_of(original, text)
-        outputs = [self._process_sentence(s) for s in sentences]
-        return in_form_of(original, "".join(outputs))
+        base = composed(text)[0].replace(STRESS_TOKEN, "")
+        kept = [i for i, c in enumerate(base) if _ruaccent_norm(c)]
+        norm = "".join(base[i] for i in kept)
+        marks, yo = [], []
+        start = 0
+        for sentence in _ruaccent_split_by_sentences(norm):
+            sentence_marks, sentence_yo = self._process_sentence(sentence)
+            marks += [start + o for o in sentence_marks]
+            yo += [start + o for o in sentence_yo]
+            start += len(sentence)
+        whole = _whole_words(base, kept, norm)
+        return in_form_of(text, render_marks(
+            base,
+            [kept[o] for o in marks if o in whole],
+            [kept[o] for o in yo if o in whole],
+        ))

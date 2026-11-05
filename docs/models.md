@@ -158,12 +158,20 @@ nn_stress_usage (BERT token classifier, ~111 MB)
                                           for words not in the dictionary
 ```
 
-`RuAccentStressor` normalizes input aggressively before processing. It
-strips any character outside its allow-list (Cyrillic, ASCII letters/digits,
-whitespace, and a fixed set of punctuation), so symbols like `…` are
-**dropped**, not preserved, and internal whitespace runs are not guaranteed
-to be preserved byte-for-byte. This backend is **not layout-preserving**. Do
-not rely on it to round-trip arbitrary punctuation or whitespace.
+The models read a normalized copy of the input, as upstream RUAccent does.
+The copy keeps only the Russian alphabet, ASCII letters and digits,
+whitespace, and a fixed set of punctuation. The output is the full input:
+every other character (`…`, `№`, `і`, `ў`, `é`, Greek, CJK, emoji) and
+every run of whitespace comes back unchanged. Only the stress marks and
+the е→ё restorations are added.
+
+The check for a changed word works on runs of letters and digits. A hyphen,
+an apostrophe or a space ends a run, so each part of a compound is checked
+on its own. A run that loses a letter, digit or combining mark in the copy
+gets no mark, because the models saw a different word. For example, `Київ`
+reaches the models as `Кив`. Two runs that the copy joins into one, as in
+`молоко😀корова` or `молоко` U+200B `корова`, get no mark either. A soft
+hyphen, ZWJ, ZWNJ or WORD JOINER inside a word does not change the word.
 
 ### Yo (ё) handling
 
@@ -200,8 +208,12 @@ known е→ё correction still applies.
 - **Poetry / non-standard stress** (for expressive effect) is not handled.
 - **Monosyllables** are frequently left unmarked (see the monosyllable table
   above). The dictionary/model path only runs for words with 2+ vowels.
-- **Not layout-preserving.** Aggressive input normalization drops symbols
-  like `…` and does not guarantee whitespace is round-tripped exactly.
+- **Letters outside the Russian alphabet.** A run of letters that contains
+  `і`, `ў`, `é` or another letter that the models do not read stays
+  unmarked. The other parts of a hyphen or apostrophe compound still get a
+  mark from the Russian models, and that mark can be wrong for the
+  language: `віцэ-каралева` gives `віцэ-кара́лева` and `подвір’ями` gives
+  `подвір’ями́`.
 - **Idempotency:** re-running on already-marked text strips and re-derives
   rather than skipping (see the idempotency table above).
 

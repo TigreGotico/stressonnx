@@ -258,9 +258,10 @@ A homograph-aware Russian pipeline. Four ONNX models load lazily from
 | `nn_accent` | RoFormer char-level | Accentuate words not in the accent dict, for words with 2+ vowels |
 
 Tokenizers use the `tokenizers` library (HuggingFace fast tokenizer JSON
-format), so no torch and no transformers are required. Input passes through
-an aggressive normalization regex first (`_ruaccent_norm`), so unsupported
-symbols are dropped rather than preserved.
+format), so no torch and no transformers are required. The models read the
+input through a normalization regex (`_ruaccent_norm`) that removes the
+characters they do not know. The marks they find map back onto the full
+input, so the removed characters stay in the output.
 
 ### `_SileroStressor`: silero family (`stressonnx/backends/silero.py`)
 
