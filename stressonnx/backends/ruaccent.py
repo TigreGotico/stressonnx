@@ -65,6 +65,10 @@ _RE_RUACCENT_NORM = re.compile(
     r"(){}\[\]«»„“\"\-]"
 )
 
+# Whitespace to Python's split that the tokenizer deletes.  The models read a
+# space there, so the word list and the model labels stay the same length.
+_DELETED_WHITESPACE = str.maketrans(dict.fromkeys("\x0b\x0c\x1c\x1d\x1e\x1f\x85", " "))
+
 # Position limit of the BERT-family models.
 _MAX_TOKENS = 512
 
@@ -644,7 +648,7 @@ class RuAccentStressor:
             base.append(ch)
         base = "".join(base)
         kept = [i for i, c in enumerate(base) if _ruaccent_norm(c)]
-        norm = "".join(base[i] for i in kept)
+        norm = "".join(base[i] for i in kept).translate(_DELETED_WHITESPACE)
         marks, yo = [], []
         start = 0
         for sentence in _ruaccent_split_by_sentences(norm):

@@ -1,11 +1,10 @@
 """ruaccent and the marks and letters already in its input.
 
 Expected stress for plain Russian words comes from the RUAccent accent
-dictionary file, read here directly.  A word written with ё takes its stress
-on the ё: Russian orthography always stresses ё, and ruaccent labels such a
-word STRESS.  The mark position itself comes from the dictionary or the
-character model, so this is a convention the tests rely on, not a rule the
-code enforces.
+dictionary file, read here directly.  A word written with ё always carries a
+stress, so ruaccent labels it STRESS.  The mark position comes from the
+dictionary or the character model: usually the ё, and another vowel in
+compounds (трёхле́тний).
 """
 import gzip
 import json
@@ -126,3 +125,11 @@ def test_analyze_reports_restored_yo_in_both_forms(form):
 ])
 def test_yo_in_a_sentence_does_not_move_the_marks_of_other_words(text, expected):
     assert stress(text, "ru", model="ruaccent") == expected
+
+
+@pytest.mark.parametrize("control", ["\x0b", "\x0c", "\x1c", "\x1f", "\x85"])
+def test_control_whitespace_marks_like_a_space(control):
+    """A control character the tokenizer deletes must not shift the later labels."""
+    text = "дом{}лес и жёлтый котёнок"
+    spaced = stress(text.format(" "), "ru", model="ruaccent")
+    assert stress(text.format(control), "ru", model="ruaccent") == spaced.replace(" ", control, 1)

@@ -101,7 +101,7 @@ Calling a backend on text that already carries the combining acute
 |---------|-------------------------------|
 | `simple` | Skips: if U+0301 is already present in a token, that token comes back unchanged. |
 | `silero` | Skips: a word already containing the stress token short-circuits before any prediction. |
-| `ruaccent` | Strips and re-derives from scratch. Marks are not detected as "already done", yo-homograph and omograph resolution always re-run. A word written with ё is always labelled as stressed, so it gets the same marks whether the input writes е or ё. A second run gives back the output of the first unless a restored ё changes what the stress-usage model reads for a neighbouring word (4 of 1291 prose sentences in a sweep). |
+| `ruaccent` | Strips and re-derives from scratch. Marks are not detected as "already done", yo-homograph and omograph resolution always re-run. A word written with ё is always labelled as stressed, so it gets the same marks whether the input writes е or ё. A second run gives back the output of the first unless a restored ё changes what the stress-usage model reads for a neighbouring word. |
 
 If you need to guarantee a no-op on already-stressed text, prefer `simple`
 or `silero` for that language, or check for U+0301 yourself before calling.
@@ -180,7 +180,7 @@ and a letter dropped behind one of them is still at the word's edge:
 ### Yo (ё) handling
 
 `nn_yo_homograph` decides, per occurrence of `е`, whether to rewrite it as
-`ё` (both are the same letter for stress purposes. `ё` is always stressed).
+`ё` (both are the same letter for stress purposes).
 This resolves plain е→ё **restoration**, recovering the true pronunciation
 of a word conventionally written with `е`, but it does **not** resolve
 **yo-homographs**: pairs where the surface form is ambiguous between two
@@ -191,9 +191,10 @@ known е→ё correction still applies.
 
 The models read the sentence as written, as upstream RUAccent does. A word
 that holds ё is then labelled as stressed whatever the stress-usage model
-said, because Russian orthography always stresses ё. The mark position still
-comes from the accent dictionary or, for a word absent from it, from the
-character model, so a word with ё can in principle get its mark elsewhere.
+said, because such a word always carries a stress. The mark position comes
+from the accent dictionary or, for a word absent from it, from the character
+model. The stress usually falls on the ё, and compounds place it elsewhere
+(`трёхле́тний`).
 A word gets the same stress whether the writer typed ё or е: `желтый` and
 `жёлтый` both give `жё́лтый`. A ё that the input already has stays, and it
 is not reported as a restoration. Words without ё keep the marks they get
