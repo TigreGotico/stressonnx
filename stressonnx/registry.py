@@ -140,6 +140,13 @@ _SIMPLE_FILES = [
     "vocab.gz",
 ]
 
+# Files for kubataba family (encoder graph, one decoder step, char vocab)
+_KUBATABA_FILES = [
+    "encoder.onnx",
+    "decoder_step.onnx",
+    "vocab.json",
+]
+
 # ---------------------------------------------------------------------------
 # Language routing tables — built from stressonnx/languages/*.json
 # ---------------------------------------------------------------------------
@@ -264,10 +271,26 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         ),
         input_scripts=_ALL_SCRIPTS,
     ),
+    "kubataba": ModelEntry(
+        langs=frozenset({"ru"}),
+        family="kubataba",
+        hf_subdir="ru_kubataba",
+        description=(
+            "Character-level encoder-decoder Transformer for Russian "
+            "(kubataba/Russian-Stress-Accent-Predictor, MIT). Sentence-level "
+            "seq2seq model, 12.5M parameters, trained on 19th-century prose "
+            "with machine-made (ru-accent-poet) stress labels. "
+            "Opt-in alternative to 'ruaccent'; no homograph resolution, "
+            "no ё restoration, single-vowel words left unmarked."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+    ),
 }
 
 #: Default model-id for each language tag: the highest-quality model that
-#: serves the language (ruaccent > silero > simple).
+#: serves the language (ruaccent > silero > simple).  ``kubataba`` is
+#: opt-in only: it never wins a default, a ``prefer=`` strategy or the
+#: fallback chain.
 DEFAULT_MODEL: dict = {}
 # Build defaults: RUACCENT_LANGS → ruaccent, MAIN_LANGS → silero,
 # SIMPLE_LANGS → simple (do not overwrite a higher-priority entry).

@@ -76,7 +76,7 @@ from stressonnx.registry import (
     lang_to_script,
 )
 from stressonnx.notation import STRESS_TOKEN, _apply_notation, to_plus_notation
-from stressonnx.backends import _SileroStressor, SimpleStressor, RuAccentStressor
+from stressonnx.backends import KubatabaStressor, _SileroStressor, SimpleStressor, RuAccentStressor
 from stressonnx.stressor import make_stressor
 from stressonnx.pipeline import (
     DEFAULT_PIPELINE,
@@ -174,6 +174,7 @@ __all__ = [
     "_SileroStressor",
     "SimpleStressor",
     "RuAccentStressor",
+    "KubatabaStressor",
     "make_stressor",
     "MODEL_REGISTRY",
     "DEFAULT_MODEL",

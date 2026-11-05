@@ -53,6 +53,7 @@ with sense-dependent pronunciation needs a bifonia-style diacritic restorer.
 | `ruaccent-big-poetry` | `ru` | The `ruaccent` pipeline with the RUAccent `big_poetry` homograph model in place of `turbo3.1` | lower than `ruaccent` on prose, see [docs/models.md](docs/models.md#the-big_poetry-omograph-model) |
 | `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё and resolves homographs; the `uk` variant looks words up in a dictionary layer from [ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) (MIT) first | ru 0.939 / uk 0.821 / be 0.873² |
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
+| `kubataba` | `ru` (opt-in) | Character-level seq2seq Transformer exported from [Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor) (MIT); sentence-level, no homograph resolution, no ё restoration | 0.886 word accuracy, NFC scoring on the same rows where `silero` gets 0.945 and `ruaccent` 0.947; see docs/models.md |
 
 ¹ `ru uk be bg mk sl lv hy ka kk ky tt ba cv sah kjh tg udm mdf myv kbd xal
 az-Latn az-Cyrl uz-Latn uz-Cyrl`: Russian, Ukrainian, Belarusian (all
@@ -74,6 +75,14 @@ Numbers come from the committed, reproducible
 [benchmark scoreboard](benchmarks/RESULTS.md) (annotated UD-treebank gold;
 read its noise-ceiling note before quoting absolutes). Defaults per
 language: `ru → ruaccent`, `uk/be → silero`, everything else → `simple`.
+The `kubataba` row is not on that scoreboard: its numbers come from an NFC
+scorer on the same rows (`docs/models.md`, "kubataba"). It is reached only
+with `model="kubataba"`: it is below both Russian defaults (paired bootstrap
+on 11124 russtress rows, 95% CI of the difference: −0.060 [−0.065, −0.054]
+against `silero`, −0.062 [−0.067, −0.056] against `ruaccent`) and takes
+about 150 ms per row in one process with two onnxruntime threads, so no
+default, `prefer=` strategy or fallback picks it. Its port is byte-identical
+to the upstream torch model on 1011 inputs.
 
 Models are hosted on
 [TigreGotico/stressonnx-models](https://huggingface.co/TigreGotico/stressonnx-models)
@@ -181,7 +190,8 @@ from context by `ruaccent` and by the homograph resolver of `silero`.
 
 - **First call per language downloads models** into the standard Hugging Face
   cache (`~/.cache/huggingface`, relocatable via `HF_HOME`). Sizes: `ru`
-  ruaccent about 500 MB, silero tens of MB, `simple` languages about 1 MB.
+  ruaccent about 500 MB, silero tens of MB, kubataba about 31 MB, `simple`
+  languages about 1 MB.
 - **Warm up ahead of serving.** Call `warm_up(lang)` once at startup so no
   synthesis request ever blocks on a model download. It loads the same
   cached instance later `stress()` calls use.
@@ -230,10 +240,10 @@ sessions are thread-safe for inference).
 
 ### Contracts worth knowing
 
-- `simple`/`silero` **skip** words already carrying U+0301. `ruaccent`
-  **strips and re-derives** (wrong input marks get corrected).
+- `simple`/`silero`/`kubataba` **skip** words already carrying U+0301.
+  `ruaccent` **strips and re-derives** (wrong input marks get corrected).
 - Monosyllables: `simple`/`silero` always stress them. `ruaccent` usually
-  leaves bare single-vowel words unmarked.
+  leaves bare single-vowel words unmarked; `kubataba` never marks them.
 - Every backend gives back the input unchanged except for the added marks
   and е→ё restorations. `ruaccent` also drops the stress marks already in
   the input and derives them again. A word that the models cannot read
@@ -329,4 +339,6 @@ upstream licence text as `LICENSE.silero-stress`. The `ru` `meta.json` also
 names the source package, version, licence and URL.
 The Ukrainian dictionary layer of the `silero` model comes from
 ukrainian-word-stress (lang-uk, MIT), whose word forms derive from
-"Dictionaries of Ukraine" by ULIF.
+"Dictionaries of Ukraine" by ULIF. The `kubataba` model is derived from
+[Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor)
+(kubataba, MIT).
