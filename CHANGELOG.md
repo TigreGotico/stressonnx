@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a13](https://github.com/TigreGotico/stressonnx/tree/0.0.3a13) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a12...0.0.3a13)
+
+**Merged pull requests:**
+
+- feat: stress Ukrainian dictionary forms from ukrainian-word-stress in the silero model [\#38](https://github.com/TigreGotico/stressonnx/pull/38) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a12](https://github.com/TigreGotico/stressonnx/tree/0.0.3a12) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a11...0.0.3a12)
