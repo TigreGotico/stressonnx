@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a24](https://github.com/TigreGotico/stressonnx/tree/0.0.3a24) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a23...0.0.3a24)
+
+**Merged pull requests:**
+
+- fix: keep one stress mark per word from the ruaccent character model [\#59](https://github.com/TigreGotico/stressonnx/pull/59) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a23](https://github.com/TigreGotico/stressonnx/tree/0.0.3a23) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a22...0.0.3a23)
