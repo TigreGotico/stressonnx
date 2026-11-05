@@ -1,5 +1,50 @@
 # Changelog
 
+## [0.0.3a24](https://github.com/TigreGotico/stressonnx/tree/0.0.3a24) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a23...0.0.3a24)
+
+**Merged pull requests:**
+
+- fix: keep one stress mark per word from the ruaccent character model [\#59](https://github.com/TigreGotico/stressonnx/pull/59) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a23](https://github.com/TigreGotico/stressonnx/tree/0.0.3a23) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a22...0.0.3a23)
+
+**Merged pull requests:**
+
+- test: score every Russian model on the committed scoreboard [\#61](https://github.com/TigreGotico/stressonnx/pull/61) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a22](https://github.com/TigreGotico/stressonnx/tree/0.0.3a22) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a21...0.0.3a22)
+
+**Merged pull requests:**
+
+- Update actions/setup-python action to v7 [\#27](https://github.com/TigreGotico/stressonnx/pull/27) ([renovate[bot]](https://github.com/apps/renovate))
+
+## [0.0.3a21](https://github.com/TigreGotico/stressonnx/tree/0.0.3a21) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a20...0.0.3a21)
+
+## [0.0.3a20](https://github.com/TigreGotico/stressonnx/tree/0.0.3a20) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a19...0.0.3a20)
+
+**Merged pull requests:**
+
+- Update actions/checkout action to v7 [\#24](https://github.com/TigreGotico/stressonnx/pull/24) ([renovate[bot]](https://github.com/apps/renovate))
+- Update actions/cache action to v6 [\#23](https://github.com/TigreGotico/stressonnx/pull/23) ([renovate[bot]](https://github.com/apps/renovate))
+
+## [0.0.3a19](https://github.com/TigreGotico/stressonnx/tree/0.0.3a19) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a18...0.0.3a19)
+
+**Merged pull requests:**
+
+- fix: set the Python floor to 3.11 and align docs with measured behaviour [\#52](https://github.com/TigreGotico/stressonnx/pull/52) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a18](https://github.com/TigreGotico/stressonnx/tree/0.0.3a18) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a17...0.0.3a18)

@@ -65,13 +65,13 @@ type it as е, so restoring ё and placing stress are the same problem.
   [RUAccent](https://github.com/Den4ikAI/ruaccent): a stress-usage
   classifier, an NLI homograph resolver scored against sentence context, a
   ё-restoration classifier, and a character-level accent model for unknown
-  words. Measured: **0.938** word accuracy, **0.820** on the homograph
+  words. Measured: **0.947** word accuracy, **0.833** on the homograph
   subset.
 - `silero`: a fast embedding-bag MLP exported from
   [silero_stress](https://github.com/snakers4/silero-stress). It restores
   ё, and a BERT homograph resolver picks the stress of dictionary homographs,
-  все/всё included, from a short context window. **0.939** (homographs
-  0.742).
+  все/всё included, from a short context window. **0.944** (homographs
+  0.753).
 - `simple` (dictionary path, `model="simple"`): 108,972 unambiguous entries
   from the RUAccent pronunciation dictionary, with no guessing on unknown
   words (rule `none`), because Russian stress placement genuinely cannot be
@@ -96,8 +96,7 @@ enough to make synthesis sound wrong or say the wrong word.
 **What stressonnx does.** `silero` neural model (default) with a
 dictionary layer from ukrainian-word-stress (see `models.md`). On
 crowdsourced UD-treebank gold, scored by `benchmarks/run.py`, it measures
-**0.821**. The neural model alone (model revision `b8ba7af`) measures 0.785,
-the weakest neural model in the library. `model="simple"` adds a 49,809-word dictionary path built
+**0.843**, the weakest neural model in the library. `model="simple"` adds a 49,809-word dictionary path built
 from stress-marked English-Wiktionary headwords, rule `none` (free stress,
 so no positional guess is defensible).
 
@@ -110,8 +109,8 @@ you is *which* syllable is stressed, and since the spelling of a word
 changes with stress position, TTS still needs the stress to read prosody
 and homographs correctly.
 
-**What stressonnx does.** `silero` neural model (default), **0.873**.
-`model="simple"` is the vocabulary-only fallback (**0.433**, the measured
+**What stressonnx does.** `silero` neural model (default), **0.908**.
+`model="simple"` is the vocabulary-only fallback (**0.435**, the measured
 cost of dropping the neural model, published so the trade-off is explicit).
 Rule `none`: the accentological literature treats Belarusian surface stress
 as lexically governed, so an unknown multi-vowel word is left unmarked
