@@ -7,7 +7,7 @@
 | Situation | Recommendation |
 |-----------|---------------|
 | Russian general-purpose | `model="ruaccent"` (default), or `prefer="best"` |
-| Russian in memory-constrained environment | `model="silero"` (about 5 MB vs about 470 MB), or `prefer="smallest"`/`prefer="fast"` |
+| Russian in memory-constrained environment | `model="silero"` (about 50 MB vs about 470 MB), or `prefer="smallest"`/`prefer="fast"` |
 | Ukrainian / Belarusian | `model="silero"` (default) |
 | Turkic / Caucasian / minority languages | `model="simple"` (default) |
 | Don't care which model, just want a capability | `prefer="best"` / `"fast"` / `"smallest"` instead of a model id |
@@ -19,13 +19,13 @@ Full accuracy numbers, not just relative quality claims, live in
 | lang | model | accuracy | homograph accuracy |
 |------|-------|----------|--------------------|
 | ru | ruaccent | 0.938 | 0.820 |
-| ru | silero | 0.914 | 0.381 |
+| ru | silero | 0.939 | 0.742 |
 | be | silero | 0.873 | not measured |
 | be | simple | 0.433 | not measured |
 
-`ruaccent` beats `silero` on both plain accuracy and, by a wide margin, on
-homograph accuracy for Russian. The much larger download buys real
-correctness, not just parity. For Belarusian, `silero` (neural, the default)
+On Russian, `ruaccent` and `silero` have the same plain accuracy, and
+`ruaccent` is more accurate on homographs. Its larger download gives
+homograph resolution from a wider context. For Belarusian, `silero` (neural, the default)
 is substantially more accurate than `model="simple"` (vocabulary lookup).
 Use `model="simple"` only where ONNX inference is unavailable. See
 `benchmarks/RESULTS.md` for row counts, the annotation-noise ceiling, and
@@ -226,7 +226,9 @@ known е→ё correction still applies.
 ### Architecture
 
 A fasttext-style n-gram embedding-bag plus MLP classification heads.
-Derived from [silero_stress](https://github.com/snakers4/silero-models) (MIT).
+Derived from [silero_stress](https://github.com/snakers4/silero-stress)
+(Copyright (c) 2020-present Silero Team, MIT). The ru bundle carries the
+upstream licence as `LICENSE.silero-stress`.
 
 ```
 Input word
@@ -247,11 +249,19 @@ argmax over character positions → stress index (+ yo index for ru)
 Insert U+0301 at that position (+ е→ё restoration for ru)
 ```
 
-Exceptions and skip-lists are consulted before the ONNX call:
+The exceptions dictionary is consulted before the ONNX call:
 `exceptions.txt.gz` (word → explicit stress index, plus an explicit yo index
-for `ru`) and `skip_stress_words.txt.gz` / `skip_yo_words.txt.gz` (words that
-should not receive a stress mark or a ё rewrite respectively, for example
-monosyllables and clitics).
+for `ru`).
+
+For `ru` a homograph resolver (the silero_stress homosolver) runs first. Each
+word of its dictionary (`homodict.json.gz`, about 2,200 words with two
+stressed variants each) gets the variant that its context selects. A phrase
+regex (`homophrases.json.gz`) decides when the context contains a known
+phrase. Otherwise a three-layer BERT (`homosolver.onnx`, 312 hidden units)
+reads up to 150 characters of cleaned context on each side of the word,
+written as `[HOMO] word [/HOMO]`, and a classifier over the marker and word
+vectors picks one of the two variants. The accentor then keeps the resolved
+stress and ё for those words.
 
 The original PyTorch model uses `nn.EmbeddingBag` with mode `"mean"`.
 Since `onnxruntime` does not support `EmbeddingBag` directly, the export
@@ -267,12 +277,10 @@ The Russian silero pipeline **does restore е→ё**. It runs a second MLP head
 (`yo_logits`) alongside the stress head and rewrites `е` to `ё` when the
 predicted yo-position coincides with the predicted stress position (`ё` is
 always stressed in Russian orthography, so it rewrites only where that
-constraint holds). What it does **not** do is resolve **yo-homographs**:
-words that are ambiguous purely because of the е/ё distinction, such as
-`все` ("everyone") vs `всё` ("everything"). Both stay written as `все`.
-Neither `silero` nor `ruaccent` (see above) disambiguates this specific
-pair. The upstream homograph-resolution model that would be needed has not
-been exported.
+constraint holds). **Yo-homographs**, words that are ambiguous purely
+because of the е/ё distinction such as `все` ("everyone") vs `всё`
+("everything"), go through the homograph resolver described above, which
+picks `все́` or `всё́` from the context.
 
 ### Why Ukrainian and Belarusian use this model
 
@@ -296,29 +304,29 @@ Belarusian specifics:
 
 ### Why silero is also available for Russian
 
-The silero Russian model exists and is accurate for unambiguous words. It is
-a valid alternative when:
+The silero Russian model is accurate for unambiguous words and resolves
+homographs from a short context window. It is a valid alternative when:
 - The about-470 MB ruaccent download is impractical.
-- The application does not need homograph disambiguation, for example
-  spelling pronunciation or read-aloud of unambiguous text.
-- Fast cold-start is required (silero ru downloads about 5 MB).
-
-It assigns the same stress to both readings of `замок`. For TTS of
-mixed-context text this is audible. See `benchmarks/RESULTS.md`: on
-Russian, `ruaccent` scores 0.820 homograph accuracy against `silero`'s 0.381.
+- Fast cold-start is required (silero ru downloads about 50 MB).
 
 ### Limitations
 
-- **No homograph disambiguation** for Russian. One-best prediction per word.
-- **No yo-homograph disambiguation.** е→ё restoration runs, but
-  `все`/`всё`-style ambiguity is left as-is (see above).
-- **Word-level context only.** The n-gram features are character-level. The
-  model has no access to surrounding words.
+- **Homograph resolution covers the homosolver dictionary only** (ru).
+  Other words get one-best prediction per word.
+- **Word-level context only** outside homographs. The n-gram features are
+  character-level and have no access to surrounding words.
+- **Long input costs time per homograph.** Each homograph that no phrase
+  rule settles is one BERT row. A 60,000-character text with 1,416 such
+  homographs takes about 14 s on two CPU threads, with about 300 MB peak
+  memory; the rows run in chunks of 32.
 - **Vocabulary coverage** is finite. Neologisms and foreign words rely on
   n-gram generalisation, which degrades for non-Cyrillic stems.
 - **The Ukrainian and Belarusian models are verified to match** the
   original silero outputs exactly (see `export/verify_e2e.py`). The Russian
-  model is verified numerically at export (max |diff| < 1e-3).
+  model is verified numerically at export: the largest difference from the
+  upstream logits is below 3e-5 of the largest logit for the stress and ё
+  heads. For the homosolver it is below 1e-4 of the largest logit (or of 1,
+  when all logits are smaller), and every logit keeps its sign.
 
 ---
 
@@ -405,7 +413,7 @@ dictionary path.
 - For **Georgian** and **Armenian**, the OOV heuristic is noticeably weaker
   than for the Turkic languages, so dictionary coverage matters more.
 - The vocabulary files are derived from
-  [silero_stress](https://github.com/snakers4/silero-models) (MIT) and
+  [silero_stress](https://github.com/snakers4/silero-stress) (MIT) and
   reflect the training data used there. Low-frequency or dialectal forms may
   be missing.
 - The original 20 `simple` vocabularies (the `be` dictionary path included)
@@ -527,11 +535,11 @@ mark at all.
 |---|---|---|---|
 | **Languages** | ru | uk, be, ru | 26 languages |
 | **Context** | Sentence (BERT) | Word (n-gram) | Word (dict) |
-| **Homograph resolution** | Yes (BERT + RoBERTa) | No | No |
+| **Homograph resolution** | Yes (BERT + RoBERTa) | ru only (BERT) | No |
 | **е→ё restoration (ru)** | Yes | Yes | N/A |
-| **Yo-homograph (все/всё) disambiguation** | No | No | N/A |
-| **ONNX inference** | 4 models | 1 model | None |
-| **Download size** | ~470 MB | ~5-10 MB | ~1-5 MB |
+| **Yo-homograph (все/всё) disambiguation** | No | ru only | N/A |
+| **ONNX inference** | 4 models | 1 model (2 for ru) | None |
+| **Download size** | ~470 MB | ~10 MB (ru ~50 MB) | ~1-5 MB |
 | **Cold-start latency** | High (4 sessions) | Low | Near-zero |
 | **Per-sentence latency** | ~50-200 ms | ~2-10 ms | <1 ms |
 | **Runtime deps** | onnxruntime, tokenizers | onnxruntime, numpy | numpy only |
