@@ -73,6 +73,10 @@ class ModelEntry:
         this model accepts.  Used by phoonnx (and other callers) to verify
         that the input text is in a script the model can handle before
         dispatching.
+    variant:
+        Model variant the family backend loads, for families that ship more
+        than one: the omograph model of the ruaccent family.  ``None`` for
+        families with a single variant.
     """
 
     langs: frozenset
@@ -80,6 +84,7 @@ class ModelEntry:
     hf_subdir: str | None
     description: str
     input_scripts: frozenset  # frozenset[Script]
+    variant: str | None = None
 
 
 @runtime_checkable
@@ -203,10 +208,23 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         hf_subdir="ru_ruaccent",
         description=(
             "Homograph-aware Russian accentor (RUAccent by Den4ikAI, "
-            "Apache-2.0). Four-model ONNX pipeline: stress-usage classifier, "
-            "yo-homograph resolver, omograph resolver, char-level accent model."
+            "MIT). Four-model ONNX pipeline: stress-usage classifier, "
+            "yo-homograph resolver, omograph resolver (turbo3.1), "
+            "char-level accent model."
         ),
         input_scripts=_CYRILLIC_ONLY,
+        variant="turbo3.1",
+    ),
+    "ruaccent-big-poetry": ModelEntry(
+        langs=frozenset(RUACCENT_LANGS),
+        family="ruaccent",
+        hf_subdir="ru_ruaccent",
+        description=(
+            "The ruaccent pipeline with the RUAccent big_poetry omograph "
+            "resolver (ruBERT-base NLI, MIT) in place of turbo3.1."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+        variant="big_poetry",
     ),
     "silero": ModelEntry(
         langs=frozenset(MAIN_LANGS),

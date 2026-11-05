@@ -7,6 +7,7 @@
 | Situation | Recommendation |
 |-----------|---------------|
 | Russian general-purpose | `model="ruaccent"` (default), or `prefer="best"` |
+| Russian, comparing homograph models | `model="ruaccent-big-poetry"` (the RUAccent `big_poetry` homograph model, less accurate on prose) |
 | Russian in memory-constrained environment | `model="silero"` (about 5 MB vs about 470 MB), or `prefer="smallest"`/`prefer="fast"` |
 | Ukrainian / Belarusian | `model="silero"` (default) |
 | Turkic / Caucasian / minority languages | `model="simple"` (default) |
@@ -134,7 +135,7 @@ regardless of whether it means a castle or a lock.
 ### Architecture
 
 Four ONNX models run in a fixed pipeline. All are derived from
-[RUAccent](https://github.com/Den4ikAI/ruaccent) (Den4ikAI, Apache-2.0).
+[RUAccent](https://github.com/Den4ikAI/ruaccent) (Den4ikAI, MIT).
 The original PyTorch checkpoints were converted to ONNX for torch-free
 runtime use.
 
@@ -194,6 +195,34 @@ known е→ё correction still applies.
   Face cache (respecting `HF_HOME` and `HF_HUB_OFFLINE`) unless an explicit
   `cache_dir=` is passed, in which case the layout is
   `cache_dir/ru_ruaccent/<file>`.
+
+### The big_poetry omograph model
+
+`model="ruaccent-big-poetry"` runs the same pipeline with the RUAccent
+`big_poetry` homograph model in place of `turbo3.1`. It is a ruBERT-base
+NLI classifier (BERT, 12 layers, about 714 MB). It reads the same input as
+`turbo3.1`: the sentence with the homograph between `<w>` and `</w>`,
+paired with one stressed candidate. As a BERT model it also reads the
+segment ids of the pair. The files are verbatim copies of
+`nn/nn_omograph/big_poetry` in `ruaccent/accentuator` and sit under
+`ru_ruaccent/nn_omograph_big_poetry/`. Only the selected homograph model
+is downloaded and loaded. The other three models and the dictionaries are
+shared with `ruaccent`.
+
+On the two Russian evaluation sets, `big_poetry` is less accurate than
+`turbo3.1`. The table scores the vowel of the target word, counted in NFC,
+with a paired bootstrap 95% interval of the difference.
+
+| set | targets | turbo3.1 | big_poetry | difference (95% CI) |
+|-----|---------|----------|------------|---------------------|
+| russtress ru, all words | 11,124 | 0.947 | 0.942 | −0.005 (−0.007 to −0.003) |
+| russtress ru, homographs | 724 | 0.833 | 0.753 | −0.080 (−0.115 to −0.046) |
+| HomographResolutionEval, homograph word | 1,727 | 0.888 | 0.852 | −0.036 (−0.055 to −0.018) |
+
+On HomographResolutionEval sentences it takes about 35% more time per
+sentence (138 ms against 102 ms) and about 450 MB more memory (1.2 GB
+against 0.7 GB peak RSS). Use it to compare homograph models, or for text
+where it measures better. The default stays `turbo3.1`.
 
 ### Limitations
 
@@ -363,7 +392,7 @@ Macedonian (`mk`), Slovene (`sl`), Latvian (`lv`), and the dictionary path of
 Russian and Ukrainian (`model="simple"` on `ru` / `uk`). Their vocabularies
 come from stress-marked English Wiktionary headwords (via kaikki.org, CC
 BY-SA), except the Russian dictionary path, built from the RUAccent
-pronunciation dictionary (Apache-2.0). Free-stress languages (bg, sl, and
+pronunciation dictionary (MIT). Free-stress languages (bg, sl, and
 the `ru`/`uk` dictionary paths) use the `none` rule: dictionary lookup only,
 never a positional guess. `mk` follows the fixed antepenultimate rule
 (Friedman 2001) with an exceptions-only vocabulary, and `lv` uses fixed
@@ -539,7 +568,7 @@ mark at all.
 | **Sentence-level input** | Required | Works word-by-word | Works word-by-word |
 | **Max input length** | ~512 subword tokens | Unlimited (per-word) | Unlimited |
 | **Idempotent on pre-marked text** | No (re-derives) | Yes (skips) | Yes (skips) |
-| **License** | Apache-2.0 | MIT | MIT |
+| **License** | MIT | MIT | MIT |
 
 `prefer="best"` picks `ruaccent` where available. `prefer="fast"` and
 `prefer="smallest"` pick `silero` then `simple` for languages that have
