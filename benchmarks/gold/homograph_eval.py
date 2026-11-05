@@ -1,4 +1,4 @@
-"""inkoziev/HomographResolutionEval (GOLD, CC-BY-4.0).
+"""inkoziev/HomographResolutionEval (SILVER, CC-BY-4.0): the card names no annotator or method.
 
 Source: https://huggingface.co/datasets/inkoziev/HomographResolutionEval.
 Original Russian sentences, each with one homograph and its stressed form.

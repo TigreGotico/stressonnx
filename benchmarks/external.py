@@ -37,3 +37,4 @@ class JsonlCommand:
     def close(self) -> None:
         self._proc.stdin.close()
         self._proc.wait(timeout=60)
+        self._proc.stdout.close()

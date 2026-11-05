@@ -35,7 +35,7 @@ SETS = [
     EvalSet("russtress", "ru", GOLD, "none stated",
             "https://github.com/MashaPo/russtress", "middle word of each window",
             lambda: russtress.load("ru")),
-    EvalSet("homograph-eval", "ru", GOLD, "CC-BY-4.0",
+    EvalSet("homograph-eval", "ru", SILVER, "CC-BY-4.0",
             "https://huggingface.co/datasets/inkoziev/HomographResolutionEval",
             "the homograph only", homograph_eval.load, homographs_only=True),
     EvalSet("wiktionary", "ru", GOLD, "CC-BY-SA",

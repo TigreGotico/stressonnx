@@ -208,6 +208,9 @@ def render(results: list, date: str) -> list:
         "undocumented method.  Silver rows show agreement with that labeller, not",
         "correctness, and no claim that one model is best rests on them.",
         "",
+        "The training data of silero and ruaccent is unpublished, so overlap with",
+        "these sets cannot be established.",
+        "",
     ]
     for lang in ("ru", "uk", "be"):
         lang_results = [r for r in results if r["lang"] == lang]

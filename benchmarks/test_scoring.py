@@ -43,6 +43,12 @@ def test_extra_mark_or_mark_on_consonant_is_a_miss():
     assert exact["correct"] == 2
 
 
+def test_extra_mark_beside_the_gold_vowel_is_a_miss():
+    row = Row("r", "по-моему", (Target(0, 1),))
+    result = score(replay({row.text: "по́-мо́ему"}), [row]).summary()
+    assert result["correct"] == 0 and result["n"] == 1
+
+
 def test_unmarked_yo_claims_the_stress():
     row = Row("r", "зеленый", (Target(0, 1),))
     assert score(replay({row.text: "зелёный"}), [row]).summary()["correct"] == 1

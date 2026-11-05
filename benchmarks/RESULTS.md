@@ -20,33 +20,15 @@ by a machine (an LLM, a dictionary tool, a context model) or by an
 undocumented method.  Silver rows show agreement with that labeller, not
 correctness, and no claim that one model is best rests on them.
 
+The training data of silero and ruaccent is unpublished, so overlap with
+these sets cannot be established.
+
 ## ru
 
 Leader on each GOLD set, against the runner-up:
 
-- homograph-eval: ruaccent 0.888 vs simple 0.347, McNemar p = 4e-228.
 - russtress: ruaccent 0.947 vs silero 0.918, McNemar p = 3e-50.
 - wiktionary: ruaccent 0.964 vs silero 0.948, McNemar p = 3e-115.
-
-### ru / homograph-eval — GOLD
-
-Source: https://huggingface.co/datasets/inkoziev/HomographResolutionEval (CC-BY-4.0).  Scored: the homograph only.
-Rows in: 1741; rows scored: 1727; targets: 1727.
-Dropped while loading: homograph field has no single acute (rows): 5; homograph not found in the sentence (rows): 7; homograph occurs 2+ times (rows): 2.
-Labels agree with the RUAccent accent dictionary, unambiguous entries on 67.0% of 896 targets the dictionary covers.
-Every target is a homograph, so a one-stress dictionary disagrees by design; this check does not measure label noise.
-
-| model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
-|-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| ruaccent | GOLD | 1727 | 0 | 0.888 | 0.872–0.902 | 0.896 (1660) | 106.4 | 1.4 |
-| silero | GOLD | 1727 | 0 | 0.223 | 0.203–0.241 | 0.197 (1660) | 0.4 | 0.2 |
-| simple | GOLD | 1727 | 0 | 0.347 | 0.324–0.369 | 0.351 (1660) | 0.1 | 0.1 |
-
-McNemar (exact, two-sided) on targets both models scored:
-
-- ruaccent vs silero: 1727 common targets, ruaccent only right 1201, silero only right 52, p = 7e-285.
-- ruaccent vs simple: 1727 common targets, ruaccent only right 981, simple only right 47, p = 4e-228.
-- silero vs simple: 1727 common targets, silero only right 270, simple only right 485, p = 4e-15.
 
 ### ru / russtress — GOLD
 
@@ -84,6 +66,26 @@ McNemar (exact, two-sided) on targets both models scored:
 - ruaccent vs silero: 137221 common targets, ruaccent only right 6155, silero only right 3878, p = 3e-115.
 - ruaccent vs simple: 137221 common targets, ruaccent only right 108841, simple only right 1202, p < 1e-300.
 - silero vs simple: 137221 common targets, silero only right 106792, simple only right 1430, p < 1e-300.
+
+### ru / homograph-eval — SILVER
+
+Source: https://huggingface.co/datasets/inkoziev/HomographResolutionEval (CC-BY-4.0).  Scored: the homograph only.
+Rows in: 1741; rows scored: 1727; targets: 1727.
+Dropped while loading: homograph field has no single acute (rows): 5; homograph not found in the sentence (rows): 7; homograph occurs 2+ times (rows): 2.
+Labels agree with the RUAccent accent dictionary, unambiguous entries on 67.0% of 896 targets the dictionary covers.
+Every target is a homograph, so a one-stress dictionary disagrees by design; this check does not measure label noise.
+
+| model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
+|-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
+| ruaccent | SILVER | 1727 | 0 | 0.888 | 0.872–0.902 | 0.896 (1660) | 106.4 | 1.4 |
+| silero | SILVER | 1727 | 0 | 0.223 | 0.203–0.241 | 0.197 (1660) | 0.4 | 0.2 |
+| simple | SILVER | 1727 | 0 | 0.347 | 0.324–0.369 | 0.351 (1660) | 0.1 | 0.1 |
+
+McNemar (exact, two-sided) on targets both models scored:
+
+- ruaccent vs silero: 1727 common targets, ruaccent only right 1201, silero only right 52, p = 7e-285.
+- ruaccent vs simple: 1727 common targets, ruaccent only right 981, simple only right 47, p = 4e-228.
+- silero vs simple: 1727 common targets, silero only right 270, simple only right 485, p = 4e-15.
 
 ### ru / prose-accents — SILVER
 
