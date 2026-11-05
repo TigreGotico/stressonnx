@@ -194,12 +194,13 @@ and a letter dropped behind one of them is still at the word's edge:
 `nn_yo_homograph` decides, per occurrence of `е`, whether to rewrite it as
 `ё` (both are the same letter for stress purposes).
 This resolves plain е→ё **restoration**, recovering the true pronunciation
-of a word conventionally written with `е`. It also resolves
+of a word conventionally written with `е`. It also decides
 **yo-homographs**, pairs where the surface form is ambiguous between two
 different words depending on ё (`все` "everyone" vs `всё` "everything"),
 from the sentence context: `все люди пришли` stays `все`, and `он все
 знает` becomes `он всё зна́ет`. Either reading of this one-vowel word gets
-no acute from `ruaccent`.
+no acute from `ruaccent`. The decision is a model prediction and can be wrong
+(`мы все устали` becomes `мы всё устали`).
 
 The models read the sentence as written, as upstream RUAccent does. A word
 that holds ё is then labelled as stressed whatever the stress-usage model
