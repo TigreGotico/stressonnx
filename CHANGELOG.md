@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a8](https://github.com/TigreGotico/stressonnx/tree/0.0.3a8) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a7...0.0.3a8)
+
+**Merged pull requests:**
+
+- fix: keep every compound stress, type model/lang mismatch, bound failure retries [\#30](https://github.com/TigreGotico/stressonnx/pull/30) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a7](https://github.com/TigreGotico/stressonnx/tree/0.0.3a7) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a6...0.0.3a7)
