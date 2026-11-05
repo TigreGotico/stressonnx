@@ -50,7 +50,7 @@ with sense-dependent pronunciation needs a bifonia-style diacritic restorer.
 | Model id | Languages | What it is | Measured quality |
 |----------|-----------|------------|------------------|
 | `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), Apache-2.0) | 0.938 word accuracy, **0.820 on homographs** |
-| `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё; the `uk` variant looks words up in a dictionary layer from [ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) (MIT) first | ru 0.914 / uk 0.821 / be 0.873² |
+| `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё and resolves homographs; the `uk` variant looks words up in a dictionary layer from [ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) (MIT) first | ru 0.939 / uk 0.821 / be 0.873² |
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
 
 ¹ `ru uk be bg mk sl lv hy ka kk ky tt ba cv sah kjh tg udm mdf myv kbd xal
@@ -91,7 +91,7 @@ Runtime dependencies: `onnxruntime`, `numpy`, `huggingface_hub`, and
 
 - `razdel` for better Russian sentence splitting inside the ruaccent pipeline
   (`pip install razdel`). Without it the whole input is processed as one span.
-- `pip install stressonnx[export]` adds torch, silero_stress and
+- `pip install stressonnx[export]` adds torch, onnx, silero_stress and
   ukrainian-word-stress, only for re-exporting models from a checkout.
   Never needed at runtime.
 
@@ -172,7 +172,7 @@ to_plus_notation("приве́т")                # 'прив+ет'  (handles NF
 
 Both Russian neural backends restore ё that writers commonly type as е:
 `зеленый → зелё́ный`. Genuinely ambiguous ё-homographs (все/всё) are resolved
-by `ruaccent` from context, and deliberately left untouched by `silero`.
+from context by `ruaccent` and by the homograph resolver of `silero`.
 
 ---
 
@@ -318,6 +318,11 @@ Pick your entry point:
 ## License
 
 Apache-2.0. Model attributions: RUAccent (Den4ikAI, Apache-2.0),
-silero_stress (snakers4, MIT), ukrainian-word-stress (lang-uk, MIT; the
-Ukrainian dictionary layer of the `silero` model, whose word forms upstream
-derives from "Dictionaries of Ukraine" by ULIF).
+[silero-stress](https://github.com/snakers4/silero-stress) (Copyright (c)
+2020-present Silero Team, MIT). The `silero` model files are derived from
+silero-stress 1.5. Each model directory (`ru`, `ukr`, `bel`) carries the
+upstream licence text as `LICENSE.silero-stress`. The `ru` `meta.json` also
+names the source package, version, licence and URL.
+The Ukrainian dictionary layer of the `silero` model comes from
+ukrainian-word-stress (lang-uk, MIT), whose word forms derive from
+"Dictionaries of Ukraine" by ULIF.

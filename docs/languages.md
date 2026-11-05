@@ -69,8 +69,9 @@ type it as е, so restoring ё and placing stress are the same problem.
   subset.
 - `silero`: a fast embedding-bag MLP exported from
   [silero_stress](https://github.com/snakers4/silero-stress). It restores
-  unambiguous ё but deliberately leaves ё-homographs (все/всё) untouched.
-  **0.914** (homographs 0.381, since it cannot use context).
+  ё, and a BERT homograph resolver picks the stress of dictionary homographs,
+  все/всё included, from a short context window. **0.939** (homographs
+  0.742).
 - `simple` (dictionary path, `model="simple"`): 108,972 unambiguous entries
   from the RUAccent pronunciation dictionary, with no guessing on unknown
   words (rule `none`), because Russian stress placement genuinely cannot be
