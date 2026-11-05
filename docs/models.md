@@ -293,6 +293,64 @@ Ukrainian specifics:
 - No е/ё distinction to disambiguate.
 - Fewer systematic homograph pairs than Russian.
 
+### Ukrainian dictionary layer
+
+The Ukrainian silero bundle carries a dictionary layer built from
+[ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress)
+2.1.0 (lang-uk, MIT). That project ships about 2.9 million Ukrainian word
+forms with their stress, which it derives from
+["Dictionaries of Ukraine"](https://lcorp.ulif.org.ua/dictua/) (Словники
+України) by ULIF. The layer lives in the bundle's
+`exceptions.txt.gz`, which the runtime reads before it runs the neural
+model. No torch, Stanza or marisa-trie is needed at runtime.
+
+The layer holds only the forms that have exactly one stress in the
+dictionary and that the neural model stresses differently. The model
+already stresses the other 2.6 million unambiguous forms the same way as
+the dictionary, so they are left out. This keeps the file at about 350 KB
+and about 96,000 entries. The full set of unambiguous forms is about 9 MB
+compressed and costs about 470 MB of memory when loaded.
+
+The neural model still decides these cases:
+
+- Heteronyms (за́мок/замо́к, бло́хи/блохи́). Upstream resolves them with
+  Stanza part-of-speech tags, which this library does not run.
+- Forms that the Wiktionary vocabulary of the `simple` model stresses on
+  another vowel. For `його` and `кому` the dictionary has only the noun
+  forms йо́го (vocative of йо́га) and ко́му (accusative of ко́ма), and lacks
+  the pronouns його́ and кому́.
+- Forms with variant stress (по́ми́лка), which the dictionary marks twice.
+- Forms whose case or apostrophe variants disagree on the stress.
+- Hyphenated compounds and multiword entries, which the tokenizer splits.
+- Words outside the dictionary.
+
+The layer is keyed like the runtime tokens: lowercase, without the
+apostrophe. `м'яч`, `м’яч` and `мʼяч` therefore all find the same entry.
+The stored stress is a character offset into the word as the dictionary
+spells it, and the runtime applies that offset to the token as written.
+Some tokens therefore lose the mark on a layer word:
+
+- A word inside `'…'` or `‘…’` quotes, or with a leading `’` or backtick.
+  The quote stays in the token and moves the offset onto a consonant.
+- A word with a soft hyphen (U+00AD) before the stressed vowel.
+- A dictionary word with an apostrophe, written without it. 18,334 of the
+  96,245 entries have an apostrophe before the stressed vowel. Written
+  without it, 17,493 of them get no mark and 841 get the mark on another
+  vowel (`попамятаємо`).
+
+Every layer entry is a form that the neural model alone stresses
+differently from the dictionary. On these tokens the output therefore
+changes from a mark the dictionary rejects to no mark. Double quotes `"…"` and
+guillemets `«…»` split off and are not affected.
+
+On the russtress Ukrainian gold, the layer raises the `silero` accuracy
+from 0.785 to 0.821 with the `benchmarks/run.py` scorer. That scorer
+counts a `й` before the stressed vowel as a vowel in the output only.
+Counted on composed text, the figures are 0.808 and 0.844.
+`export/build_uk_word_stress_vocab.py` rebuilds the layer from the pinned
+upstream release. A rebuilt `accentor.onnx` needs a rebuilt layer too,
+because the selection depends on the model's own output.
+
 Belarusian specifics:
 - **Akane**: unstressed /o/ merges phonetically with /a/. Stress is needed
   to pronounce words correctly.
@@ -322,11 +380,12 @@ homographs from a short context window. It is a valid alternative when:
 - **Vocabulary coverage** is finite. Neologisms and foreign words rely on
   n-gram generalisation, which degrades for non-Cyrillic stems.
 - **The Ukrainian and Belarusian models are verified to match** the
-  original silero outputs exactly (see `export/verify_e2e.py`). The Russian
-  model is verified numerically at export: the largest difference from the
-  upstream logits is below 3e-5 of the largest logit for the stress and ё
-  heads. For the homosolver it is below 1e-4 of the largest logit (or of 1,
-  when all logits are smaller), and every logit keeps its sign.
+  original silero outputs exactly (see `export/verify_e2e.py`), except on
+  the Ukrainian dictionary layer, where the dictionary wins by design. The
+  Russian model is verified numerically at export: the largest difference
+  from the upstream logits is below 3e-5 of the largest logit for the stress
+  and ё heads. For the homosolver it is below 1e-4 of the largest logit (or
+  of 1, when all logits are smaller), and every logit keeps its sign.
 
 ---
 

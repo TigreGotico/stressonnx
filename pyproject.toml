@@ -35,6 +35,8 @@ export = [
     "onnxscript",
     # the exported files and the parity tests track this exact release
     "silero_stress==1.5",
+    # the Ukrainian dictionary layer tracks this exact release
+    "ukrainian-word-stress==2.1.0",
 ]
 test = [
     "pytest",
