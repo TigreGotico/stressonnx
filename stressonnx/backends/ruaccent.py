@@ -57,6 +57,14 @@ _RE_RUACCENT_NORM = re.compile(
     r"(){}\[\]«»„“\"\-]"
 )
 
+# Position limit of the BERT-family models.
+_MAX_TOKENS = 512
+
+# Words on each side of a homograph that the omograph model sees.  The
+# window keeps its full size (2 * this + 1 words) near the ends of a
+# sentence, so a sentence of up to that many words is scored whole.
+_OMOGRAPH_CONTEXT_WORDS = 64
+
 # Punctuation characters used by delete_spaces_before_punc
 _PUNC_CHARS = '!"#%&\'()*,./:;<=>?@[\\]^_`{|}-'
 
@@ -284,8 +292,24 @@ class RuAccentStressor:
         id2label: dict,
         has_tti: bool = True,
     ) -> list:
-        """Run a token-classification model and aggregate subword → word labels."""
+        """Run a token-classification model and aggregate subword → word labels.
+
+        A text past the model's position limit is split in half at a space
+        and each half is labelled on its own, so no word loses its label to
+        truncation.
+        """
         enc = tok.encode(text)
+        if enc.overflowing:
+            words = text.split(" ")
+            half = len(words) // 2
+            if half:
+                return [
+                    label
+                    for part in (words[:half], words[half:])
+                    for label in self._predict_word_labels(
+                        " ".join(part), sess, tok, id2label, has_tti
+                    )
+                ]
         input_ids = np.array([enc.ids], dtype=np.int64)
         attn = np.array([enc.attention_mask], dtype=np.int64)
         feed: dict = {"input_ids": input_ids, "attention_mask": attn}
@@ -379,10 +403,7 @@ class RuAccentStressor:
         for pos, variants in found:
             probs = []
             for hyp in variants:
-                tmp = list(context)
-                tmp[pos] = " <w>" + tmp[pos] + "</w> "
-                txt = _delete_spaces_before_punc(" ".join(tmp))
-                enc = self._omograph_tok.encode(txt, pair=hyp)
+                enc = self._omograph_encoding(context, pos, hyp)
                 input_ids = np.array([enc.ids], dtype=np.int64)
                 attn = np.array([enc.attention_mask], dtype=np.int64)
                 logits = self._omograph_sess.run(
@@ -394,6 +415,24 @@ class RuAccentStressor:
                 original[pos], _plus_to_diacritic(variants[int(np.argmax(probs))])
             )
         return splitted_text
+
+    def _omograph_encoding(self, words: list, pos: int, hyp: str):
+        """Encode the homograph at *pos* in its context, with hypothesis *hyp*.
+
+        The context is a window of words around the homograph, halved until
+        the pair fits the model's position limit.
+        """
+        span = _OMOGRAPH_CONTEXT_WORDS
+        while True:
+            size = 2 * span + 1
+            lo = max(0, min(pos - span, len(words) - size))
+            tmp = words[lo:lo + size]
+            tmp[pos - lo] = " <w>" + tmp[pos - lo] + "</w> "
+            txt = _delete_spaces_before_punc(" ".join(tmp))
+            enc = self._omograph_tok.encode(txt, pair=hyp)
+            if len(enc.ids) <= _MAX_TOKENS or span == 0:
+                return enc
+            span //= 2
 
     def _process_accent(self, words: list, stress_usages: list) -> list:
         for i, word in enumerate(words):
