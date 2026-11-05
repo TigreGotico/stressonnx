@@ -60,8 +60,9 @@ _RE_RUACCENT_NORM = re.compile(
 # Position limit of the BERT-family models.
 _MAX_TOKENS = 512
 
-# Words on each side of a homograph that the omograph model sees.  A
-# sentence shorter than twice this is scored whole.
+# Words on each side of a homograph that the omograph model sees.  The
+# window keeps its full size (2 * this + 1 words) near the ends of a
+# sentence, so a sentence of up to that many words is scored whole.
 _OMOGRAPH_CONTEXT_WORDS = 64
 
 # Punctuation characters used by delete_spaces_before_punc
@@ -409,8 +410,9 @@ class RuAccentStressor:
         """
         span = _OMOGRAPH_CONTEXT_WORDS
         while True:
-            lo = max(0, pos - span)
-            tmp = words[lo:pos + span + 1]
+            size = 2 * span + 1
+            lo = max(0, min(pos - span, len(words) - size))
+            tmp = words[lo:lo + size]
             tmp[pos - lo] = " <w>" + tmp[pos - lo] + "</w> "
             txt = _delete_spaces_before_punc(" ".join(tmp))
             enc = self._omograph_tok.encode(txt, pair=hyp)
