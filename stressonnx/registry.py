@@ -107,7 +107,7 @@ HF_REPO_ID = "TigreGotico/stressonnx-models"
 #: fetched from exactly this revision, so releases are reproducible and an
 #: upstream force-push cannot change what users run.  Bump deliberately when
 #: models are uploaded (see export/ADDING_A_LANGUAGE.md).
-HF_REPO_REVISION = "b8ba7afdb78534afa1a7f4794b98d019c3866aef"
+HF_REPO_REVISION = "13ab09f55a725395f857695ac218b5ae1f5b22e4"
 
 # Files for main_accentor family
 _MAIN_FILES = [
@@ -115,9 +115,23 @@ _MAIN_FILES = [
     "embedding.npy",
     "ngram_dict.txt.gz",
     "exceptions.txt.gz",
+    "meta.json",
+]
+
+# Extra files of a main_accentor bundle whose meta.json declares a
+# ``homosolver`` (ru)
+_HOMOSOLVER_FILES = [
+    "homosolver.onnx",
+    "homosolver_vocab.txt.gz",
+    "homodict.json.gz",
+    "homophrases.json.gz",
+]
+
+# Homographs left unstressed (and without е→ё) by a ru bundle that predates
+# the homosolver
+_SKIP_FILES = [
     "skip_stress_words.txt.gz",
     "skip_yo_words.txt.gz",
-    "meta.json",
 ]
 
 # Files for simple_accentor family (language metadata ships in
@@ -232,7 +246,9 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         hf_subdir=None,  # per-language: <lang>/
         description=(
             "Neural ONNX accentor exported from silero_stress (MIT). "
-            "Fasttext-style n-gram embedding-bag + MLP heads. "
+            "Fasttext-style n-gram embedding-bag + MLP heads; for Russian "
+            "a BERT homograph resolver picks the stress of dictionary "
+            "homographs from context. "
             "Supports Ukrainian, Belarusian, and Russian."
         ),
         input_scripts=_CYRILLIC_ONLY,

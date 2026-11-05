@@ -156,13 +156,16 @@ def _align_marks(original: str, marked: str):
             for k in range(i2 - i1):
                 to_original[i1 + k] = j1 + k
 
+    def is_yo(s: str, i: int) -> bool:
+        return s[i] in "ёЁ" or (s[i] in "еЕ" and s[i + 1:i + 2] == "\u0308")
+
     marks = sorted({to_original[p] for p in mark_positions if p in to_original})
     yo = sorted(
         to_original[i]
         for i in range(len(stripped))
         if i in to_original
-        and stripped[i] in "ёЁ"
-        and original[to_original[i]] in "еЕ"
+        and is_yo(stripped, i)
+        and not is_yo(original, to_original[i])
     )
     return marks, yo
 
