@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.0.3a14](https://github.com/TigreGotico/stressonnx/tree/0.0.3a14) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a13...0.0.3a14)
+
+**Merged pull requests:**
+
+- fix: keep caller letters and give ё words the same marks in ruaccent [\#41](https://github.com/TigreGotico/stressonnx/pull/41) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a13](https://github.com/TigreGotico/stressonnx/tree/0.0.3a13) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a12...0.0.3a13)
+
+**Merged pull requests:**
+
+- feat: stress Ukrainian dictionary forms from ukrainian-word-stress in the silero model [\#38](https://github.com/TigreGotico/stressonnx/pull/38) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a12](https://github.com/TigreGotico/stressonnx/tree/0.0.3a12) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a11...0.0.3a12)
+
+**Merged pull requests:**
+
+- feat: resolve Russian homographs in the silero model with the silero-stress 1.5 homosolver [\#34](https://github.com/TigreGotico/stressonnx/pull/34) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a11](https://github.com/TigreGotico/stressonnx/tree/0.0.3a11) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a10...0.0.3a11)
@@ -84,6 +108,36 @@
 **Merged pull requests:**
 
 - docs: rewrite README in Simplified Technical English [\#12](https://github.com/TigreGotico/stressonnx/pull/12) ([JarbasAl](https://github.com/JarbasAl))
+
+## [0.0.2](https://github.com/TigreGotico/stressonnx/tree/0.0.2) (2026-07-22)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.2a1...0.0.2)
+
+## [0.0.2a1](https://github.com/TigreGotico/stressonnx/tree/0.0.2a1) (2026-07-22)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.1...0.0.2a1)
+
+**Merged pull requests:**
+
+- fix\(ci\): use token-based PyPI publishing instead of OIDC [\#10](https://github.com/TigreGotico/stressonnx/pull/10) ([JarbasAl](https://github.com/JarbasAl))
+
+## [0.0.1](https://github.com/TigreGotico/stressonnx/tree/0.0.1) (2026-07-22)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.1a3...0.0.1)
+
+## [0.0.1a3](https://github.com/TigreGotico/stressonnx/tree/0.0.1a3) (2026-07-22)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.1a2...0.0.1a3)
+
+## [0.0.1a2](https://github.com/TigreGotico/stressonnx/tree/0.0.1a2) (2026-07-22)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/3e2de722178b203a56c5701d943d6a88d7879568...0.0.1a2)
+
+**Merged pull requests:**
+
+- feat: typed data model, Script alphabet, kubataba backend, docs + tests [\#3](https://github.com/TigreGotico/stressonnx/pull/3) ([JarbasAl](https://github.com/JarbasAl))
+- feat: RUAccent homograph-aware Russian backend [\#2](https://github.com/TigreGotico/stressonnx/pull/2) ([JarbasAl](https://github.com/JarbasAl))
+- chore: Configure Renovate [\#1](https://github.com/TigreGotico/stressonnx/pull/1) ([renovate[bot]](https://github.com/apps/renovate))
 
 
 

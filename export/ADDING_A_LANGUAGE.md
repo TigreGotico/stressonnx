@@ -240,11 +240,11 @@ The script:
 - Exports it to `accentor.onnx` via `torch.onnx.export`.
 - Dumps `embedding.npy` (the n-gram embedding matrix — `onnxruntime` has no
   native `EmbeddingBag` op, so the pooling step runs in NumPy instead, not
-  inside the ONNX graph), `ngram_dict.txt.gz`, `exceptions.txt.gz`,
-  `skip_stress_words.txt.gz`, `skip_yo_words.txt.gz`, and `meta.json`
+  inside the ONNX graph), `ngram_dict.txt.gz`, `exceptions.txt.gz`, and
+  `meta.json`
   (containing `family`, `has_yo`, `alpha`, `vowels`, and embedding stats).
 - Verifies the ONNX classifier's output matches the original PyTorch output
-  (max absolute difference < 1e-3).
+  (the largest difference is below 3e-5 of the largest logit).
 
 **Upload:**
 

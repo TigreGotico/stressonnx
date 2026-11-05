@@ -6,22 +6,40 @@ heads. Pipeline:
 2. Compute fastText-style n-gram embeddings for each clean token by
    mean-pooling the rows selected from the embedding matrix.
 3. Run the ONNX MLP heads → stress_logits [N, K] (+ yo_logits for ``ru``).
-4. Decode: exceptions dict → skip sets → argmax position → insert '+'.
+4. Decode: exceptions dict → argmax position → insert '+'.
+
+For ``ru`` the homograph resolver (:mod:`._silero_homosolver`) runs first and
+fixes the stress (and ё) of every dictionary homograph from its context; the
+accentor then leaves those words stressed as resolved.  A ru bundle without
+the resolver logs a warning and leaves the homographs of its skip lists
+unstressed.
 """
 import threading
 import gzip
 import json
+import os
 import re
 
 import numpy as np
 import onnxruntime as ort
 
 from stressonnx._common import _RE_RU_COND, _RU_VOWELS, _softmax, lower_preserving_length, tokenize
-from stressonnx.download import _download_files
+from stressonnx.backends._silero_homosolver import HomoSolver
+from stressonnx.download import LOG, _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.langs import resolve_lang
 from stressonnx.notation import composed, has_stress_mark, in_form_of, render_marks
-from stressonnx.registry import MAIN_LANGS, _MAIN_FILES, hf_dir
+from stressonnx.registry import (
+    HF_REPO_REVISION,
+    MAIN_LANGS,
+    _HOMOSOLVER_FILES,
+    _MAIN_FILES,
+    _SKIP_FILES,
+    hf_dir,
+)
+
+#: Bundles already reported as lacking the homograph resolver
+_WARNED_NO_HOMOSOLVER: set = set()
 
 
 def _load_ngram_dict(path: str) -> dict:
@@ -51,6 +69,23 @@ def _load_exceptions(path: str) -> dict:
 def _load_set(path: str) -> set:
     with gzip.open(path, "rt", encoding="utf-8") as fh:
         return {x for x in fh.read().split("\n") if x}
+
+
+def _warn_no_homosolver(subdir: str, cache_dir: str | None) -> None:
+    where = os.path.join(cache_dir, subdir) if cache_dir else f"{subdir}@{HF_REPO_REVISION[:12]}"
+    if where in _WARNED_NO_HOMOSOLVER:
+        return
+    _WARNED_NO_HOMOSOLVER.add(where)
+    if cache_dir:
+        fix = (f"delete {where} so that model revision {HF_REPO_REVISION[:12]} "
+               "is fetched, or point cache_dir at a copy of that revision")
+    else:
+        fix = "upgrade stressonnx to a release whose pinned model revision has them"
+    LOG.warning(
+        "silero bundle %s has no homograph resolver (missing: %s); dictionary "
+        "homographs stay unstressed. To fix, %s.",
+        where, ", ".join(_HOMOSOLVER_FILES), fix,
+    )
 
 
 class _SileroStressor:
@@ -97,7 +132,8 @@ class _SileroStressor:
             self._loaded = True
 
     def _load(self) -> None:
-        data = _download_files(hf_dir(self.lang, "silero"), _MAIN_FILES, self._cache_dir, model_id="silero")
+        subdir = hf_dir(self.lang, "silero")
+        data = _download_files(subdir, _MAIN_FILES, self._cache_dir, model_id="silero")
 
         with open(data["meta.json"]) as fh:
             meta = json.load(fh)
@@ -106,8 +142,6 @@ class _SileroStressor:
         self._ngram_dict: dict = _load_ngram_dict(data["ngram_dict.txt.gz"])
         self._unk: int = self._ngram_dict["UNK"]
         self._exceptions: dict = _load_exceptions(data["exceptions.txt.gz"])
-        self._skip_stress: set = _load_set(data["skip_stress_words.txt.gz"])
-        self._skip_yo: set = _load_set(data["skip_yo_words.txt.gz"])
         self._sess = ort.InferenceSession(
             data["accentor.onnx"],
             providers=["CPUExecutionProvider"],
@@ -115,6 +149,20 @@ class _SileroStressor:
 
         # Per-language settings from meta.json (set by export script)
         self._has_yo: bool = meta.get("has_yo", self.lang == "ru")
+
+        # ru resolves homographs; a bundle from before the resolver leaves
+        # them unstressed through its skip lists instead of guessing
+        self._homosolver: HomoSolver | None = None
+        self._skip_stress: set = set()
+        self._skip_yo: set = set()
+        if "homosolver" in meta:
+            homo_files = _download_files(subdir, _HOMOSOLVER_FILES, self._cache_dir, model_id="silero")
+            self._homosolver = HomoSolver(homo_files, meta["homosolver"])
+        elif self._has_yo:
+            _warn_no_homosolver(subdir, self._cache_dir)
+            skip = _download_files(subdir, _SKIP_FILES, self._cache_dir, model_id="silero")
+            self._skip_stress = _load_set(skip["skip_stress_words.txt.gz"])
+            self._skip_yo = _load_set(skip["skip_yo_words.txt.gz"])
         alpha = meta.get("alpha")
         if alpha:
             escaped = re.escape("".join(sorted(set(alpha))))
@@ -246,19 +294,68 @@ class _SileroStressor:
         marks, yo = self._composed_mark_offsets(nfc)
         return [origin[o] for o in marks], [origin[o] for o in yo]
 
+    def _homograph_offsets(self, text: str):
+        """(stress, ё) offsets the homosolver fixes in *text* (``ru`` only)."""
+        marks, yo = set(), set()
+        if self._homosolver is None:
+            return marks, yo
+        for start, variant in self._homosolver.resolve(text):
+            plain = variant.replace("+", "")
+            marks.add(start + variant.index("+"))
+            yo.update(start + i for i, c in enumerate(plain) if c == "ё")
+        return marks, yo
+
+    def _resolved_yo(self, raw_word, clean_word, word_marks, yo_pred, yo_prob):
+        """ё offsets (in *raw_word*) the accentor adds to a resolved homograph.
+
+        Port of the upstream accentor on a word that already carries ``+``
+        marks and no ё: an exceptions entry restores ё when its ё index sits
+        just before a mark, otherwise the yo head restores ё on a marked
+        vowel.  Positions are computed on the ``+``-marked spelling, as
+        upstream does.
+        """
+        raw_lower = lower_preserving_length(raw_word)
+        if clean_word in self._exceptions:
+            exc_yo = self._exceptions[clean_word][1]
+            plus_at = [m + k for k, m in enumerate(word_marks)]
+            if (exc_yo != -1 and exc_yo + 1 in plus_at
+                    and exc_yo < len(raw_lower) and raw_lower[exc_yo] == "е"):
+                return [exc_yo]
+            return []
+        if yo_prob <= 0.5:
+            return []
+        plus_word, cut = "", 0
+        for m in word_marks:
+            plus_word += raw_lower[cut:m] + "+"
+            cut = m
+        plus_word += raw_lower[cut:]
+        stressed_vowel_ids = [
+            sum(c in self._vowels for c in part) for part in plus_word.split("+")
+        ]
+        stress_positions, yo_positions, _, _ = self._get_positions(
+            plus_word, stressed_vowel_ids, [yo_pred]
+        )
+        return [
+            p - plus_word[:p].count("+")
+            for p in yo_positions
+            if p in stress_positions and plus_word[p] == "е"
+        ]
+
     def _composed_mark_offsets(self, text: str):
         """Offsets (into *text*) of stressed vowels and е→ё substitutions.
 
         With yo enabled (``ru``) this is a port of silero_stress's
-        ``Accentor.__call__`` (default flags): ё in the input is stressed
-        directly (ё is inherently stressed in Russian orthography), the
+        ``SileroStress.__call__`` (default flags): the homosolver stresses
+        dictionary homographs from context, ё in the input is stressed
+        directly (ё is inherently stressed in Russian orthography), and the
         model's е→ё prediction is applied only where it agrees with the
-        predicted stress position, and skip/yo dictionaries are keyed on the
-        е-spelling.  For ``uk``/``be`` every ё branch is inert and the same
-        loop reduces to the plain decode.
+        stress position.  Skip lists apply only to a ru bundle without the
+        homosolver.  For ``uk``/``be`` every ё and homograph branch is
+        inert and the same loop reduces to the plain decode.
         """
         self._ensure_loaded()
         with_yo = self._has_yo
+        homo_marks, homo_yo = self._homograph_offsets(text)
         raw_tokens, clean_tokens, prediction_mask = self._tokenize(text)
         stress_preds, stress_probs, yo_preds, yo_probs = self._predict(clean_tokens)
 
@@ -269,11 +366,28 @@ class _SileroStressor:
         ):
             start = pos
             pos += len(raw_word)
+            word_marks = sorted(o - start for o in homo_marks if start <= o < pos)
+            word_yo = sorted(o - start for o in homo_yo if start <= o < pos)
             if not need:
+                marks.extend(start + o for o in word_marks)
+                yo_out.extend(start + o for o in word_yo)
                 continue
 
             raw_lower = lower_preserving_length(raw_word)
             if has_stress_mark(raw_word):
+                continue
+
+            if word_marks:
+                # a resolved homograph keeps the homosolver's stress
+                marks.extend(start + o for o in word_marks)
+                if word_yo or "ё" in raw_lower:
+                    yo_out.extend(start + o for o in word_yo)
+                    continue
+                yo_out.extend(
+                    start + o
+                    for o in self._resolved_yo(raw_word, clean_word, word_marks,
+                                               int(yo_preds[wi]), yo_probs[wi])
+                )
                 continue
 
             base_word = clean_word.replace("ё", "е") if with_yo else clean_word

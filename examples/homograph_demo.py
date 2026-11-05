@@ -10,7 +10,8 @@ carry different stress depending on grammatical meaning or context:
 
 The two Russian neural backends handle these differently:
 - ruaccent: sentence-context BERT pipeline → correct disambiguation
-- silero:   word-level MLP → no disambiguation, one-best prediction
+- silero:   word-level MLP plus a BERT homograph resolver over a short
+            context window
 """
 from stressonnx import stress
 
@@ -20,7 +21,7 @@ HOMOGRAPH_PAIRS = [
         "старинный замок стоит на горе",
         "стари́нный за́мок сто́ит на горе́",
         "дверной замок надёжен",
-        "дверно́й замо́к надёжен",
+        "дверно́й замо́к надё́жен",
         "замок: castle vs lock",
     ),
     (
@@ -60,7 +61,7 @@ for sent_a, exp_a, sent_b, exp_b, note in HOMOGRAPH_PAIRS:
     print(f"  {ok_b}  {out_b}")
     print()
 
-print("=== silero (neural, word-level, no homograph resolution) ===\n")
+print("=== silero (neural, word-level, BERT homograph resolver) ===\n")
 for sent_a, _, sent_b, _, note in HOMOGRAPH_PAIRS:
     out_a = stress(sent_a, "ru", model="silero")
     out_b = stress(sent_b, "ru", model="silero")
