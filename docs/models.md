@@ -200,7 +200,7 @@ different words depending on ё (`все` "everyone" vs `всё` "everything"),
 from the sentence context: `все люди пришли` stays `все`, and `он все
 знает` becomes `он всё зна́ет`. Either reading of this one-vowel word gets
 no acute from `ruaccent`. The decision is a model prediction and can be wrong
-(`мы все устали` becomes `мы всё устали`).
+(`мы все устали` becomes `мы всё уста́ли`).
 
 The models read the sentence as written, as upstream RUAccent does. A word
 that holds ё is then labelled as stressed whatever the stress-usage model
