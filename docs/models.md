@@ -14,6 +14,7 @@
 | Don't care which model, just want a capability | `prefer="best"` / `"fast"` / `"smallest"` instead of a model id |
 | Russian, the RusStress/StressRNN reading for comparison or parity with a system built on it | `model="stressrnn"` (never selected by default or by `prefer=`) |
 | Russian, a second opinion from a sentence-level seq2seq model | `model="kubataba"` (opt-in only; below both `ruaccent` and `silero` in accuracy and far slower) |
+| Ukrainian, the ukrainian-accentor-transformer reading for comparison or parity with a system built on it | `model="uk_accentor"` (never selected by default or by `prefer=`) |
 
 Full accuracy numbers, not just relative quality claims, live in
 [`../benchmarks/RESULTS.md`](../benchmarks/RESULTS.md), reproducible with
@@ -24,6 +25,8 @@ Full accuracy numbers, not just relative quality claims, live in
 | ru | ruaccent | 0.938 | 0.820 |
 | ru | silero | 0.939 | 0.742 |
 | ru | stressrnn | 0.891 (0.908 at threshold 0.0) | not measured |
+| uk | silero | 0.843 | not measured |
+| uk | uk_accentor | 0.795 | not measured |
 | be | silero | 0.873 | not measured |
 | be | simple | 0.433 | not measured |
 
@@ -35,6 +38,12 @@ paired bootstrap 95% CI of the difference is -0.029 to -0.018, and against
 `ruaccent` -0.053 to -0.043. The russtress file is also the corpus the
 StressRNN BiLSTM was trained on, so its number is optimistic. For Belarusian, `silero` (neural, the default)
 is substantially more accurate than `model="simple"` (vocabulary lookup).
+For Ukrainian, `uk_accentor` scores 0.795 (95% CI 0.787 to 0.801) against
+`silero`'s 0.843 (0.837 to 0.850) on the same 12 252 russtress targets,
+McNemar p = 4e-64, with `benchmarks/run.py` scoring (a hit marks exactly the
+gold vowel and no other; `uk_accentor` writes two marks on some words). The
+russtress rows carry labels from the same lineage as its training data (see
+the `uk_accentor` section), so its number is optimistic.
 Use `model="simple"` only where ONNX inference is unavailable. See
 `benchmarks/RESULTS.md` for row counts, the annotation-noise ceiling, and
 per-model dropped-row counts.
@@ -99,6 +108,7 @@ vowel:
 | `ruaccent` | The dictionary/neural accent path only fires for words with **more than one** vowel. A bare, dictionary-absent monosyllable is often left **unmarked**. Single-vowel entries hardcoded in the accent dictionary (for example `о` → `+о`) are still marked. |
 | `stressrnn` | Always stressed, prepositions and particles included (`на́`, `а́`), and so is every hyphen part (`кто́-то́`). This is upstream behaviour. |
 | `kubataba` | Never marked. The upstream model treats a single-vowel word as inherently stressed and emits no mark for it. |
+| `uk_accentor` | Whatever the model writes: most monosyllables stay unmarked (`як`, `що`, `село`), some get a mark. This is upstream behaviour. |
 
 ---
 
@@ -114,6 +124,7 @@ Calling a backend on text that already carries the combining acute
 | `ruaccent` | Strips and re-derives from scratch. Marks are not detected as "already done", yo-homograph and omograph resolution always re-run. A word written with ё is always labelled as stressed, so it gets the same marks whether the input writes е or ё. A second run gives back the output of the first unless a restored ё changes what the stress-usage model reads for a neighbouring word. |
 | `kubataba` | Skips: the model reads the text without its marks, and a word that already carried one keeps it and gets no new mark. |
 | `stressrnn` | Skips: a word that already carries U+0301 is left as it is. |
+| `uk_accentor` | Strips the marks for the model, then keeps every pre-marked word as it was and drops the model's marks on it. Upstream re-marks every word. |
 
 If you need to guarantee a no-op on already-stressed text, prefer `simple`
 or `silero` for that language, or check for U+0301 yourself before calling.
@@ -508,6 +519,74 @@ needs no morphology dependency for this model.
 
 ---
 
+## `"uk_accentor"`: seq2seq Transformer
+
+**Available for `uk`. Never a default, never chosen by `prefer=`.**
+
+A port of [ukrainian-accentor-transformer](https://github.com/Theodotus1243/ukrainian-accentor-transformer)
+(Bohdan Mykhailenko, MIT). Upstream trained a 4+4-layer Transformer
+(d 256, 8 heads, ffn 1024) with a shared SentencePiece vocabulary of 4095
+pieces on the lang-uk News corpus, stressed with
+[ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress),
+and ships it only as a CTranslate2 binary. `export/export_uk_accentor.py`
+reads that binary, rebuilds the network with CTranslate2's arithmetic and
+exports an encoder graph and a decoder graph; the SentencePiece model
+becomes a `tokenizer.json`. The model translates a sentence into the same
+sentence with U+0301 after each stressed vowel.
+
+```
+Input text
+      │
+      ├── U+0301 stripped, SentencePiece pieces (tokenizer.json)
+      │
+      ├── cut after every . , ! ? piece; chunks of 30+ pieces halved at a word start
+      │
+      ├── per chunk: encoder.onnx → memory; decoder.onnx step by step,
+      │              beam 2, repetition penalty 1.2, length penalty 1 (numpy)
+      │
+      ├── hypotheses joined and decoded to text
+      │
+      └── difflib alignment with the stripped input: a U+0301 the model
+          inserted marks the input letter before it; every other
+          difference is dropped → marks rendered onto the input
+```
+
+The model sees the whole chunk, so it can use context, and it marks what it
+was trained on: some words get two marks (`за́мо́к`, `ро́кі́в`), some stay
+unmarked, most monosyllables stay unmarked. The scoring harness reads the
+first mark of a word.
+
+Parity with upstream: identical output on 1009 of the 1009
+sentences in upstream's own test file and on 12251 of the
+12253 russtress windows (upstream run with its own code on the same NFC
+text). The differences are the two rules below.
+
+Differences from upstream `Accentor.__call__`: the port works on the NFC
+form of the text and maps offsets back, where upstream aligns its output
+with the raw text and loses the marks of a word spelled with a combining
+mark (`и` + U+0306 for `й`); and a word that already carries a stress mark
+keeps it, where upstream strips every mark and writes its own. The port
+never changes a letter: the output is the input with marks inserted at
+offsets, so a letter the model rewrote is dropped, as upstream does with
+its diff.
+
+### Limitations
+
+- **Training labels come from ukrainian-word-stress**, the dictionary that
+  also feeds the `uk` dictionary layer proposed for the `silero` model.
+  The russtress Ukrainian rows are the only gold available and share that
+  lineage, so the scoreboard number is a ceiling, not an independent
+  measurement.
+- **Slow.** Beam search runs the decoder graph once per output piece and
+  beam; 138 ms per russtress row against silero's
+  0.2 on the same box (24 cores under load, 2 threads).
+- **Double marks and unmarked words.** One reading per chunk, as the model
+  wrote it; no post-processing picks a single vowel.
+- **Ukrainian alphabet only.** A letter outside the SentencePiece vocabulary
+  becomes `<unk>` and the word around it is usually left unmarked.
+
+---
+
 ## `"simple"`: vocabulary + rules
 
 **Default for the 26 rule/vocabulary languages** (Turkic, Caucasian, Uralic, and the Wiktionary/dictionary-backed Slavic and Baltic set).
@@ -730,7 +809,8 @@ mark at all.
 `prefer="best"` picks `ruaccent` where available. `prefer="fast"` and
 `prefer="smallest"` pick `silero` then `simple` for languages that have
 them. No strategy picks `kubataba` or `stressrnn` (Russian, 0.6 MB,
-onnxruntime + numpy, Apache-2.0): each is reached only by its `model=` id.
+onnxruntime + numpy, Apache-2.0): each is reached only by its `model=` id. `uk_accentor` (Ukrainian, 45 MB, onnxruntime + numpy + tokenizers,
+MIT) is reached only by `model="uk_accentor"` in the same way.
 
 ## `"kubataba"`: character-level seq2seq Transformer (Russian, opt-in)
 

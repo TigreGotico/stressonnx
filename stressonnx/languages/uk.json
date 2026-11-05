@@ -4,7 +4,8 @@
   "rule": "none",
   "hf": {
     "simple": "ukr_simple",
-    "silero": "ukr"
+    "silero": "ukr",
+    "uk_accentor": "ukr_accentor"
   },
   "sources": [
     "East Slavic accentology: free mobile stress"
@@ -13,6 +14,7 @@
   "alpha": "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя’",
   "vowels": "аеєиіїоуюя",
   "accuracy": {
-    "silero": 0.785
+    "silero": 0.785,
+    "uk_accentor": 0.795
   }
 }

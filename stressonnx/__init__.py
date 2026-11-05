@@ -21,6 +21,10 @@ Model families
     Character BiLSTM with a Zaliznyak exception dictionary, ported from
     StressRNN (dbklim/StressRNN, Apache-2.0).  Never a default and never
     picked by ``prefer=``; pass ``model="stressrnn"``.
+``"uk_accentor"`` (``uk``, selectable only):
+    Seq2seq Transformer ported from ukrainian-accentor-transformer
+    (Theodotus1243, MIT).  Never a default and never picked by
+    ``prefer=``; pass ``model="uk_accentor"``.
 
 ``"simple"`` (default for the other rule/vocabulary languages):
     Vocabulary + rules; no ONNX inference.  Languages: ``az-Cyrl``,
@@ -73,6 +77,7 @@ from stressonnx.registry import (
     MAIN_LANGS,
     SIMPLE_LANGS,
     STRESSRNN_LANGS,
+    UK_ACCENTOR_LANGS,
     ALL_LANGS,
     LANG_SCRIPT,
     ModelEntry,
@@ -88,6 +93,7 @@ from stressonnx.backends import (
     SimpleStressor,
     RuAccentStressor,
     StressRnnStressor,
+    UkAccentorStressor,
 )
 from stressonnx.stressor import make_stressor
 from stressonnx.pipeline import (
@@ -188,6 +194,7 @@ __all__ = [
     "RuAccentStressor",
     "StressRnnStressor",
     "KubatabaStressor",
+    "UkAccentorStressor",
     "make_stressor",
     "MODEL_REGISTRY",
     "DEFAULT_MODEL",
@@ -195,6 +202,7 @@ __all__ = [
     "MAIN_LANGS",
     "SIMPLE_LANGS",
     "STRESSRNN_LANGS",
+    "UK_ACCENTOR_LANGS",
     "ALL_LANGS",
     "STRESS_TOKEN",
     "ModelEntry",

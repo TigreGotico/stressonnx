@@ -141,6 +141,15 @@ _STRESSRNN_FILES = [
     "meta.json",
 ]
 
+# Files for the uk_accentor family
+_UK_ACCENTOR_FILES = [
+    "encoder.onnx",
+    "decoder.onnx",
+    "tokenizer.json",
+    "vocab.txt",
+    "meta.json",
+]
+
 # Files for simple_accentor family (language metadata ships in
 # stressonnx/languages/, so only the vocabulary is fetched)
 _SIMPLE_FILES = [
@@ -169,6 +178,9 @@ MAIN_LANGS = {t for t, spec in LANGUAGES.items() if "silero" in spec["hf"]}
 
 #: Languages backed by the StressRNN character BiLSTM.
 STRESSRNN_LANGS = {t for t, spec in LANGUAGES.items() if "stressrnn" in spec["hf"]}
+
+#: Languages backed by the ukrainian-accentor-transformer seq2seq model.
+UK_ACCENTOR_LANGS = {t for t, spec in LANGUAGES.items() if "uk_accentor" in spec["hf"]}
 
 #: Languages backed by vocabulary + rules (simple_accentor) — every language.
 SIMPLE_LANGS = {t for t, spec in LANGUAGES.items() if "simple" in spec["hf"]}
@@ -279,6 +291,17 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
             "fork of RusStress by Ponomareva and Milintsevich) with a "
             "Zaliznyak exception dictionary.  Russian only; selectable, "
             "never a default."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+    ),
+    "uk_accentor": ModelEntry(
+        langs=frozenset(UK_ACCENTOR_LANGS),
+        family="uk_accentor",
+        hf_subdir="ukr_accentor",
+        description=(
+            "Seq2seq Transformer accentor from ukrainian-accentor-transformer "
+            "(Mykhailenko, MIT), trained on lang-uk news text stressed with "
+            "ukrainian-word-stress.  Ukrainian only; selectable, never a default."
         ),
         input_scripts=_CYRILLIC_ONLY,
     ),
