@@ -1,4 +1,6 @@
 """Tests for the benchmark scorer.  Run: ``pytest benchmarks/test_scoring.py``."""
+import gzip
+import json
 import sys
 from collections import Counter
 
@@ -167,3 +169,48 @@ def test_write_report_keeps_foreign_sections(tmp_path):
     assert first == f"{BEGIN}\n# new board\n{END}\n\n## OOV positional rules (simple model)\n\nkept\n"
     write_report(out, [BEGIN, "# newer board", END])
     assert out.read_text(encoding="utf-8") == first.replace("# new board", "# newer board")
+
+
+def _toy_set():
+    from gold import GOLD, EvalSet
+    rows = [Row("a", "мука", (Target(0, 1),)), Row("b", "замок", (Target(0, 0),))]
+    return EvalSet("toy", "ru", GOLD, "none", "test", "every word",
+                   lambda: (rows, len(rows), Counter()))
+
+
+def _factory(outputs: dict):
+    return lambda: (replay(outputs), 0.0, None)
+
+
+def test_targets_run_merges_the_stored_models(tmp_path):
+    from run import run_set
+    evs = _toy_set()
+    first = {"m1": _factory({"мука": "мука́", "замок": "за́мок"}),
+             "m2": _factory({"мука": "му́ка", "замок": "за́мок"})}
+    run_set(evs, first, set(), ("d", dict, ()), tmp_path, 2, {"m3": "too slow"})
+    stored = json.loads((tmp_path / "ru__toy.summary.json").read_text(encoding="utf-8"))
+    assert stored["skipped"] == {"m3": "too slow"}
+    third = {"m3": _factory({"мука": "мука", "замок": "замок"})}
+    result = run_set(evs, third, set(), ("d", dict, ()), tmp_path, 2, {}, merge_into=("m1", "m2"))
+    assert {m: s["accuracy"] for m, s in result["models"].items()} == {"m1": 1.0, "m2": 0.5, "m3": 0.0}
+    assert result["skipped"] == {}
+    assert {frozenset((t["a"], t["b"])) for t in result["mcnemar"]} == {
+        frozenset(p) for p in (("m1", "m2"), ("m1", "m3"), ("m2", "m3"))}
+    assert set(result["models"]["m1"]["ci95"]) == {1.0}
+    with gzip.open(tmp_path / "ru__toy.rows.json.gz", "rt", encoding="utf-8") as fh:
+        assert set(json.load(fh)) == {"m1", "m2", "m3"}
+
+
+def test_skipped_model_is_named_in_the_report():
+    from run import render
+    evs = _toy_set()
+    summary = {"lang": "ru", "set": "toy", "tier": "GOLD", "license": "none", "source": "test",
+               "scored": "every word", "homographs_only": False, "n_in": 2, "rows": 2,
+               "targets": 2, "load_drops": {}, "dictionary_check": {"checked": 0},
+               "models": {"m1": {"n": 2, "correct": 2, "accuracy": 1.0, "homo_n": 0,
+                                 "homo_acc": None, "dropped": {}, "ms_per_row": 0.1,
+                                 "cold_load_s": 0.0, "ci95": [1.0, 1.0]}},
+               "mcnemar": [], "threads": 2, "skipped": {"m3": "too slow"}}
+    text = "\n".join(render([summary], "2026-01-01"))
+    assert "Not run: m3, too slow" in text
+    assert evs.name in text

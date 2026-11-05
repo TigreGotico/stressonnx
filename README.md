@@ -49,12 +49,12 @@ with sense-dependent pronunciation needs a bifonia-style diacritic restorer.
 
 | Model id | Languages | What it is | Measured quality |
 |----------|-----------|------------|------------------|
-| `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), MIT) | 0.938 word accuracy, **0.820 on homographs** |
-| `ruaccent-big-poetry` | `ru` | The `ruaccent` pipeline with the RUAccent `big_poetry` homograph model in place of `turbo3.1` | lower than `ruaccent` on prose, see [docs/models.md](docs/models.md#the-big_poetry-omograph-model) |
-| `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё and resolves homographs; the `uk` variant looks words up in a dictionary layer from [ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) (MIT) first | ru 0.939 / uk 0.821 / be 0.873² |
-| `stressrnn` | `ru` (selectable) | Character BiLSTM with a Zaliznyak exception dictionary, ported from [StressRNN](https://github.com/dbklim/StressRNN) (Apache-2.0; a fork of RusStress). No sentence context, no е→ё; 0.6 MB | ru 0.891 (0.908 with `accuracy_threshold=0.0`), scored on the model's own training corpus |
+| `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), MIT) | 0.947 word accuracy, **0.833 on homographs** |
+| `ruaccent-big-poetry` | `ru` | The `ruaccent` pipeline with the RUAccent `big_poetry` homograph model in place of `turbo3.1` | 0.942 word accuracy, 0.753 on homographs; below `ruaccent`, see [docs/models.md](docs/models.md#the-big_poetry-omograph-model) |
+| `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё and resolves homographs; the `uk` variant looks words up in a dictionary layer from [ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) (MIT) first | ru 0.944 (0.753 on homographs) / uk 0.843 / be 0.908² |
+| `stressrnn` | `ru` (selectable) | Character BiLSTM with a Zaliznyak exception dictionary, ported from [StressRNN](https://github.com/dbklim/StressRNN) (Apache-2.0; a fork of RusStress). No sentence context, no е→ё; 0.6 MB | ru 0.892, scored on the model's own training corpus |
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
-| `kubataba` | `ru` (opt-in) | Character-level seq2seq Transformer exported from [Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor) (MIT); sentence-level, no homograph resolution, no ё restoration | 0.886 word accuracy, NFC scoring on the same rows where `silero` gets 0.945 and `ruaccent` 0.947; see docs/models.md |
+| `kubataba` | `ru` (opt-in) | Character-level seq2seq Transformer exported from [Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor) (MIT); sentence-level, no homograph resolution, no ё restoration | 0.888 word accuracy (0.816 on homographs) where `silero` gets 0.944 and `ruaccent` 0.947; see docs/models.md |
 
 ¹ `ru uk be bg mk sl lv hy ka kk ky tt ba cv sah kjh tg udm mdf myv kbd xal
 az-Latn az-Cyrl uz-Latn uz-Cyrl`: Russian, Ukrainian, Belarusian (all
@@ -65,25 +65,23 @@ Udmurt, Moksha, Erzya, Kabardian, Kalmyk, Azerbaijani (both scripts), Uzbek
 ONNX-free rule/vocabulary path (`model="simple"`), so `fallback=True` always
 bottoms out in a model that needs nothing but a small vocabulary file.
 
-² Word accuracy on russtress UD-treebank gold, scored by `benchmarks/run.py`.
-ru and be use model revision `b8ba7af`. uk uses the bundle with the
-dictionary layer; the neural model alone (revision `b8ba7af`) scores 0.785.
-The `run.py` scorer counts a `й` before the stressed vowel as a vowel in the
-output only. With vowels counted on composed text, uk scores 0.844 with the
-layer and 0.808 without it.
+² Word accuracy on the russtress UD-treebank gold set, scored by
+`benchmarks/run.py`: the scorer compares letters in NFC and counts a target
+as a hit when the model marks exactly the gold vowel. uk uses the bundle
+with the dictionary layer.
 
 Numbers come from the committed, reproducible
-[benchmark scoreboard](benchmarks/RESULTS.md) (annotated UD-treebank gold;
-read its noise-ceiling note before quoting absolutes). Defaults per
+[benchmark scoreboard](benchmarks/RESULTS.md), which also scores the
+Wiktionary example sentences, the Belarusian hand-marked sets and the
+silver sets; read its label-tier note before quoting absolutes. Defaults per
 language: `ru → ruaccent`, `uk/be → silero`, everything else → `simple`.
-The `kubataba` row is not on that scoreboard: its numbers come from an NFC
-scorer on the same rows (`docs/models.md`, "kubataba"). It is reached only
-with `model="kubataba"`: it is below both Russian defaults (paired bootstrap
-on 11124 russtress rows, 95% CI of the difference: −0.060 [−0.065, −0.054]
-against `silero`, −0.062 [−0.067, −0.056] against `ruaccent`) and takes
-about 150 ms per row in one process with two onnxruntime threads, so no
-default, `prefer=` strategy or fallback picks it. Its port is byte-identical
-to the upstream torch model on 1011 inputs.
+`kubataba` is reached only with `model="kubataba"`: on russtress it is
+below both Russian defaults (McNemar p = 7e-91 against `silero`, p = 2e-104
+against `ruaccent`) and took about 0.4 s per row in the scoreboard run (two
+onnxruntime threads on a shared host), so no default, `prefer=` strategy or
+fallback picks it. The scoreboard does not run it on the two large sets
+(Wiktionary, ruslan-stressed) and says so in their tables. Its port is
+byte-identical to the upstream torch model on 1011 inputs.
 
 Models are hosted on
 [TigreGotico/stressonnx-models](https://huggingface.co/TigreGotico/stressonnx-models)
