@@ -5,13 +5,18 @@ Usage (from a checkout, with the ``test`` extra installed)::
     python benchmarks/run.py --date YYYY-MM-DD [--lang ru uk be]
         [--targets ruaccent silero simple] [--sets russtress wiktionary ...]
         [--external NAME=COMMAND ...] [--raw-dir DIR] [--out benchmarks/RESULTS.md]
-        [--threads 2] [--no-report | --report-only]
+        [--threads 2] [--no-report | --report-only] [--skipped MODEL=REASON ...]
 
 Each (lang, set) run writes ``<raw-dir>/<lang>__<set>.rows.json.gz`` (every
 model output and target verdict) and ``<lang>__<set>.summary.json``.  The
 report is rebuilt from every summary in the raw directory, so languages can
-run in separate processes.  ``--external`` scores a command that speaks the JSON-lines
-protocol in ``benchmarks/external.py``, for a model in another environment.
+run in separate processes.  A run with ``--targets`` on a raw directory that
+already holds the set keeps the stored rows of the other models and recomputes
+the CIs and McNemar tests over all of them, so a slow model can run in its
+own process.  ``--skipped MODEL=REASON`` records a model that did not run on
+the set; the report states it instead of leaving a gap.  ``--external``
+scores a command that speaks the JSON-lines protocol in
+``benchmarks/external.py``, for a model in another environment.
 
 Evaluation sets live in ``benchmarks/gold/``, each with its provenance and
 label tier.  Data is downloaded at run time to ``~/.cache/stressonnx-bench/``
@@ -35,10 +40,10 @@ from stressonnx import make_stressor
 from external import JsonlCommand
 from gold import GOLD, SETS, SILVER, sets_for, wiktionary
 from gold._cache import CACHE
-from scoring import bootstrap_ci, clean_word, is_vowel, mcnemar_exact, score
+from scoring import Scored, bootstrap_ci, clean_word, is_vowel, mcnemar_exact, score
 
 DEFAULT_TARGETS = {
-    "ru": ["ruaccent", "silero", "simple"],
+    "ru": ["ruaccent", "ruaccent-big-poetry", "silero", "stressrnn", "kubataba", "simple"],
     "uk": ["silero", "simple"],
     "be": ["silero", "simple"],
 }
@@ -127,15 +132,41 @@ def external_fn(command: str, lang: str):
     return proc, time.perf_counter() - t0, proc.close
 
 
-def run_set(evs, models: dict, homographs, dictionary, raw_dir: Path, threads: int):
+def stored_models(raw_dir: Path, stem: str, keep) -> tuple:
+    """Rows and summaries of the models in *keep* from an earlier run on the set."""
+    rows_path = raw_dir / f"{stem}.rows.json.gz"
+    summary_path = raw_dir / f"{stem}.summary.json"
+    if not (rows_path.exists() and summary_path.exists()):
+        return {}, {}
+    with gzip.open(rows_path, "rt", encoding="utf-8") as fh:
+        rows = json.load(fh)
+    summaries = json.loads(summary_path.read_text(encoding="utf-8"))["models"]
+    scored = {}
+    kept = {}
+    for name in summaries:
+        if name not in keep or name not in rows:
+            continue
+        calls = len(rows[name])
+        scored[name] = Scored(rows[name], summaries[name]["ms_per_row"] * calls / 1000, calls)
+        kept[name] = {k: v for k, v in summaries[name].items() if k != "ci95"}
+    return scored, kept
+
+
+def run_set(evs, models: dict, homographs, dictionary, raw_dir: Path, threads: int,
+            skipped: dict, merge_into: tuple = ()):
     rows, n_in, load_drops = evs.load()
     print(f"[{evs.lang}/{evs.name}] {evs.tier}: {n_in} in, {len(rows)} rows, "
           f"{sum(len(r.targets) for r in rows)} targets, load drops {dict(load_drops)}", flush=True)
     if evs.name == "wiktionary" and len(rows) < wiktionary.MIN_SENTENCES:
         print(f"  skipped: fewer than {wiktionary.MIN_SENTENCES} usable sentences")
         return None
-    scored = {}
-    summaries = {}
+    stem = f"{evs.lang}__{evs.name}"
+    scored, summaries = stored_models(raw_dir, stem, merge_into)
+    for name in scored:
+        if len(scored[name].rows) != len(rows):
+            raise SystemExit(f"stored {name} rows for {stem} do not match the set: "
+                             f"{len(scored[name].rows)} against {len(rows)}")
+        print(f"  {name}: kept from {raw_dir}", flush=True)
     for name, factory in models.items():
         fn, cold_s, close = factory()
         result = score(fn, rows, homographs)
@@ -158,9 +189,9 @@ def run_set(evs, models: dict, homographs, dictionary, raw_dir: Path, threads: i
         "n_in": n_in, "rows": len(rows), "targets": sum(len(r.targets) for r in rows),
         "load_drops": dict(load_drops), "dictionary_check": check,
         "models": summaries, "mcnemar": mcnemar, "threads": threads,
+        "skipped": {m: why for m, why in skipped.items() if m not in summaries},
     }
     raw_dir.mkdir(parents=True, exist_ok=True)
-    stem = f"{evs.lang}__{evs.name}"
     with gzip.open(raw_dir / f"{stem}.rows.json.gz", "wt", encoding="utf-8") as fh:
         json.dump({name: s.rows for name, s in scored.items()}, fh, ensure_ascii=False)
     (raw_dir / f"{stem}.summary.json").write_text(
@@ -208,8 +239,10 @@ def render(results: list, date: str) -> list:
         "undocumented method.  Silver rows show agreement with that labeller, not",
         "correctness, and no claim that one model is best rests on them.",
         "",
-        "The training data of silero and ruaccent is unpublished, so overlap with",
-        "these sets cannot be established.",
+        "The training data of silero, ruaccent and ruaccent-big-poetry is",
+        "unpublished, so overlap with these sets cannot be established.  The set",
+        "notes name the overlap of stressrnn and kubataba, whose training corpora",
+        "are published.",
         "",
     ]
     for lang in ("ru", "uk", "be"):
@@ -234,6 +267,8 @@ def render(results: list, date: str) -> list:
             if r["load_drops"]:
                 drops = "; ".join(f"{k}: {v}" for k, v in sorted(r["load_drops"].items()))
                 lines.append(f"Dropped while loading: {drops}.")
+            for model, why in r.get("skipped", {}).items():
+                lines.append(f"Not run: {model}, {why}")
             check = r["dictionary_check"]
             if check["checked"]:
                 note = "" if check["independent"] else " (same source as the set, so not independent)"
@@ -304,10 +339,13 @@ def main():
     ap.add_argument("--no-report", action="store_true", help="write raw results only")
     ap.add_argument("--report-only", action="store_true",
                     help="rebuild the report from the raw directory without running models")
+    ap.add_argument("--skipped", action="append", default=[], metavar="MODEL=REASON",
+                    help="record a model that did not run on these sets; the report says why")
     args = ap.parse_args()
 
     cap_onnx_threads(args.threads)
     externals = dict(spec.split("=", 1) for spec in args.external)
+    skipped = dict(spec.split("=", 1) for spec in args.skipped)
     for lang in [] if args.report_only else args.lang:
         homographs = ruaccent_dictionaries()[0] if lang == "ru" else None
         models = {}
@@ -317,8 +355,10 @@ def main():
             models[model] = lambda m=model, l=lang: stressonnx_fn(m, l)
         for name, command in externals.items():
             models[name] = lambda c=command, l=lang: external_fn(c, l)
+        merge_into = tuple(m for m in DEFAULT_TARGETS[lang] if m not in models) if args.targets else ()
         for evs in sets_for(lang, args.sets):
-            run_set(evs, models, homographs, DICTIONARIES[lang], args.raw_dir, args.threads)
+            run_set(evs, models, homographs, DICTIONARIES[lang], args.raw_dir, args.threads,
+                    skipped, merge_into)
 
     if not args.no_report:
         results = [json.loads(p.read_text(encoding="utf-8"))

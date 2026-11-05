@@ -21,23 +21,32 @@ Full accuracy numbers, not just relative quality claims, live in
 
 | lang | model | accuracy | homograph accuracy |
 |------|-------|----------|--------------------|
-| ru | ruaccent | 0.938 | 0.820 |
-| ru | silero | 0.939 | 0.742 |
-| ru | stressrnn | 0.891 (0.908 at threshold 0.0) | not measured |
-| be | silero | 0.873 | not measured |
-| be | simple | 0.433 | not measured |
+| ru | ruaccent | 0.947 | 0.833 |
+| ru | ruaccent-big-poetry | 0.942 | 0.753 |
+| ru | silero | 0.944 | 0.753 |
+| ru | stressrnn | 0.892 | 0.767 |
+| ru | kubataba | 0.888 | 0.816 |
+| ru | simple | 0.142 | 0.227 |
+| uk | silero | 0.843 | not measured |
+| uk | simple | 0.534 | not measured |
+| be | silero | 0.908 | not measured |
+| be | simple | 0.435 | not measured |
 
-On Russian, `ruaccent` and `silero` have the same plain accuracy, and
-`ruaccent` is more accurate on homographs. Its larger download gives
-homograph resolution from a wider context. `stressrnn` scores 0.891 on
-the same rows; against `silero` before its homograph solver (0.914) the
-paired bootstrap 95% CI of the difference is -0.029 to -0.018, and against
-`ruaccent` -0.053 to -0.043. The russtress file is also the corpus the
-StressRNN BiLSTM was trained on, so its number is optimistic. For Belarusian, `silero` (neural, the default)
-is substantially more accurate than `model="simple"` (vocabulary lookup).
-Use `model="simple"` only where ONNX inference is unavailable. See
-`benchmarks/RESULTS.md` for row counts, the annotation-noise ceiling, and
-per-model dropped-row counts.
+The rows are the russtress gold set (11124 targets; homograph accuracy on
+the 724 targets in the RUAccent omograph roster). On Russian, `ruaccent`
+and `silero` differ by 0.003 in plain accuracy, which the exact McNemar
+test does not separate (p = 0.062); `ruaccent` is more accurate on the
+homograph targets. On the Wiktionary example sentences (137221 targets)
+`silero` leads, 0.984 against 0.964 (p < 1e-300), and `ruaccent` keeps the
+higher homograph accuracy (0.926 against 0.908). Its larger download gives
+homograph resolution from a wider context. `stressrnn` is below both (McNemar p = 8e-105 against
+`ruaccent`, p = 6e-90 against `silero`), and the russtress file is the
+corpus the StressRNN BiLSTM was trained on, so its number is optimistic.
+For Belarusian, `silero` (neural, the default) is substantially more
+accurate than `model="simple"` (vocabulary lookup). Use `model="simple"`
+only where ONNX inference is unavailable. See `benchmarks/RESULTS.md` for
+row counts, the Wiktionary and silver sets, confidence intervals and the
+McNemar tests.
 
 ---
 
@@ -239,20 +248,21 @@ segment ids of the pair. The files are verbatim copies of
 is downloaded and loaded. The other three models and the dictionaries are
 shared with `ruaccent`.
 
-On the two Russian evaluation sets, `big_poetry` is less accurate than
-`turbo3.1`. The table scores the vowel of the target word, counted in NFC,
-with a paired bootstrap 95% interval of the difference.
+On the Russian evaluation sets, `big_poetry` is less accurate than
+`turbo3.1` (`benchmarks/RESULTS.md`, models `ruaccent` and
+`ruaccent-big-poetry`). The table scores the vowel of the target word;
+the last column is the exact McNemar test between the two.
 
-| set | targets | turbo3.1 | big_poetry | difference (95% CI) |
-|-----|---------|----------|------------|---------------------|
-| russtress ru, all words | 11,124 | 0.947 | 0.942 | −0.005 (−0.007 to −0.003) |
-| russtress ru, homographs | 724 | 0.833 | 0.753 | −0.080 (−0.115 to −0.046) |
-| HomographResolutionEval, homograph word | 1,727 | 0.888 | 0.852 | −0.036 (−0.055 to −0.018) |
+| set | targets | turbo3.1 | big_poetry | McNemar p |
+|-----|---------|----------|------------|-----------|
+| russtress ru, all words | 11,124 | 0.947 | 0.942 | 1e-05 |
+| russtress ru, homographs | 724 | 0.833 | 0.753 | (subset of the row above) |
+| HomographResolutionEval, homograph word (silver) | 1,727 | 0.888 | 0.852 | 1e-04 |
+| prose-accents (silver) | 16,839 | 0.863 | 0.862 | 0.805 |
 
-On HomographResolutionEval sentences it takes about 35% more time per
-sentence (138 ms against 102 ms) and about 450 MB more memory (1.2 GB
-against 0.7 GB peak RSS). Use it to compare homograph models, or for text
-where it measures better. The default stays `turbo3.1`.
+It loads about 450 MB more memory (1.2 GB against 0.7 GB peak RSS). Use it
+to compare homograph models, or for text where it measures better. The
+default stays `turbo3.1`.
 
 ### Limitations
 
@@ -402,10 +412,8 @@ differently from the dictionary. On these tokens the output therefore
 changes from a mark the dictionary rejects to no mark. Double quotes `"…"` and
 guillemets `«…»` split off and are not affected.
 
-On the russtress Ukrainian gold, the layer raises the `silero` accuracy
-from 0.785 to 0.821 with the `benchmarks/run.py` scorer. That scorer
-counts a `й` before the stressed vowel as a vowel in the output only.
-Counted on composed text, the figures are 0.808 and 0.844.
+With the layer, `silero` scores 0.843 on the russtress Ukrainian gold and
+0.905 on the Wiktionary example sentences (`benchmarks/RESULTS.md`).
 `export/build_uk_word_stress_vocab.py` rebuilds the layer from the pinned
 upstream release. A rebuilt `accentor.onnx` needs a rebuilt layer too,
 because the selection depends on the model's own output.
@@ -416,8 +424,8 @@ Belarusian specifics:
 - Stress is not marked in standard orthography.
 - Fewer neural training resources than Russian, so the silero neural model
   is the best available quality without a full BERT pipeline. See the
-  benchmark table above: silero (0.873 accuracy) is dramatically better
-  here than the `simple` vocabulary fallback (0.433).
+  benchmark table above: silero (0.908 accuracy) is dramatically better
+  here than the `simple` vocabulary fallback (0.435).
 
 ### Why silero is also available for Russian
 
@@ -482,7 +490,7 @@ The only context the network sees is the three-letter ending of the previous
 word, so homographs get one reading (`за́мок` always). There is no е→ё
 restoration. The threshold is upstream's default: a word the network is
 less than 75 % sure about stays unmarked; `StressRnnStressor(accuracy_threshold=0.0)`
-marks every word (0.908 on the scoreboard rows against 0.891).
+marks every word. The scoreboard measures the default threshold.
 
 Differences from upstream `put_stress`, each a case upstream mishandles:
 only U+0301 counts as an existing stress mark (upstream also reads `+` and
@@ -504,8 +512,9 @@ needs no morphology dependency for this model.
 - **No homograph or ё resolution.** One reading per spelling.
 - **Russian alphabet only.** A letter outside `а-яё` splits the word; the
   parts are stressed as separate words.
-- **Below `silero`** on the scoreboard (0.891 vs 0.914) and the scoreboard
-  rows are the corpus the BiLSTM was trained on, so the gap is a lower bound.
+- **Below `silero`** on the scoreboard (0.892 vs 0.944 on russtress) and
+  those rows are the corpus the BiLSTM was trained on, so the gap is a
+  lower bound.
 
 ---
 
@@ -696,8 +705,8 @@ assignment. The OOV last-vowel rule holds for standard forms.
 
 **Belarusian, `simple` path (`be`, `model="simple"`)**
 The same language as the default `silero` path but using vocabulary-only
-lookup without neural inference, a lower-accuracy fallback (0.433 vs.
-`silero`'s 0.873, see the benchmark table above) meant for offline
+lookup without neural inference, a lower-accuracy fallback (0.435 vs.
+`silero`'s 0.908, see the benchmark table above) meant for offline
 environments where ONNX inference is unavailable, or as an explicit
 fallback target. Its OOV rule is `"none"`, but that rule only applies to
 **multi-vowel** OOV words: a **single-vowel** OOV word is always stressed
@@ -755,16 +764,15 @@ and 10.0% at 12 or more, mostly short generic phrases.
 
 ### Accuracy
 
-The kubataba row is not in `benchmarks/RESULTS.md`. It was measured on the
-same 11124 russtress Russian rows with a scorer that compares predicted and
-gold vowel ordinals in NFC on both sides, where `benchmarks/run.py` scores
-in NFD and drops rows whose target word it cannot read back. In that NFC
-run, on identical rows, `kubataba` scores 0.886, `silero` 0.945 and
-`ruaccent` 0.947. Paired bootstrap 95% CI of the difference: −0.060 [−0.065, −0.054]
-against `silero`, −0.062 [−0.067, −0.056] against `ruaccent`. The headline table above keeps
-the committed NFD figures for `silero` and `ruaccent`; the two scorers give
-different absolute numbers for the same model, and only numbers from the
-same scorer compare.
+`benchmarks/RESULTS.md` scores `kubataba` on russtress, HomographResolutionEval
+and prose-accents. The two large sets (Wiktionary, ruslan-stressed) do not
+run it, because its cost grows with the square of the sentence length and
+those sets would take about 10 and 14 hours; their tables say so. On the
+11124 russtress targets `kubataba` scores 0.888, `silero` 0.944 and
+`ruaccent` 0.947 (McNemar p = 7e-91 and p = 2e-104). On prose-accents it
+scores 0.968, above every other model, but that set is cut from the corpus
+it was trained on, so the number is agreement with its own training labels.
+On HomographResolutionEval it scores 0.583.
 
 ### Runtime
 
