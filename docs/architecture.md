@@ -362,9 +362,10 @@ The model generates a copy of the input with `'` after each stressed vowel.
 That copy is not the input: characters outside the 224-entry vocabulary are
 dropped or replaced. The backend aligns the generated copy to the input with
 `difflib.SequenceMatcher` and keeps a mark only where the generated vowel and
-the input vowel are the same character at matched positions, so the output
+the input vowel are the same character inside a matched run of two or more
+characters, so the output
 is the input plus U+0301 marks and nothing else. Text longer than 200
-characters is cut into windows on whitespace (the 256-token output budget
+characters is cut into windows on any whitespace (the 256-token output budget
 must hold the characters and their marks); each window is generated and
 aligned on its own.
 

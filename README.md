@@ -52,7 +52,7 @@ with sense-dependent pronunciation needs a bifonia-style diacritic restorer.
 | `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), Apache-2.0) | 0.938 word accuracy, **0.820 on homographs** |
 | `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё and resolves homographs; the `uk` variant looks words up in a dictionary layer from [ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) (MIT) first | ru 0.939 / uk 0.821 / be 0.873² |
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
-| `kubataba` | `ru` (opt-in) | Character-level seq2seq Transformer exported from [Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor) (MIT); sentence-level, no homograph resolution, no ё restoration | 0.886 word accuracy on the same rows and scorer where `silero` gets 0.920 and `ruaccent` 0.945 |
+| `kubataba` | `ru` (opt-in) | Character-level seq2seq Transformer exported from [Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor) (MIT); sentence-level, no homograph resolution, no ё restoration | 0.886 word accuracy, NFC scoring on the same rows where `silero` gets 0.945 and `ruaccent` 0.947; see docs/models.md |
 
 ¹ `ru uk be bg mk sl lv hy ka kk ky tt ba cv sah kjh tg udm mdf myv kbd xal
 az-Latn az-Cyrl uz-Latn uz-Cyrl`: Russian, Ukrainian, Belarusian (all
@@ -74,12 +74,14 @@ Numbers come from the committed, reproducible
 [benchmark scoreboard](benchmarks/RESULTS.md) (annotated UD-treebank gold;
 read its noise-ceiling note before quoting absolutes). Defaults per
 language: `ru → ruaccent`, `uk/be → silero`, everything else → `simple`.
-`kubataba` is reached only with `model="kubataba"`: it is below both
-Russian defaults (paired bootstrap on 11124 russtress rows, 95% CI of the
-difference: −0.034 [−0.040, −0.028] against `silero`, −0.060 [−0.065,
-−0.054] against `ruaccent`) and about 500 ms per row with two
-onnxruntime threads, so no default, `prefer=` strategy or fallback picks it.
-Its port is byte-identical to the upstream torch model on 1011 inputs.
+The `kubataba` row is not on that scoreboard: its numbers come from an NFC
+scorer on the same rows (`docs/models.md`, "kubataba"). It is reached only
+with `model="kubataba"`: it is below both Russian defaults (paired bootstrap
+on 11124 russtress rows, 95% CI of the difference: −0.060 [−0.065, −0.054]
+against `silero`, −0.062 [−0.067, −0.056] against `ruaccent`) and takes
+about 150 ms per row in one process with two onnxruntime threads, so no
+default, `prefer=` strategy or fallback picks it. Its port is byte-identical
+to the upstream torch model on 1011 inputs.
 
 Models are hosted on
 [TigreGotico/stressonnx-models](https://huggingface.co/TigreGotico/stressonnx-models)

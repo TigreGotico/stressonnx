@@ -44,6 +44,22 @@ def test_kubataba_keeps_characters_the_model_rewrites():
     assert stress("% земельных дол", "ru", model="kubataba") == "% земе́льных дол"
 
 
+def test_kubataba_drops_marks_on_invented_text():
+    # upstream generates "ких докуме'нтах во' Го'нв": the invented "Го'нв"
+    # shares one "о" with "воо" and must not give that word a second mark
+    assert stress("ких документах воо", "ru", model="kubataba") == "ких докуме́нтах во́о"
+
+
+def test_kubataba_windows_cut_on_any_whitespace():
+    from stressonnx.backends.kubataba import _windows
+    text = "\n".join(["слово"] * 60)
+    chunks = [chunk for _, chunk in _windows(text)]
+    assert "".join(chunks) == text
+    assert len(chunks) == 2
+    assert all(len(c) <= 200 for c in chunks)
+    assert all(set(c.split()) == {"слово"} for c in chunks)
+
+
 def test_kubataba_leaves_text_without_prediction_unchanged():
     assert stress("Hello мир 123", "ru", model="kubataba") == "Hello мир 123"
 

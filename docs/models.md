@@ -637,35 +637,64 @@ them. No strategy picks `kubataba`.
 
 A port of [Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor)
 (kubataba, MIT; PyPI `ruaccent-predictor`): an encoder-decoder Transformer
-(4+4 layers, d_model 256, 12.5M parameters) over a 224-character vocabulary,
-trained on 224k literary sentence pairs. It reads a sentence as characters
-and generates a copy with a mark after each stressed vowel.
+(4+4 layers, d_model 256, 12.5M parameters) over a 224-character vocabulary.
+It reads a sentence as characters and generates a copy with a mark after
+each stressed vowel.
+
+### Training data
+
+The upstream model was trained on 224k sentence pairs cut from
+[nevmenandr/accentual-syllabic-verse-in-russian-prose](https://huggingface.co/datasets/nevmenandr/accentual-syllabic-verse-in-russian-prose),
+462 texts of 19th-century Russian fiction prose. The stress marks of that
+corpus were produced by the `ru-accent-poet` package, not by annotators, so
+the training labels are silver. The corpus and the russtress benchmark rows
+(UD-treebank windows with Toloka annotation) are different sources; verbatim
+overlap, measured with accents stripped and lower-cased, is 1.9% of the
+benchmark windows of 20 or more characters (5 of 269), 4.2% at 16 or more
+and 10.0% at 12 or more, mostly short generic phrases.
+
+### Accuracy
+
+The kubataba row is not in `benchmarks/RESULTS.md`. It was measured on the
+same 11124 russtress Russian rows with a scorer that compares predicted and
+gold vowel ordinals in NFC on both sides, where `benchmarks/run.py` scores
+in NFD and drops rows whose target word it cannot read back. In that NFC
+run, on identical rows, `kubataba` scores 0.886, `silero` 0.945 and
+`ruaccent` 0.947. Paired bootstrap 95% CI of the difference: −0.060 [−0.065, −0.054]
+against `silero`, −0.062 [−0.067, −0.056] against `ruaccent`. The headline table above keeps
+the committed NFD figures for `silero` and `ruaccent`; the two scorers give
+different absolute numbers for the same model, and only numbers from the
+same scorer compare.
 
 ### Runtime
 
 Two ONNX graphs exported by `export/export_kubataba.py`: the encoder and one
 decoder step. Greedy decoding runs in numpy with one decoder call per output
 character and no key-value cache, so cost grows with the square of the
-window length. Measured on 11124 russtress windows (about 12 characters
-each) with two onnxruntime threads on a loaded 24-core host: about 500 ms per
-row and 170 MB peak RSS; in the same conditions `ruaccent` took 57 ms and 714
-MB, `silero` 0.3 ms and 114 MB. Download: about 31 MB.
+window length. One process with two onnxruntime threads on a 24-core host
+at load about 25 takes about 150 ms per russtress row (13 characters on
+average) and 180 MB peak RSS. Download: about 31 MB.
 
 The generated copy is aligned back onto the input and only a mark on a
 vowel the input has at that place is kept; every input character comes
-back. Text over 200 characters is cut into windows on whitespace. The ONNX
-port generates the same marked string as the upstream torch model on all
-1011 inputs checked (1000 russtress windows plus the test sentences).
+back. Text over 200 characters is cut into windows on any whitespace. The
+ONNX port generates the same marked string as the upstream torch model on
+all 1011 inputs checked (1000 russtress windows plus the test sentences).
 
 ### Limitations
 
 - No homograph resolution and no е→ё restoration; ё and single-vowel words
   are never marked (upstream behaviour).
-- Characters outside the 224-entry vocabulary (`%`, most Latin, digits) are
+- The vocabulary holds the Cyrillic and ASCII letters, the digits and basic
+  punctuation. A character outside it (`%`, emoji, most other symbols) is
   replaced or dropped by the model; the backend keeps the input character
   and loses only the marks the model could not place around it.
-- Accuracy is below both Russian defaults (see the headline table), so it
-  is never selected by default, by `prefer=` or by `fallback=True`.
+- On a short window the model can append invented words. Their marks are
+  dropped in alignment: a run of one matching character is ignored.
+- When the model drops one of two adjacent identical vowels (`нии` to
+  `ни'`), the mark can land on either twin.
+- Accuracy is below both Russian defaults, so it is never selected by
+  default, by `prefer=` or by `fallback=True`.
 
 See [`../benchmarks/RESULTS.md`](../benchmarks/RESULTS.md) for measured
 accuracy numbers instead of qualitative claims.

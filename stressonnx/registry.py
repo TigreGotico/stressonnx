@@ -260,7 +260,8 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         description=(
             "Character-level encoder-decoder Transformer for Russian "
             "(kubataba/Russian-Stress-Accent-Predictor, MIT). Sentence-level "
-            "seq2seq model, 12.5M parameters, trained on literary text. "
+            "seq2seq model, 12.5M parameters, trained on 19th-century prose "
+            "with machine-made (ru-accent-poet) stress labels. "
             "Opt-in alternative to 'ruaccent'; no homograph resolution, "
             "no ё restoration, single-vowel words left unmarked."
         ),

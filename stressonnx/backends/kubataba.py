@@ -47,7 +47,7 @@ def _windows(text: str, limit: int = _WINDOW_CHARS):
     while pos < len(text):
         end = min(pos + limit, len(text))
         if end < len(text):
-            cut = text.rfind(" ", pos + 1, end + 1)
+            cut = next((i for i in range(end, pos, -1) if text[i].isspace()), pos)
             if cut > pos:
                 end = cut
         yield pos, text[pos:end]
@@ -134,6 +134,9 @@ class KubatabaStressor:
         counts only where the generated vowel and the input vowel are the
         same character at matched positions, and the input itself has no
         apostrophe right after it (the model echoes input apostrophes).
+        A matched run of one character is noise: the model's invented tail
+        can share a letter with a real word and give that word a second
+        mark.
         """
         plain, marked_at = [], []
         for ch in generated:
@@ -145,6 +148,8 @@ class KubatabaStressor:
         matcher = difflib.SequenceMatcher(None, window, plain, autojunk=False)
         gen_to_win = {}
         for a, b, n in matcher.get_matching_blocks():
+            if n < 2:
+                continue
             for k in range(n):
                 gen_to_win[b + k] = a + k
         offsets = []
