@@ -47,3 +47,5 @@ jobs:
           tests/test_ruaccent_long_input.py
           tests/test_decomposed_input.py
           tests/test_stress_ru.py
+          tests/test_ruaccent_keeps_text.py
+          tests/test_ruaccent_input_marks.py

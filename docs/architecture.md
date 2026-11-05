@@ -26,7 +26,7 @@ monolithic file:
 | Module | Responsibility |
 |--------|---------------|
 | `stressonnx/langs.py` | `load_languages()` loads every `stressonnx/languages/<tag>.json` spec into the registry tables. |
-| `stressonnx/registry.py` | `Script`, `StressNotation`, `ModelEntry`, `StressorBackend` Protocol, `MODEL_REGISTRY`, `DEFAULT_MODEL`, language-set constants (`RUACCENT_LANGS`, `MAIN_LANGS`, `SIMPLE_LANGS`, `ALL_LANGS`, all built from `stressonnx/languages/*.json`), `LANG_SCRIPT` + `lang_to_script()`, per-family file lists (`_MAIN_FILES`, `_SIMPLE_FILES`), `_OOV_RULES`. |
+| `stressonnx/registry.py` | `Script`, `StressNotation`, `ModelEntry`, `StressorBackend` Protocol, `MODEL_REGISTRY`, `DEFAULT_MODEL`, language-set constants (`RUACCENT_LANGS`, `MAIN_LANGS`, `SIMPLE_LANGS`, `ALL_LANGS`, all built from `stressonnx/languages/*.json`), `LANG_SCRIPT` + `lang_to_script()`, per-family file lists (`_MAIN_FILES`, `_SIMPLE_FILES`, `_KUBATABA_FILES`), `_OOV_RULES`. |
 | `stressonnx/languages/<tag>.json` | One file per language tag: `script`, `rule` (OOV rule name), `alpha`/`vowels` (alphabet and vowel inventory), `hf` (per-family HF subdirectory), measured `accuracy`/`rule_accuracy`, and the linguistic sources behind the rule. The registry is generated from these files at import time. |
 | `stressonnx/download.py` | The single download layer. `_download_files()` resolves model files via `huggingface_hub.hf_hub_download`, honoring the standard HF cache (`HF_HOME`, `HF_HUB_OFFLINE`) or an explicit `cache_dir` override. Every fetch is pinned to `HF_REPO_REVISION` (a commit hash) and logged. |
 | `stressonnx/errors.py` | Typed exceptions: `StressonnxError` (base), `UnsupportedLanguageError` (`ValueError` subclass), `ModelDownloadError`, `ModelLoadError`. |
@@ -38,7 +38,8 @@ monolithic file:
 | `stressonnx/backends/silero.py` | `_SileroStressor`, the `silero` family (`ru`, `uk`, `be`). |
 | `stressonnx/backends/simple.py` | `SimpleStressor`, the `simple` family (26 languages, every canonical tag). |
 | `stressonnx/backends/stressrnn.py` | `StressRnnStressor`, the `stressrnn` family (`ru`, selectable only). |
-| `stressonnx/backends/__init__.py` | Re-exports the four backend classes. |
+| `stressonnx/backends/kubataba.py` | `KubatabaStressor`, the `kubataba` family (`ru`, opt-in). |
+| `stressonnx/backends/__init__.py` | Re-exports the five backend classes. |
 | `stressonnx/__init__.py` | Assembles the public API: `stress()`, `stress_batch()`, `analyze()`, `warm_up()`, `to_plus_notation()`, and re-exports from every module above. |
 
 ### Data flow
@@ -192,7 +193,7 @@ class StressorBackend(Protocol):
     def __call__(self, text: str) -> str: ...
 ```
 
-All four backend classes satisfy this protocol. `make_stressor()` returns
+All five backend classes satisfy this protocol. `make_stressor()` returns
 type `StressorBackend`.
 
 ---
@@ -244,6 +245,15 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         hf_subdir="ru_ruaccent",
         description="…",
         input_scripts=frozenset({Script.CYRILLIC}),
+        variant="turbo3.1",       # the omograph model
+    ),
+    "ruaccent-big-poetry": ModelEntry(
+        langs=frozenset({"ru"}),
+        family="ruaccent",
+        hf_subdir="ru_ruaccent",
+        description="…",
+        input_scripts=frozenset({Script.CYRILLIC}),
+        variant="big_poetry",
     ),
     "silero": ModelEntry(
         langs=frozenset({"uk", "be", "ru"}),
@@ -266,8 +276,25 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         description="…",
         input_scripts=frozenset({Script.CYRILLIC, Script.LATIN, Script.ARMENIAN, Script.GEORGIAN}),
     ),
+    "kubataba": ModelEntry(
+        langs=frozenset({"ru"}),
+        family="kubataba",
+        hf_subdir="ru_kubataba",
+        description="…",
+        input_scripts=frozenset({Script.CYRILLIC}),
+    ),
 }
 ```
+
+`kubataba` is opt-in only: it is not in `FALLBACK_PRIORITY`, so neither
+`DEFAULT_MODEL`, `prefer=` nor `fallback=True` ever selects it. It is reached
+with `model="kubataba"`.
+
+`variant` names the model a family backend loads when the family ships
+more than one. The two ruaccent ids share every file except the homograph
+model, so `make_stressor` passes `variant` on as
+`RuAccentStressor(omograph=...)`. An unknown model id or omograph name
+raises `UnknownModelError`, a `ValueError`.
 
 `be` is served by both `silero` (the default, neural) and `simple` (via
 `model="simple"`, vocabulary-only). Both are counted in `ALL_LANGS`. Only
@@ -288,6 +315,7 @@ A homograph-aware Russian pipeline. Four ONNX models load lazily from
 | `nn_stress_usage` | BERT token classifier | STRESS / NO_STRESS per word |
 | `nn_yo_homograph` | DistilBERT token classifier | е→ё restoration (not все/всё disambiguation, see `docs/models.md`) |
 | `nn_omograph` | RoBERTa NLI (turbo3.1) | Pick stressed variant from homograph dict |
+| `nn_omograph_big_poetry` | ruBERT NLI (big_poetry), instead of `nn_omograph` with `model="ruaccent-big-poetry"` | Same task; also reads the segment ids of the pair |
 | `nn_accent` | RoFormer char-level | Accentuate words not in the accent dict, for words with 2+ vowels |
 
 Tokenizers use the `tokenizers` library (HuggingFace fast tokenizer JSON
@@ -360,9 +388,33 @@ lines are `word<space>vowel_ordinal` (see `docs/models.md` and
 `export/ADDING_A_LANGUAGE.md`). `meta.json` carries
 `"vocab_format": "vowel_ordinal_v2"`.
 
-A research-only Russian model, a character-level seq2seq Transformer
-(`kubataba`), is exported for reference by `export/export_kubataba.py` but
-has no backend class and is not part of `MODEL_REGISTRY`.
+### `KubatabaStressor`: kubataba family (`stressonnx/backends/kubataba.py`)
+
+A character-level encoder-decoder Transformer for Russian, exported by
+`export/export_kubataba.py` from kubataba/Russian-Stress-Accent-Predictor
+(MIT). Two ONNX graphs: the encoder (`src [1, 256]` → `memory`) and one
+decoder step (`memory`, `tgt [1, t]` → `logits`). The greedy loop runs in
+numpy, one decoder call per output character, so a window costs
+O(length²) decoder work.
+
+The model generates a copy of the input with `'` after each stressed vowel.
+That copy is not the input: characters outside the 224-entry vocabulary are
+dropped or replaced. The backend aligns the generated copy to the input with
+`difflib.SequenceMatcher` and keeps a mark only where the generated vowel and
+the input vowel are the same character inside a matched run of two or more
+characters, so the output
+is the input plus U+0301 marks and nothing else. Text longer than 200
+characters is cut into windows on any whitespace (the 256-token output budget
+must hold the characters and their marks); each window is generated and
+aligned on its own.
+
+Stress marks already in the input are removed before the model reads the
+text; a word that carried one keeps it and gets no new mark (the `silero`
+contract). The model itself never marks ё or a single-vowel word and does
+not restore е→ё.
+
+Files under `ru_kubataba/` in the HF repo: `encoder.onnx`,
+`decoder_step.onnx`, `vocab.json`.
 
 ---
 
@@ -401,6 +453,8 @@ constructs a model path itself.
 ├── ru_ruaccent/
 │   ├── nn_omograph/model.onnx
 │   ├── nn_omograph/tokenizer.json
+│   ├── nn_omograph_big_poetry/model.onnx   (ruaccent-big-poetry only)
+│   ├── nn_omograph_big_poetry/tokenizer.json
 │   ├── nn_accent/model.onnx
 │   ├── nn_stress_usage/model.onnx
 │   ├── nn_yo_homograph/model.onnx
@@ -421,6 +475,10 @@ constructs a model path itself.
 ├── kk/
 │   ├── vocab.gz
 │   └── meta.json
+├── ru_kubataba/
+│   ├── encoder.onnx
+│   ├── decoder_step.onnx
+│   └── vocab.json
 └── …
 ```
 

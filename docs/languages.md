@@ -93,10 +93,11 @@ vowels reduce much less than Russian ones, so a stress error costs you the
 prosody and the homographs rather than the whole vowel skeleton, still
 enough to make synthesis sound wrong or say the wrong word.
 
-**What stressonnx does.** `silero` neural model (default), measured
-**0.785** on crowdsourced UD-treebank gold, the weakest neural model in the
-library. The export is faithful (parity-locked to upstream); the ceiling is
-the model itself. `model="simple"` adds a 49,809-word dictionary path built
+**What stressonnx does.** `silero` neural model (default) with a
+dictionary layer from ukrainian-word-stress (see `models.md`). On
+crowdsourced UD-treebank gold, scored by `benchmarks/run.py`, it measures
+**0.821**. The neural model alone (model revision `b8ba7af`) measures 0.785,
+the weakest neural model in the library. `model="simple"` adds a 49,809-word dictionary path built
 from stress-marked English-Wiktionary headwords, rule `none` (free stress,
 so no positional guess is defensible).
 

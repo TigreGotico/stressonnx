@@ -7,9 +7,11 @@ Model families
 --------------
 ``"ruaccent"`` (default for ``ru``):
     Homograph-aware neural pipeline derived from RUAccent (Den4ikAI/ruaccent,
-    Apache-2.0).  Resolves context-dependent homographs (замок castle/lock,
+    MIT).  Resolves context-dependent homographs (замок castle/lock,
     мука flour/torment, белок protein/squirrel …) via four ONNX models.
     Runtime deps: onnxruntime, numpy, tokenizers (no torch, no transformers).
+    ``"ruaccent-big-poetry"`` is the same pipeline with the RUAccent
+    big_poetry homograph model in place of turbo3.1.
 
 ``"silero"`` (default for ``uk``, ``be``):
     Neural ONNX pipeline (embedding-bag + MLP heads) exported from
@@ -60,6 +62,7 @@ import time as _time
 from stressonnx.errors import (
     StressonnxError,
     UnsupportedLanguageError,
+    UnknownModelError,
     ModelDownloadError,
     ModelLoadError,
 )
@@ -79,7 +82,13 @@ from stressonnx.registry import (
     lang_to_script,
 )
 from stressonnx.notation import STRESS_TOKEN, _apply_notation, to_plus_notation
-from stressonnx.backends import _SileroStressor, SimpleStressor, RuAccentStressor, StressRnnStressor
+from stressonnx.backends import (
+    KubatabaStressor,
+    _SileroStressor,
+    SimpleStressor,
+    RuAccentStressor,
+    StressRnnStressor,
+)
 from stressonnx.stressor import make_stressor
 from stressonnx.pipeline import (
     DEFAULT_PIPELINE,
@@ -114,8 +123,9 @@ def stress(
     private cache.  Parameters:
 
     - ``lang``: BCP-47 tag (``"ru"``, ``"uk"``, ``"az-Latn"`` …).
-    - ``model``: explicit model id (``"ruaccent"``, ``"silero"``,
-      ``"simple"``) — default: the best model for *lang*.
+    - ``model``: explicit model id (``"ruaccent"``,
+      ``"ruaccent-big-poetry"``, ``"silero"``, ``"simple"``) — default:
+      the best model for *lang*.
     - ``prefer``: capability strategy instead of a model id — ``"best"``
       (quality), ``"fast"`` (latency), ``"smallest"`` (footprint).
     - ``notation``: ``"diacritic"`` (combining acute after the vowel) or
@@ -169,6 +179,7 @@ __all__ = [
     "to_plus_notation",
     "StressonnxError",
     "UnsupportedLanguageError",
+    "UnknownModelError",
     "ModelDownloadError",
     "ModelLoadError",
     "FALLBACK_PRIORITY",
@@ -176,6 +187,7 @@ __all__ = [
     "SimpleStressor",
     "RuAccentStressor",
     "StressRnnStressor",
+    "KubatabaStressor",
     "make_stressor",
     "MODEL_REGISTRY",
     "DEFAULT_MODEL",

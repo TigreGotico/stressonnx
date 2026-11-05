@@ -7,7 +7,7 @@ TTS front-ends. Pure `onnxruntime + numpy` at runtime. No torch, ever.
 from stressonnx import stress
 
 stress("старинный замок стоит на горе", "ru")   # 'стари́нный за́мок сто́ит на горе́'
-stress("дверной замок надёжен", "ru")           # 'дверно́й замо́к надёжен'
+stress("дверной замок надёжен", "ru")           # 'дверно́й замо́к надё́жен'
 ```
 
 Same spelling, different word: за́мок is a castle, замо́к is a lock.
@@ -49,10 +49,12 @@ with sense-dependent pronunciation needs a bifonia-style diacritic restorer.
 
 | Model id | Languages | What it is | Measured quality |
 |----------|-----------|------------|------------------|
-| `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), Apache-2.0) | 0.938 word accuracy, **0.820 on homographs** |
-| `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё and resolves homographs | ru 0.939 / uk 0.785 / be 0.873 |
+| `ruaccent` | `ru` (default) | Homograph-aware 4-model ONNX pipeline (derived from [RUAccent](https://github.com/Den4ikAI/ruaccent), MIT) | 0.938 word accuracy, **0.820 on homographs** |
+| `ruaccent-big-poetry` | `ru` | The `ruaccent` pipeline with the RUAccent `big_poetry` homograph model in place of `turbo3.1` | lower than `ruaccent` on prose, see [docs/models.md](docs/models.md#the-big_poetry-omograph-model) |
+| `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё and resolves homographs; the `uk` variant looks words up in a dictionary layer from [ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) (MIT) first | ru 0.939 / uk 0.821 / be 0.873² |
 | `stressrnn` | `ru` (selectable) | Character BiLSTM with a Zaliznyak exception dictionary, ported from [StressRNN](https://github.com/dbklim/StressRNN) (Apache-2.0; a fork of RusStress). No sentence context, no е→ё; 0.6 MB | ru 0.891 (0.908 with `accuracy_threshold=0.0`), scored on the model's own training corpus |
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
+| `kubataba` | `ru` (opt-in) | Character-level seq2seq Transformer exported from [Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor) (MIT); sentence-level, no homograph resolution, no ё restoration | 0.886 word accuracy, NFC scoring on the same rows where `silero` gets 0.945 and `ruaccent` 0.947; see docs/models.md |
 
 ¹ `ru uk be bg mk sl lv hy ka kk ky tt ba cv sah kjh tg udm mdf myv kbd xal
 az-Latn az-Cyrl uz-Latn uz-Cyrl`: Russian, Ukrainian, Belarusian (all
@@ -63,10 +65,25 @@ Udmurt, Moksha, Erzya, Kabardian, Kalmyk, Azerbaijani (both scripts), Uzbek
 ONNX-free rule/vocabulary path (`model="simple"`), so `fallback=True` always
 bottoms out in a model that needs nothing but a small vocabulary file.
 
+² Word accuracy on russtress UD-treebank gold, scored by `benchmarks/run.py`.
+ru and be use model revision `b8ba7af`. uk uses the bundle with the
+dictionary layer; the neural model alone (revision `b8ba7af`) scores 0.785.
+The `run.py` scorer counts a `й` before the stressed vowel as a vowel in the
+output only. With vowels counted on composed text, uk scores 0.844 with the
+layer and 0.808 without it.
+
 Numbers come from the committed, reproducible
 [benchmark scoreboard](benchmarks/RESULTS.md) (annotated UD-treebank gold;
 read its noise-ceiling note before quoting absolutes). Defaults per
 language: `ru → ruaccent`, `uk/be → silero`, everything else → `simple`.
+The `kubataba` row is not on that scoreboard: its numbers come from an NFC
+scorer on the same rows (`docs/models.md`, "kubataba"). It is reached only
+with `model="kubataba"`: it is below both Russian defaults (paired bootstrap
+on 11124 russtress rows, 95% CI of the difference: −0.060 [−0.065, −0.054]
+against `silero`, −0.062 [−0.067, −0.056] against `ruaccent`) and takes
+about 150 ms per row in one process with two onnxruntime threads, so no
+default, `prefer=` strategy or fallback picks it. Its port is byte-identical
+to the upstream torch model on 1011 inputs.
 
 Models are hosted on
 [TigreGotico/stressonnx-models](https://huggingface.co/TigreGotico/stressonnx-models)
@@ -85,8 +102,9 @@ Runtime dependencies: `onnxruntime`, `numpy`, `huggingface_hub`, and
 
 - `razdel` for better Russian sentence splitting inside the ruaccent pipeline
   (`pip install razdel`). Without it the whole input is processed as one span.
-- `pip install stressonnx[export]` adds torch, onnx and silero_stress, only for
-  re-exporting models from a checkout. Never needed at runtime.
+- `pip install stressonnx[export]` adds torch, onnx, silero_stress and
+  ukrainian-word-stress, only for re-exporting models from a checkout.
+  Never needed at runtime.
 
 ---
 
@@ -173,7 +191,8 @@ from context by `ruaccent` and by the homograph resolver of `silero`.
 
 - **First call per language downloads models** into the standard Hugging Face
   cache (`~/.cache/huggingface`, relocatable via `HF_HOME`). Sizes: `ru`
-  ruaccent about 500 MB, silero tens of MB, `simple` languages about 1 MB.
+  ruaccent about 500 MB, silero tens of MB, kubataba about 31 MB, `simple`
+  languages about 1 MB.
 - **Warm up ahead of serving.** Call `warm_up(lang)` once at startup so no
   synthesis request ever blocks on a model download. It loads the same
   cached instance later `stress()` calls use.
@@ -222,14 +241,17 @@ sessions are thread-safe for inference).
 
 ### Contracts worth knowing
 
-- `simple`/`silero` **skip** words already carrying U+0301. `ruaccent`
-  **strips and re-derives** (wrong input marks get corrected).
+- `simple`/`silero`/`kubataba` **skip** words already carrying U+0301.
+  `ruaccent` **strips and re-derives** (wrong input marks get corrected).
 - Monosyllables: `simple`/`silero` always stress them. `ruaccent` usually
-  leaves bare single-vowel words unmarked.
+  leaves bare single-vowel words unmarked; `kubataba` never marks them.
 - Every backend gives back the input unchanged except for the added marks
   and е→ё restorations. `ruaccent` also drops the stress marks already in
   the input and derives them again. A word that the models cannot read
-  whole comes back with no mark: `Ки́їв` gives `Київ`.
+  whole comes back with no mark: `Ки́їв` gives `Київ`. A word gets the
+  same marks whether it is written with ё or е. A second call gives back
+  the output of the first unless a restored ё changes how the models read
+  a neighbouring word.
 - Russian hyphenated clitics (`кто́-то`, `како́й-нибудь`, `-либо`, `-таки`,
   `-ка`) never receive a mark on the particle.
 
@@ -310,11 +332,16 @@ Pick your entry point:
 
 ## License
 
-Apache-2.0. Model attributions: RUAccent (Den4ikAI, Apache-2.0),
+Apache-2.0. Model attributions: RUAccent (Den4ikAI, MIT),
 [silero-stress](https://github.com/snakers4/silero-stress) (Copyright (c)
 2020-present Silero Team, MIT). The `silero` model files are derived from
 silero-stress 1.5. Each model directory (`ru`, `ukr`, `bel`) carries the
 upstream licence text as `LICENSE.silero-stress`. The `ru` `meta.json` also
-names the source package, version, licence and URL. StressRNN (Vladislav Klim, Apache-2.0; BiLSTM
+names the source package, version, licence and URL.
+The Ukrainian dictionary layer of the `silero` model comes from
+ukrainian-word-stress (lang-uk, MIT), whose word forms derive from
+"Dictionaries of Ukraine" by ULIF. The `kubataba` model is derived from
+[Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor)
+(kubataba, MIT). StressRNN (Vladislav Klim, Apache-2.0; BiLSTM
 from RusStress by Ponomareva and Milintsevich, exception dictionary from
 A. A. Zaliznyak's Grammatical Dictionary via odict.ru).

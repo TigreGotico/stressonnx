@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.0.3a16](https://github.com/TigreGotico/stressonnx/tree/0.0.3a16) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a15...0.0.3a16)
+
+**Merged pull requests:**
+
+- feat: ruaccent-big-poetry, the RUAccent big\_poetry omograph model as a selectable model id [\#42](https://github.com/TigreGotico/stressonnx/pull/42) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a15](https://github.com/TigreGotico/stressonnx/tree/0.0.3a15) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a14...0.0.3a15)
+
+**Merged pull requests:**
+
+- test: scoring harness with gold and silver sets, CIs and McNemar [\#39](https://github.com/TigreGotico/stressonnx/pull/39) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a14](https://github.com/TigreGotico/stressonnx/tree/0.0.3a14) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a13...0.0.3a14)
+
+**Merged pull requests:**
+
+- fix: keep caller letters and give ё words the same marks in ruaccent [\#41](https://github.com/TigreGotico/stressonnx/pull/41) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a13](https://github.com/TigreGotico/stressonnx/tree/0.0.3a13) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a12...0.0.3a13)
+
+**Merged pull requests:**
+
+- feat: stress Ukrainian dictionary forms from ukrainian-word-stress in the silero model [\#38](https://github.com/TigreGotico/stressonnx/pull/38) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a12](https://github.com/TigreGotico/stressonnx/tree/0.0.3a12) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a11...0.0.3a12)
+
+**Merged pull requests:**
+
+- feat: resolve Russian homographs in the silero model with the silero-stress 1.5 homosolver [\#34](https://github.com/TigreGotico/stressonnx/pull/34) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a11](https://github.com/TigreGotico/stressonnx/tree/0.0.3a11) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a10...0.0.3a11)
