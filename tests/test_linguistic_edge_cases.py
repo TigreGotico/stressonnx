@@ -113,10 +113,8 @@ def test_empty_and_punct_only(lang, model):
     assert stress("   ", lang, model=model) == "   "
 
 
-def test_ruaccent_normalizes_aggressively():
-    # documented contract: RUAccent normalizes input (drops unknown symbols,
-    # collapses whitespace) before stressing — it is not layout-preserving
-    assert stress("Привет… мир!", "ru") == "Приве́т мир!"
+def test_ruaccent_keeps_symbols_it_does_not_read():
+    assert stress("Привет… мир!", "ru") == "Приве́т… мир!"
 
 
 # ---------------------------------------------------------------------------

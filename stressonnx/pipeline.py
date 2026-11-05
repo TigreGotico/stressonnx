@@ -127,8 +127,8 @@ def _align_marks(original: str, marked: str):
     """Map each U+0301 in *marked* to a character offset in *original*.
 
     Backends only insert marks and substitute е↔ё — except ruaccent, which
-    may also normalize (drop symbols, collapse whitespace).  A sequence
-    alignment on yo-neutralized copies absorbs all of that; marks whose
+    also drops the marks already in the input.  A sequence alignment on
+    yo-neutralized copies absorbs all of that; marks whose
     base character cannot be aligned are dropped rather than guessed.
     A U+0301 after a consonant is part of that letter (``ќ``, ``ś`` in
     NFD) and aligns as an ordinary character.
