@@ -69,8 +69,9 @@ type it as е, so restoring ё and placing stress are the same problem.
   subset.
 - `silero`: a fast embedding-bag MLP exported from
   [silero_stress](https://github.com/snakers4/silero-stress). It restores
-  unambiguous ё but deliberately leaves ё-homographs (все/всё) untouched.
-  **0.914** (homographs 0.381, since it cannot use context).
+  ё, and a BERT homograph resolver picks the stress of dictionary homographs,
+  все/всё included, from a short context window. **0.939** (homographs
+  0.742).
 - `simple` (dictionary path, `model="simple"`): 108,972 unambiguous entries
   from the RUAccent pronunciation dictionary, with no guessing on unknown
   words (rule `none`), because Russian stress placement genuinely cannot be
@@ -92,10 +93,11 @@ vowels reduce much less than Russian ones, so a stress error costs you the
 prosody and the homographs rather than the whole vowel skeleton, still
 enough to make synthesis sound wrong or say the wrong word.
 
-**What stressonnx does.** `silero` neural model (default), measured
-**0.785** on crowdsourced UD-treebank gold, the weakest neural model in the
-library. The export is faithful (parity-locked to upstream); the ceiling is
-the model itself. `model="simple"` adds a 49,809-word dictionary path built
+**What stressonnx does.** `silero` neural model (default) with a
+dictionary layer from ukrainian-word-stress (see `models.md`). On
+crowdsourced UD-treebank gold, scored by `benchmarks/run.py`, it measures
+**0.821**. The neural model alone (model revision `b8ba7af`) measures 0.785,
+the weakest neural model in the library. `model="simple"` adds a 49,809-word dictionary path built
 from stress-marked English-Wiktionary headwords, rule `none` (free stress,
 so no positional guess is defensible).
 
