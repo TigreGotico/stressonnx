@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.3a22](https://github.com/TigreGotico/stressonnx/tree/0.0.3a22) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a21...0.0.3a22)
+
+**Merged pull requests:**
+
+- Update actions/setup-python action to v7 [\#27](https://github.com/TigreGotico/stressonnx/pull/27) ([renovate[bot]](https://github.com/apps/renovate))
+
+## [0.0.3a21](https://github.com/TigreGotico/stressonnx/tree/0.0.3a21) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a20...0.0.3a21)
+
 ## [0.0.3a20](https://github.com/TigreGotico/stressonnx/tree/0.0.3a20) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a19...0.0.3a20)
