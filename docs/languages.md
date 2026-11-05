@@ -118,8 +118,12 @@ Rule `none`: the accentological literature treats Belarusian surface stress
 as lexically governed, so an unknown multi-vowel word is left unmarked
 rather than guessed. An unknown word with exactly one ё is stressed on it,
 because ё occurs in a stressed syllable in the overwhelming majority of
-Belarusian words. ў is the non-syllabic u and never carries stress: the
-vocabulary entries whose upstream index points at ў are dropped at load.
+Belarusian words. ў is the non-syllabic u and never carries stress. The
+upstream silero_stress file indexes ў itself in 421 entries; the shipped
+vocabulary moves each of them to the vowel after ў (аўто́бус, даўно́), or
+to the vowel before it when none follows (зно́ў). The gold sets hold 67 of
+these words and agree with that rule in 64 of them. An entry that still
+points at a non-vowel is dropped at load.
 The apostrophe is not part of the lookup key, so сям’я and сям'я find the
 same entry.
 

@@ -58,6 +58,9 @@ def _load_vocab(path: str) -> dict:
 
 OovRule = Callable[[str, list], Optional[int]]
 
+#: Apostrophes that spell a word-initial syllabic р in Macedonian (’рж).
+_APOSTROPHES = "’ʼ'"
+
 
 def _rule_last(word: str, vowels: list) -> Optional[int]:
     """Final-syllable stress — the Turkic default (Kirchner 1998, Poppe 1964
@@ -269,7 +272,8 @@ class SimpleStressor:
         dropped = 0
         for word, ordinal in vocab.items():
             key = self._key(word)
-            if "-" in word or _RE_SPLIT.search(word) or self._ordinal_offset(key, ordinal) is None:
+            raw_lower = lower_preserving_length(unicodedata.normalize("NFC", word), self._turkic)
+            if "-" in word or _RE_SPLIT.search(word) or self._ordinal_offset(raw_lower, ordinal) is None:
                 dropped += 1
                 continue
             if key == word:
@@ -285,16 +289,21 @@ class SimpleStressor:
     # Span-native core
     # ------------------------------------------------------------------
 
+    def _is_consonant(self, ch: str) -> bool:
+        return ch in self._alpha and ch not in self._vowels and ch not in self._syllabic
+
     def _nucleus_offsets(self, raw_lower: str) -> list:
         """Offsets of the syllable nuclei of *raw_lower*: its vowels, and a
-        syllabic consonant (Macedonian р) between two consonants."""
+        syllabic consonant (Macedonian р) before a consonant, after a
+        consonant, the word start or the apostrophe that spells a
+        word-initial syllabic р (’рж)."""
         ids = [i for i, c in enumerate(raw_lower) if c in self._vowels]
         if self._syllabic:
             for i, c in enumerate(raw_lower):
-                if c in self._syllabic and 0 < i < len(raw_lower) - 1 and all(
-                    n in self._alpha and n not in self._vowels and n not in self._syllabic
-                    for n in (raw_lower[i - 1], raw_lower[i + 1])
-                ):
+                if c not in self._syllabic or i == len(raw_lower) - 1:
+                    continue
+                left = i == 0 or raw_lower[i - 1] in _APOSTROPHES or self._is_consonant(raw_lower[i - 1])
+                if left and self._is_consonant(raw_lower[i + 1]):
                     ids.append(i)
             ids.sort()
         return ids

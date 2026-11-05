@@ -81,6 +81,13 @@ def test_be_never_stresses_the_non_syllabic_u():
     assert simple("аўтобус", "be") == "аўтобус"
 
 
+@WAITS_ON_UPLOAD
+def test_be_repaired_entries_stress_the_vowel_after_u():
+    # Wiktionary be: аўто́бус, даўно́, заўсёды with ё; the shipped index
+    # pointed at ў and the staged bundle moves it to the next vowel
+    assert simple("аўтобус даўно", "be") == "аўто́бус даўно́"
+
+
 def test_be_apostrophe_forms_match():
     # Belarusian orthography writes the apostrophe; сям’я́ is stressed on я
     assert simple("сям’я", "be") == "сям’я́"
@@ -107,6 +114,11 @@ def test_be_vocabulary_keys_are_nfc_without_apostrophe():
     ("Србија", "Ср́бија"),
     # р next to a vowel is a consonant: ра́бота keeps its antepenultimate rule
     ("работа", "ра́бота"),
+    # Wiktionary writes word-initial syllabic р with an apostrophe: ’рж
+    # "rye", IPA [r̩ʃ], derived ’ржан; the only or first nucleus is р
+    ("’рж", "’р́ж"),
+    ("’ржан", "’р́жан"),
+    ("'рж", "'р́ж"),
 ])
 def test_mk_syllabic_r_is_a_stress_base(word, expected):
     assert simple(word, "mk") == expected
@@ -137,7 +149,7 @@ def test_ru_yo_marks_the_stressed_syllable():
     assert simple("ёлкаёлка", "ru") == "ёлкаёлка"
 
 
-@WAITS_ON_UPLOAD
+@pytest.mark.xfail(strict=True, reason="waits on a ru_simple vocabulary built from the full RUAccent dictionary")
 def test_ru_vocabulary_holds_everyday_words():
     # RUAccent accents.json.gz: январ+я, +это, м+ама
     assert simple("января это мама", "ru") == "января́ э́то ма́ма"
