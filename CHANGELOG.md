@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.3a6](https://github.com/TigreGotico/stressonnx/tree/0.0.3a6) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a5...0.0.3a6)
+
+**Merged pull requests:**
+
+- fix: stress decomposed \(NFD\) input like its composed form [\#19](https://github.com/TigreGotico/stressonnx/pull/19) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a5](https://github.com/TigreGotico/stressonnx/tree/0.0.3a5) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a4...0.0.3a5)
+
 ## [0.0.3a4](https://github.com/TigreGotico/stressonnx/tree/0.0.3a4) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a3...0.0.3a4)
