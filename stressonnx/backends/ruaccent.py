@@ -1,18 +1,19 @@
 """RuAccent family (ru) — homograph-aware neural pipeline.
 
 Attribution: RUAccent by Den4ikAI (https://github.com/Den4ikAI/ruaccent),
-licensed Apache-2.0 per upstream setup.py classifiers.
-Models: HuggingFace ruaccent/accentuator (turbo3.1 omograph model).
-Mirrored to TigreGotico/stressonnx-models under ru_ruaccent/.
+MIT (https://github.com/Den4ikAI/ruaccent/blob/main/LICENSE and the
+model card of https://huggingface.co/ruaccent/accentuator).
+Models: HuggingFace ruaccent/accentuator (turbo3.1 or big_poetry omograph
+model).  Mirrored to TigreGotico/stressonnx-models under ru_ruaccent/.
 Runtime: onnxruntime + numpy + tokenizers (no torch, no transformers).
 
 Pipeline:
 1. Predict per-word stress usage (STRESS / NO_STRESS) via a BERT-family
    token-classifier ONNX model.
 2. Resolve yo-homographs (е→ё disambiguation) via a DistilBERT ONNX model.
-3. Resolve omographs (context-sensitive stress variants) via a RoBERTa NLI
-   ONNX model; each omograph candidate is scored against the sentence
-   context.
+3. Resolve omographs (context-sensitive stress variants) via an NLI ONNX
+   model (RoBERTa turbo3.1 or BERT big_poetry); each omograph candidate is
+   scored against the sentence context.
 4. Accent non-omograph words: look up in the accent dictionary or run the
    character-level RoFormer ONNX accent model.
 Runtime deps: onnxruntime, numpy, tokenizers (no torch, no transformers).
@@ -32,16 +33,14 @@ import onnxruntime as ort
 from stressonnx._common import _RU_VOWELS, _UNSTRESSED_HYPHEN_CLITICS, _softmax
 from stressonnx.download import _download_files
 from stressonnx.registry import MODEL_REGISTRY
-from stressonnx.errors import ModelDownloadError, ModelLoadError
+from stressonnx.errors import ModelDownloadError, ModelLoadError, UnknownModelError
 from stressonnx.notation import (
     STRESS_TOKEN, _plus_to_diacritic, composed, in_form_of, is_stress_base,
     render_marks,
 )
 
-# Files to download for the ru_ruaccent variant
+# Files to download for the ru_ruaccent bundle, besides the omograph model
 _RUACCENT_FILES = [
-    "nn_omograph/model.onnx",
-    "nn_omograph/tokenizer.json",
     "nn_accent/model.onnx",
     "nn_accent/vocab.txt",
     "nn_accent/config.json",
@@ -57,6 +56,13 @@ _RUACCENT_FILES = [
     "dictionary/accents_nn.json.gz",
     "meta.json",
 ]
+
+#: Omograph models: RUAccent name → directory under ru_ruaccent/ holding its
+#: model.onnx and tokenizer.json.
+OMOGRAPH_MODELS = {
+    "turbo3.1": "nn_omograph",
+    "big_poetry": "nn_omograph_big_poetry",
+}
 
 # Characters the models never see (matches RUAccent normalize regex).  They
 # stay in the output: marks found on the normalized text map back to the input.
@@ -254,6 +260,12 @@ class _Tokenizer:
             enc = self._tok.encode(text, pair=pair)
         return enc.ids, enc.attention_mask
 
+    def type_ids(self, text: str, pair: str) -> list:
+        """Segment id of each token of the pair (*text*, *pair*)."""
+        if self._tokenizers_1x:
+            return self._tok.encode((text, pair)).type_ids
+        return self._tok.encode(text, pair=pair).type_ids
+
     def word_ids(self, ids: list) -> list:
         """Word index of each token of one sequence, ``None`` for added specials.
 
@@ -278,9 +290,9 @@ class RuAccentStressor:
       per word in context.
     * **yo_homograph** (DistilBERT token classifier) — resolves е→ё substitutions
       for yo-homographs.
-    * **omograph** (RoBERTa NLI classifier, turbo3.1 variant) — picks the correct
-      stressed variant of context-dependent homographs (замок castle/lock,
-      мука flour/torment, белок protein/squirrel …).
+    * **omograph** (NLI classifier: RoBERTa turbo3.1 or ruBERT big_poetry) —
+      picks the correct stressed variant of context-dependent homographs
+      (замок castle/lock, мука flour/torment, белок protein/squirrel …).
     * **accent** (RoFormer char-level token classifier) — accentuates words not
       found in the accent dictionary.
 
@@ -290,8 +302,7 @@ class RuAccentStressor:
     Attribution
     -----------
     Derived from RUAccent by Den4ikAI
-    (https://github.com/Den4ikAI/ruaccent), licensed Apache-2.0 per upstream
-    setup.py and PyPI classifiers.  Models sourced from
+    (https://github.com/Den4ikAI/ruaccent), MIT.  Models sourced from
     ``ruaccent/accentuator`` on HuggingFace and mirrored to
     ``TigreGotico/stressonnx-models`` under ``ru_ruaccent/``.
 
@@ -300,9 +311,20 @@ class RuAccentStressor:
     cache_dir:
         Override the model storage directory (default: the standard
         Hugging Face cache).
+    omograph:
+        Omograph model, a key of :data:`OMOGRAPH_MODELS`.  Only this model
+        is downloaded and loaded.
+
+    Raises
+    ------
+    UnknownModelError
+        If *omograph* is not a key of :data:`OMOGRAPH_MODELS`.
     """
 
-    def __init__(self, cache_dir: str | None = None) -> None:
+    def __init__(self, cache_dir: str | None = None, omograph: str = "turbo3.1") -> None:
+        if omograph not in OMOGRAPH_MODELS:
+            raise UnknownModelError(omograph, OMOGRAPH_MODELS)
+        self._omograph_dir = OMOGRAPH_MODELS[omograph]
         self._cache_dir = cache_dir
         self._loaded = False
         self._load_lock = threading.Lock()
@@ -335,7 +357,10 @@ class RuAccentStressor:
 
     def _load(self) -> None:
 
-        data = _download_files(MODEL_REGISTRY['ruaccent'].hf_subdir, _RUACCENT_FILES, self._cache_dir, model_id="ruaccent")
+        omograph_files = [f"{self._omograph_dir}/model.onnx", f"{self._omograph_dir}/tokenizer.json"]
+        data = _download_files(MODEL_REGISTRY['ruaccent'].hf_subdir,
+                               _RUACCENT_FILES + omograph_files,
+                               self._cache_dir, model_id="ruaccent")
 
         try:
             import tokenizers  # noqa: F401
@@ -347,8 +372,13 @@ class RuAccentStressor:
 
         # ONNX sessions
         self._omograph_sess = ort.InferenceSession(
-            data["nn_omograph/model.onnx"],
+            data[omograph_files[0]],
             providers=["CPUExecutionProvider"],
+        )
+        # the BERT omograph model reads the segment of each token, the
+        # RoBERTa one has no segments
+        self._omograph_has_tti = any(
+            i.name == "token_type_ids" for i in self._omograph_sess.get_inputs()
         )
         self._accent_sess = ort.InferenceSession(
             data["nn_accent/model.onnx"],
@@ -364,7 +394,7 @@ class RuAccentStressor:
         )
 
         # Tokenizers (no transformers)
-        self._omograph_tok = _Tokenizer(data["nn_omograph/tokenizer.json"])
+        self._omograph_tok = _Tokenizer(data[omograph_files[1]])
         self._stress_usage_tok = _Tokenizer(data["nn_stress_usage/tokenizer.json"])
         self._yo_hom_tok = _Tokenizer(data["nn_yo_homograph/tokenizer.json"])
 
@@ -516,11 +546,8 @@ class RuAccentStressor:
         for pos, variants in found:
             probs = []
             for hyp in variants:
-                ids, attention_mask = self._omograph_encoding(context, pos, hyp)
-                input_ids = np.array([ids], dtype=np.int64)
-                attn = np.array([attention_mask], dtype=np.int64)
                 logits = self._omograph_sess.run(
-                    None, {"input_ids": input_ids, "attention_mask": attn}
+                    None, self._omograph_feed(context, pos, hyp)
                 )[0][0]
                 e = np.exp(logits - logits.max())
                 probs.append(float(e[1] / e.sum()))
@@ -529,8 +556,8 @@ class RuAccentStressor:
             )
         return splitted_text
 
-    def _omograph_encoding(self, words: list, pos: int, hyp: str):
-        """Encode the homograph at *pos* in its context, with hypothesis *hyp*.
+    def _omograph_feed(self, words: list, pos: int, hyp: str) -> dict:
+        """Model inputs for the homograph at *pos* in its context, with hypothesis *hyp*.
 
         The context is a window of words around the homograph, halved until
         the pair fits the model's position limit.
@@ -544,8 +571,17 @@ class RuAccentStressor:
             txt = _delete_spaces_before_punc(" ".join(tmp))
             ids, attention_mask = self._omograph_tok.encode(txt, pair=hyp)
             if len(ids) <= _MAX_TOKENS or span == 0:
-                return ids, attention_mask
+                break
             span //= 2
+        feed = {
+            "input_ids": np.array([ids], dtype=np.int64),
+            "attention_mask": np.array([attention_mask], dtype=np.int64),
+        }
+        if self._omograph_has_tti:
+            feed["token_type_ids"] = np.array(
+                [self._omograph_tok.type_ids(txt, hyp)], dtype=np.int64
+            )
+        return feed
 
     def _process_accent(self, words: list, stress_usages: list) -> list:
         for i, word in enumerate(words):

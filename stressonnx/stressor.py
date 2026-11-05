@@ -1,7 +1,7 @@
 """make_stressor: the model-aware backend factory."""
 from stressonnx.backends import KubatabaStressor, RuAccentStressor, _SileroStressor, SimpleStressor
 from stressonnx.registry import ALL_LANGS, DEFAULT_MODEL, MODEL_REGISTRY
-from stressonnx.errors import UnsupportedLanguageError
+from stressonnx.errors import UnknownModelError, UnsupportedLanguageError
 from stressonnx.langs import resolve_lang
 
 
@@ -15,8 +15,8 @@ def make_stressor(
     Parameters
     ----------
     model:
-        Model-id string — one of ``"ruaccent"``, ``"silero"``, ``"simple"``,
-        or ``"kubataba"``.
+        Model-id string, a key of :data:`MODEL_REGISTRY`: ``"ruaccent"``,
+        ``"ruaccent-big-poetry"``, ``"silero"``, ``"simple"`` or ``"kubataba"``.
         When *None*, the default model for *lang* is used (see
         :data:`DEFAULT_MODEL`).
     lang:
@@ -38,8 +38,10 @@ def make_stressor(
     UnsupportedLanguageError
         If *lang* is unknown, or *model* does not serve it (``.model`` names
         the model).  Also a :class:`ValueError`.
+    UnknownModelError
+        If *model* is not in :data:`MODEL_REGISTRY`.  Also a :class:`ValueError`.
     ValueError
-        If *model* is unknown, or neither *model* nor *lang* pins the language.
+        If neither *model* nor *lang* pins the language.
     """
     if lang is not None:
         lang = resolve_lang(lang, ALL_LANGS)
@@ -53,10 +55,7 @@ def make_stressor(
 
     entry = MODEL_REGISTRY.get(model)
     if entry is None:
-        raise ValueError(
-            f"Unknown model {model!r}.  "
-            f"Available models: {sorted(MODEL_REGISTRY.keys())}."
-        )
+        raise UnknownModelError(model, MODEL_REGISTRY)
 
     # One validation for every family: a given lang must be one the model
     # serves, and multi-language families cannot infer the language.
@@ -69,7 +68,7 @@ def make_stressor(
         )
 
     if entry.family == "ruaccent":
-        return RuAccentStressor(cache_dir=cache_dir)
+        return RuAccentStressor(cache_dir=cache_dir, omograph=entry.variant)
     if entry.family == "silero":
         return _SileroStressor(lang=lang, cache_dir=cache_dir)
     if entry.family == "simple":
