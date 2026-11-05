@@ -11,6 +11,7 @@
 | Ukrainian / Belarusian | `model="silero"` (default) |
 | Turkic / Caucasian / minority languages | `model="simple"` (default) |
 | Don't care which model, just want a capability | `prefer="best"` / `"fast"` / `"smallest"` instead of a model id |
+| Russian, a second opinion from a sentence-level seq2seq model | `model="kubataba"` (opt-in only; below both `ruaccent` and `silero` in accuracy and far slower) |
 
 Full accuracy numbers, not just relative quality claims, live in
 [`../benchmarks/RESULTS.md`](../benchmarks/RESULTS.md), reproducible with
@@ -22,6 +23,11 @@ Full accuracy numbers, not just relative quality claims, live in
 | ru | silero | 0.914 | 0.381 |
 | be | silero | 0.873 | not measured |
 | be | simple | 0.433 | not measured |
+
+`kubataba` on the same 11124 Russian rows, scored in NFC: 0.886, where the
+same run gives `silero` 0.920 and `ruaccent` 0.945. Paired bootstrap 95% CI
+of the difference: −0.034 [−0.040, −0.028] against `silero`, −0.060
+[−0.065, −0.054] against `ruaccent`.
 
 `ruaccent` beats `silero` on both plain accuracy and, by a wide margin, on
 homograph accuracy for Russian. The much larger download buys real
@@ -89,6 +95,7 @@ vowel:
 | `simple` | Always stressed. The one vowel present is marked, even under an OOV `"none"` rule (see `be`/`simple` below). |
 | `silero` | Always stressed. A word with exactly one vowel gets it marked regardless of the model's own prediction. |
 | `ruaccent` | The dictionary/neural accent path only fires for words with **more than one** vowel. A bare, dictionary-absent monosyllable is often left **unmarked**. Single-vowel entries hardcoded in the accent dictionary (for example `о` → `+о`) are still marked. |
+| `kubataba` | Never marked. The upstream model treats a single-vowel word as inherently stressed and emits no mark for it. |
 
 ---
 
@@ -102,6 +109,7 @@ Calling a backend on text that already carries the combining acute
 | `simple` | Skips: if U+0301 is already present in a token, that token comes back unchanged. |
 | `silero` | Skips: a word already containing the stress token short-circuits before any prediction. |
 | `ruaccent` | Strips and re-derives from scratch. Marks are not detected as "already done", yo-homograph and omograph resolution always re-run. |
+| `kubataba` | Skips: the model reads the text without its marks, and a word that already carried one keeps it and gets no new mark. |
 
 If you need to guarantee a no-op on already-stressed text, prefer `simple`
 or `silero` for that language, or check for U+0301 yourself before calling.
@@ -523,31 +531,61 @@ mark at all.
 
 ## Architecture comparison
 
-| | ruaccent | silero | simple |
-|---|---|---|---|
-| **Languages** | ru | uk, be, ru | 26 languages |
-| **Context** | Sentence (BERT) | Word (n-gram) | Word (dict) |
-| **Homograph resolution** | Yes (BERT + RoBERTa) | No | No |
-| **е→ё restoration (ru)** | Yes | Yes | N/A |
-| **Yo-homograph (все/всё) disambiguation** | No | No | N/A |
-| **ONNX inference** | 4 models | 1 model | None |
-| **Download size** | ~470 MB | ~5-10 MB | ~1-5 MB |
-| **Cold-start latency** | High (4 sessions) | Low | Near-zero |
-| **Per-sentence latency** | ~50-200 ms | ~2-10 ms | <1 ms |
-| **Runtime deps** | onnxruntime, tokenizers | onnxruntime, numpy | numpy only |
-| **OOV handling** | nn_accent (char-level) | n-gram generalisation | positional rule |
-| **Sentence-level input** | Required | Works word-by-word | Works word-by-word |
-| **Max input length** | ~512 subword tokens | Unlimited (per-word) | Unlimited |
-| **Idempotent on pre-marked text** | No (re-derives) | Yes (skips) | Yes (skips) |
-| **License** | Apache-2.0 | MIT | MIT |
+| | ruaccent | silero | simple | kubataba |
+|---|---|---|---|---|
+| **Languages** | ru | uk, be, ru | 26 languages | ru (opt-in) |
+| **Context** | Sentence (BERT) | Word (n-gram) | Word (dict) | Sentence (char seq2seq) |
+| **Homograph resolution** | Yes (BERT + RoBERTa) | No | No | No |
+| **е→ё restoration (ru)** | Yes | Yes | N/A | No |
+| **Yo-homograph (все/всё) disambiguation** | No | No | N/A | No |
+| **ONNX inference** | 4 models | 1 model | None | 2 graphs, autoregressive |
+| **Download size** | ~470 MB | ~5-10 MB | ~1-5 MB | ~31 MB |
+| **Cold-start latency** | High (4 sessions) | Low | Near-zero | Low |
+| **Per-sentence latency** | ~50-200 ms | ~2-10 ms | <1 ms | ~500 ms per 12-character window |
+| **Runtime deps** | onnxruntime, tokenizers | onnxruntime, numpy | numpy only | onnxruntime, numpy |
+| **OOV handling** | nn_accent (char-level) | n-gram generalisation | positional rule | char-level generation |
+| **Sentence-level input** | Required | Works word-by-word | Works word-by-word | Required |
+| **Max input length** | ~512 subword tokens | Unlimited (per-word) | Unlimited | Unlimited (200-character windows) |
+| **Idempotent on pre-marked text** | No (re-derives) | Yes (skips) | Yes (skips) | Yes (skips) |
+| **License** | Apache-2.0 | MIT | MIT | MIT |
 
 `prefer="best"` picks `ruaccent` where available. `prefer="fast"` and
 `prefer="smallest"` pick `silero` then `simple` for languages that have
-them.
+them. No strategy picks `kubataba`.
 
-An additional research-only Russian model, a character-level seq2seq
-Transformer (`kubataba`), is exported by `export/export_kubataba.py` but is
-not wired into the runtime registry.
+## `"kubataba"`: character-level seq2seq Transformer (Russian, opt-in)
+
+A port of [Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor)
+(kubataba, MIT; PyPI `ruaccent-predictor`): an encoder-decoder Transformer
+(4+4 layers, d_model 256, 12.5M parameters) over a 224-character vocabulary,
+trained on 224k literary sentence pairs. It reads a sentence as characters
+and generates a copy with a mark after each stressed vowel.
+
+### Runtime
+
+Two ONNX graphs exported by `export/export_kubataba.py`: the encoder and one
+decoder step. Greedy decoding runs in numpy with one decoder call per output
+character and no key-value cache, so cost grows with the square of the
+window length. Measured on 11124 russtress windows (about 12 characters
+each) with two onnxruntime threads on a loaded 24-core host: about 500 ms per
+row and 170 MB peak RSS; in the same conditions `ruaccent` took 57 ms and 714
+MB, `silero` 0.3 ms and 114 MB. Download: about 31 MB.
+
+The generated copy is aligned back onto the input and only a mark on a
+vowel the input has at that place is kept; every input character comes
+back. Text over 200 characters is cut into windows on whitespace. The ONNX
+port generates the same marked string as the upstream torch model on all
+1011 inputs checked (1000 russtress windows plus the test sentences).
+
+### Limitations
+
+- No homograph resolution and no е→ё restoration; ё and single-vowel words
+  are never marked (upstream behaviour).
+- Characters outside the 224-entry vocabulary (`%`, most Latin, digits) are
+  replaced or dropped by the model; the backend keeps the input character
+  and loses only the marks the model could not place around it.
+- Accuracy is below both Russian defaults (see the headline table), so it
+  is never selected by default, by `prefer=` or by `fallback=True`.
 
 See [`../benchmarks/RESULTS.md`](../benchmarks/RESULTS.md) for measured
 accuracy numbers instead of qualitative claims.
