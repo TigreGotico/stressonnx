@@ -9,7 +9,6 @@ heads. Pipeline:
 4. Decode: exceptions dict → skip sets → argmax position → insert '+'.
 """
 import threading
-import unicodedata
 import gzip
 import json
 import re
@@ -21,7 +20,7 @@ from stressonnx._common import _RE_RU_COND, _RU_VOWELS, _softmax, lower_preservi
 from stressonnx.download import _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.langs import resolve_lang
-from stressonnx.notation import STRESS_TOKEN, composed, in_form_of, render_marks
+from stressonnx.notation import composed, has_stress_mark, in_form_of, render_marks
 from stressonnx.registry import MAIN_LANGS, _MAIN_FILES, hf_dir
 
 
@@ -274,7 +273,7 @@ class _SileroStressor:
                 continue
 
             raw_lower = lower_preserving_length(raw_word)
-            if STRESS_TOKEN in unicodedata.normalize("NFD", raw_word):
+            if has_stress_mark(raw_word):
                 continue
 
             base_word = clean_word.replace("ё", "е") if with_yo else clean_word
