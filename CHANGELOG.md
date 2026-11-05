@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.3a4](https://github.com/TigreGotico/stressonnx/tree/0.0.3a4) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a3...0.0.3a4)
+
+**Merged pull requests:**
+
+- fix: resolve capitalized homographs in ruaccent [\#20](https://github.com/TigreGotico/stressonnx/pull/20) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+- fix: resolve a script subtag that names the language's own script [\#18](https://github.com/TigreGotico/stressonnx/pull/18) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a3](https://github.com/TigreGotico/stressonnx/tree/0.0.3a3) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a2...0.0.3a3)
