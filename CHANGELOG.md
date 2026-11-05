@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a9](https://github.com/TigreGotico/stressonnx/tree/0.0.3a9) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a8...0.0.3a9)
+
+**Merged pull requests:**
+
+- fix: run the ruaccent backend on tokenizers 0.x and 1.x [\#31](https://github.com/TigreGotico/stressonnx/pull/31) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a8](https://github.com/TigreGotico/stressonnx/tree/0.0.3a8) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a7...0.0.3a8)
