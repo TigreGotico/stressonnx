@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a16](https://github.com/TigreGotico/stressonnx/tree/0.0.3a16) (2026-11-05)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a15...0.0.3a16)
+
+**Merged pull requests:**
+
+- feat: ruaccent-big-poetry, the RUAccent big\_poetry omograph model as a selectable model id [\#42](https://github.com/TigreGotico/stressonnx/pull/42) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a15](https://github.com/TigreGotico/stressonnx/tree/0.0.3a15) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a14...0.0.3a15)
