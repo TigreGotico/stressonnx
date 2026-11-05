@@ -6,9 +6,11 @@
     "simple": "mkd"
   },
   "sources": [
-    "Friedman 2001, Macedonian: fixed antepenultimate stress"
+    "Friedman 2001, Macedonian: fixed antepenultimate stress",
+    "р acts as a vowel when found between two consonants, e.g. црква (Wikipedia, Macedonian language); stress falls on the third from last syllable in words with three or more syllables, on the first or only syllable in other words"
   ],
   "tag": "mk",
   "alpha": "абвгдѓежзѕијклљмнњопрстќуфхцчџш",
-  "vowels": "аеиоу"
+  "vowels": "аеиоу",
+  "syllabic": "р"
 }

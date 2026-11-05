@@ -9,7 +9,8 @@
     "stressrnn": "ru_stressrnn"
   },
   "sources": [
-    "East Slavic accentology: stress is lexical/paradigmatic, not positional"
+    "East Slavic accentology: stress is lexical/paradigmatic, not positional",
+    "ё is almost always stressed; unstressed ё occurs only in compound numerals and a few derived terms (Wikipedia, Yo)"
   ],
   "tag": "ru",
   "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяё",
@@ -18,5 +19,6 @@
     "ruaccent": 0.938,
     "silero": 0.914,
     "stressrnn": 0.891
-  }
+  },
+  "self_stressed": "ё"
 }
