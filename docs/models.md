@@ -9,7 +9,7 @@
 | Russian general-purpose | `model="ruaccent-silero"` (default), or `prefer="best"`: the `ruaccent` pipeline, then the `silero` mark on the words it leaves unmarked; the most accurate id on both gold sets |
 | Russian, function words left unmarked | `model="ruaccent"` |
 | Russian, comparing homograph models | `model="ruaccent-big-poetry"` (the RUAccent `big_poetry` homograph model, less accurate on prose) |
-| Russian in memory-constrained environment | `model="silero"` (about 50 MB vs about 470 MB), or `prefer="smallest"`/`prefer="fast"` |
+| Russian in memory-constrained environment | `model="silero"` (about 50 MB download and 170 MB resident, vs about 470 MB download), or `prefer="fast"`. `prefer="smallest"` picks `simple`, the smallest download (10 MB), which holds about 510 MB once loaded |
 | Ukrainian / Belarusian | `model="silero"` (default) |
 | Turkic / Caucasian / minority languages | `model="simple"` (default) |
 | Don't care which model, just want a capability | `prefer="best"` / `"fast"` / `"smallest"` instead of a model id |
@@ -1079,9 +1079,9 @@ mark at all.
 | **Idempotent on pre-marked text** | No (re-derives) | Yes (skips) | Yes (skips) | Yes (skips) |
 | **License** | MIT | MIT | MIT | MIT |
 
-`prefer="best"` picks `ruaccent-silero` for `ru`. `prefer="fast"` and
-`prefer="smallest"` pick `silero` then `simple` for languages that have
-them. No strategy picks `kubataba` or `stressrnn` (Russian, 0.6 MB,
+`prefer="best"` picks `ruaccent-silero` for `ru`. Among the models a
+language has, `prefer="fast"` tries `silero`, then `simple`, then `ruaccent`,
+and `prefer="smallest"` tries `simple`, then `silero`, then `ruaccent`. No strategy picks `kubataba` or `stressrnn` (Russian, 0.6 MB,
 onnxruntime + numpy, Apache-2.0): each is reached only by its `model=` id. `uk-accentor` (Ukrainian, 45 MB, onnxruntime + numpy + tokenizers,
 MIT) is reached only by `model="uk-accentor"` in the same way.
 

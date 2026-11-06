@@ -75,8 +75,8 @@ type it as е, so restoring ё and placing stress are the same problem.
 - `simple` (dictionary path, `model="simple"`): 3,167,126 entries, every
   form of the RUAccent pronunciation dictionary with one reading. **0.868**.
   Homographs have no entry, so `simple` leaves them unmarked (0.000 on
-  homographs). The vocabulary loads in about 15 s and holds about 500 MB of
-  memory. There is no guessing on unknown words (rule `none`), because
+  homographs). The vocabulary loads in about 15 s and holds about 510 MB of
+  memory, with a peak of about 920 MB during the load. There is no guessing on unknown words (rule `none`), because
   Russian stress placement genuinely cannot be predicted from word shape. An unknown word with exactly one ё is stressed
   on it (зелё́ный): ё is almost always stressed, so the mark lands where the
   other Russian backends put it. The East Slavic accentological literature is
