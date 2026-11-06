@@ -39,12 +39,12 @@ from stressonnx.notation import (
     render_marks,
 )
 
-# Files to download for the ru_ruaccent bundle, besides the omograph model
+# Files to download for the ru_ruaccent bundle, besides the omograph and
+# stress-usage models, whose file name depends on the precision
 _RUACCENT_FILES = [
     "nn_accent/model.onnx",
     "nn_accent/vocab.txt",
     "nn_accent/config.json",
-    "nn_stress_usage/model.onnx",
     "nn_stress_usage/tokenizer.json",
     "nn_stress_usage/config.json",
     "nn_yo_homograph/model.onnx",
@@ -62,6 +62,14 @@ _RUACCENT_FILES = [
 OMOGRAPH_MODELS = {
     "turbo3.1": "nn_omograph",
     "big_poetry": "nn_omograph_big_poetry",
+}
+
+#: Weight precision → file name of the stress-usage and omograph models.
+#: ``int8`` holds the fp32 graph with its MatMul weights and embeddings
+#: dynamically quantized by onnxruntime (``quantize_dynamic``, QInt8).
+PRECISIONS = {
+    "fp32": "model.onnx",
+    "int8": "model.int8.onnx",
 }
 
 #: Sources of a mark for a word the pipeline leaves unmarked: ``"silero"``
@@ -333,11 +341,16 @@ class RuAccentStressor:
     omograph:
         Omograph model, a key of :data:`OMOGRAPH_MODELS`.  Only this model
         is downloaded and loaded.
+    precision:
+        Weights of the stress-usage and omograph models, a key of
+        :data:`PRECISIONS`.  The other two models are small and ship in
+        fp32 only.
 
     Raises
     ------
     UnknownModelError
-        If *omograph* is not a key of :data:`OMOGRAPH_MODELS`.
+        If *omograph* is not a key of :data:`OMOGRAPH_MODELS`, or
+        *precision* not a key of :data:`PRECISIONS`.
     """
 
     def __init__(
@@ -345,9 +358,13 @@ class RuAccentStressor:
         cache_dir: str | None = None,
         omograph: str = "turbo3.1",
         fill: str | None = None,
+        precision: str = "fp32",
     ) -> None:
         if omograph not in OMOGRAPH_MODELS:
             raise UnknownModelError(omograph, OMOGRAPH_MODELS)
+        if precision not in PRECISIONS:
+            raise UnknownModelError(precision, PRECISIONS)
+        self._model_file = PRECISIONS[precision]
         if fill not in FILLS:
             raise ValueError(f"fill must be one of {sorted(f for f in FILLS if f)} or None, not {fill!r}")
         self._omograph_dir = OMOGRAPH_MODELS[omograph]
@@ -392,9 +409,10 @@ class RuAccentStressor:
             self._silero = _SileroStressor(lang="ru", cache_dir=self._cache_dir, model_id=self._model_id)
             self._silero._ensure_loaded()
 
-        omograph_files = [f"{self._omograph_dir}/model.onnx", f"{self._omograph_dir}/tokenizer.json"]
+        omograph_files = [f"{self._omograph_dir}/{self._model_file}", f"{self._omograph_dir}/tokenizer.json"]
+        stress_usage_file = f"nn_stress_usage/{self._model_file}"
         data = _download_files(MODEL_REGISTRY['ruaccent'].hf_subdir,
-                               _RUACCENT_FILES + omograph_files,
+                               _RUACCENT_FILES + omograph_files + [stress_usage_file],
                                self._cache_dir, model_id=self._model_id)
 
         try:
@@ -420,7 +438,7 @@ class RuAccentStressor:
             providers=["CPUExecutionProvider"],
         )
         self._stress_usage_sess = ort.InferenceSession(
-            data["nn_stress_usage/model.onnx"],
+            data[stress_usage_file],
             providers=["CPUExecutionProvider"],
         )
         self._yo_hom_sess = ort.InferenceSession(
