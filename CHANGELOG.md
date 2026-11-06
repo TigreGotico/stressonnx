@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a35](https://github.com/TigreGotico/stressonnx/tree/0.0.3a35) (2026-11-06)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a34...0.0.3a35)
+
+**Merged pull requests:**
+
+- feat: ruaccent-int8 and ruaccent-silero-int8, int8 weights as an opt-in [\#81](https://github.com/TigreGotico/stressonnx/pull/81) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a34](https://github.com/TigreGotico/stressonnx/tree/0.0.3a34) (2026-11-06)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a33...0.0.3a34)
