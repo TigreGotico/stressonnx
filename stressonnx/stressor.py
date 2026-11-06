@@ -23,8 +23,9 @@ def make_stressor(
     ----------
     model:
         Model-id string, a key of :data:`MODEL_REGISTRY`: ``"ruaccent"``,
-        ``"ruaccent-big-poetry"``, ``"ruaccent-silero"``, ``"silero"``,
-        ``"simple"``, ``"kubataba"``, ``"stressrnn"`` or ``"uk-accentor"``.
+        ``"ruaccent-int8"``, ``"ruaccent-big-poetry"``, ``"ruaccent-silero"``,
+        ``"ruaccent-silero-int8"``, ``"silero"``, ``"simple"``, ``"kubataba"``,
+        ``"stressrnn"`` or ``"uk-accentor"``.
         When *None*, the default model for *lang* is used (see
         :data:`DEFAULT_MODEL`).
     lang:
@@ -76,7 +77,8 @@ def make_stressor(
         )
 
     if entry.family == "ruaccent":
-        return RuAccentStressor(cache_dir=cache_dir, omograph=entry.variant, fill=entry.fill)
+        return RuAccentStressor(cache_dir=cache_dir, omograph=entry.variant, fill=entry.fill,
+                                precision=entry.precision)
     if entry.family == "silero":
         return _SileroStressor(lang=lang, cache_dir=cache_dir)
     if entry.family == "simple":

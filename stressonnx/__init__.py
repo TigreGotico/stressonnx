@@ -13,7 +13,9 @@ Model families
     ``"ruaccent-big-poetry"`` is the same pipeline with the RUAccent
     big_poetry homograph model in place of turbo3.1.  ``"ruaccent-silero"``
     adds the silero mark on every word of two or more vowels the pipeline
-    leaves unmarked (и́ли, э́то, бы́ло, что́-то).
+    leaves unmarked (и́ли, э́то, бы́ло, что́-то).  ``"ruaccent-int8"`` and
+    ``"ruaccent-silero-int8"`` load int8 weights for the two large models:
+    smaller and faster, with a small loss on homographs.
 
 ``"silero"`` (default for ``uk``, ``be``):
     Neural ONNX pipeline (embedding-bag + MLP heads) exported from
@@ -132,8 +134,8 @@ def stress(
 
     - ``lang``: BCP-47 tag (``"ru"``, ``"uk"``, ``"az-Latn"`` …).
     - ``model``: explicit model id (``"ruaccent"``,
-      ``"ruaccent-big-poetry"``, ``"ruaccent-silero"``, ``"silero"``,
-      ``"simple"``) — default:
+      ``"ruaccent-int8"``, ``"ruaccent-big-poetry"``, ``"ruaccent-silero"``,
+      ``"ruaccent-silero-int8"``, ``"silero"``, ``"simple"``) — default:
       the best model for *lang*.
     - ``prefer``: capability strategy instead of a model id — ``"best"``
       (quality), ``"fast"`` (latency), ``"smallest"`` (footprint).
