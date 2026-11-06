@@ -14,6 +14,7 @@
 | Don't care which model, just want a capability | `prefer="best"` / `"fast"` / `"smallest"` instead of a model id |
 | Russian, the RusStress/StressRNN reading for comparison or parity with a system built on it | `model="stressrnn"` (never selected by default or by `prefer=`) |
 | Russian, a second opinion from a sentence-level seq2seq model | `model="kubataba"` (opt-in only; below both `ruaccent` and `silero` in accuracy and far slower) |
+| Ukrainian, the ukrainian-accentor-transformer reading for comparison or parity with a system built on it | `model="uk-accentor"` (never selected by default or by `prefer=`) |
 
 Full accuracy numbers, not just relative quality claims, live in
 [`../benchmarks/RESULTS.md`](../benchmarks/RESULTS.md), reproducible with
@@ -28,6 +29,7 @@ Full accuracy numbers, not just relative quality claims, live in
 | ru | kubataba | 0.888 | 0.816 |
 | ru | simple | 0.142 | 0.227 |
 | uk | silero | 0.843 | not measured |
+| uk | uk-accentor | 0.795 | not measured |
 | uk | simple | 0.534 | not measured |
 | be | silero | 0.908 | not measured |
 | be | simple | 0.435 | not measured |
@@ -43,7 +45,13 @@ homograph resolution from a wider context. `stressrnn` is below both (McNemar p 
 `ruaccent`, p = 6e-90 against `silero`), and the russtress file is the
 corpus the StressRNN BiLSTM was trained on, so its number is optimistic.
 For Belarusian, `silero` (neural, the default) is substantially more
-accurate than `model="simple"` (vocabulary lookup). Use `model="simple"`
+accurate than `model="simple"` (vocabulary lookup). For Ukrainian,
+`uk-accentor` scores 0.795 (95% CI 0.787 to 0.801) against `silero`'s 0.843
+(0.837 to 0.850) on the same 12 252 russtress targets, McNemar p = 4e-64,
+with `benchmarks/run.py` scoring (a hit marks exactly the gold vowel and no
+other; `uk-accentor` writes two marks on some words). The russtress rows
+carry labels from the same lineage as its training data (see the
+`uk-accentor` section), so its number is optimistic. Use `model="simple"`
 only where ONNX inference is unavailable. See `benchmarks/RESULTS.md` for
 row counts, the Wiktionary and silver sets, confidence intervals and the
 McNemar tests.
@@ -108,6 +116,7 @@ vowel:
 | `ruaccent` | The dictionary/neural accent path only fires for words with **more than one** vowel. A bare, dictionary-absent monosyllable is often left **unmarked**. Single-vowel entries hardcoded in the accent dictionary (for example `о` → `+о`) are still marked. |
 | `stressrnn` | Always stressed, prepositions and particles included (`на́`, `а́`), and so is every hyphen part (`кто́-то́`). This is upstream behaviour. |
 | `kubataba` | Never marked. The upstream model treats a single-vowel word as inherently stressed and emits no mark for it. |
+| `uk-accentor` | Whatever the model writes: most monosyllables stay unmarked (`як`, `що`, `село`), some get a mark. This is upstream behaviour. |
 
 ---
 
@@ -123,6 +132,7 @@ Calling a backend on text that already carries the combining acute
 | `ruaccent` | Strips and re-derives from scratch. Marks are not detected as "already done", yo-homograph and omograph resolution always re-run. A word written with ё is always labelled as stressed, so it gets the same marks whether the input writes е or ё. A second run gives back the output of the first unless a restored ё changes what the stress-usage model reads for a neighbouring word. |
 | `kubataba` | Skips: the model reads the text without its marks, and a word that already carried one keeps it and gets no new mark. |
 | `stressrnn` | Skips: a word that already carries U+0301 is left as it is. |
+| `uk-accentor` | Strips the marks for the model, then keeps every pre-marked word as it was and drops the model's marks on it. Upstream re-marks every word. |
 
 If you need to guarantee a no-op on already-stressed text, prefer `simple`
 or `silero` for that language, or check for U+0301 yourself before calling.
@@ -427,6 +437,111 @@ Belarusian specifics:
   benchmark table above: silero (0.908 accuracy) is dramatically better
   here than the `simple` vocabulary fallback (0.435).
 
+### Belarusian dictionary layer
+
+The Belarusian silero bundle carries a dictionary layer built from
+[GrammarDB](https://github.com/Belarus/GrammarDB) RELEASE-202601, the
+grammar database of the Belarusian language (Aleś Bułojčyk and
+contributors, CC-BY-SA-4.0). The release lists about four million
+inflected forms, about two million distinct spellings, with `+` after the
+stressed vowel. Keyed like the runtime tokens, 1,896,721 keys have one
+stress and 25,029 have several readings. The layer lives in the bundle's `dictionary.txt.gz`, a
+separate file with its own notice `LICENSE.grammardb`, because the
+database is CC-BY-SA-4.0 and the silero files are MIT. The runtime reads
+it before the upstream exceptions table and the neural model.
+
+The layer holds only the spellings that have exactly one stress in the
+database and that the silero pipeline (exceptions table plus model)
+stresses differently. The pipeline already agrees with the database on
+the other 1.89 million spellings, so they are left out. This keeps the
+file at about 11 KB and 2,493 entries. 184 of them override an entry of
+the upstream silero exceptions table, which stays in the bundle unchanged.
+2,318 keys are lowercase and 175 capitalized. 1,925 keys are not a plain
+spelling of the database's word list (`spellchecker/slovy-2008.txt`):
+they are apostrophe spellings (аб'ект) with the apostrophe dropped, which
+the model stresses wrongly in that shape. 568 keys are plain spellings
+(эканамі́ста, хлушу́, Інтэрфа́ксу).
+
+The neural model still decides these cases:
+
+- Homographs (му́ка/мука́, па́ра/пара́, ру́кі/рукі́) and spellings with
+  variant stress, which the database lists with more than one stress.
+- Spellings stressed differently inside a hyphenated compound of the
+  database (ра́мбурсны against акцэ́птна-рамбу́рсны).
+- Spellings that en-Wiktionary (the kaikki dump) stresses on another
+  vowel, in either case of the spelling.
+- Forms of paradigms the database marks `todo` (data not final); such a
+  form also keeps the same spelling out of the layer.
+- Hyphenated compounds and multiword entries as a whole, which the
+  tokenizer splits; each part is a token of its own.
+- Forms the database lists without a stress mark.
+- Words outside the database.
+- A capitalized word inside a sentence whose capitalized spelling the
+  database lacks, and a capitalized word at the start of a sentence whose
+  lowercase spelling it lacks. The layer keys a form the database writes
+  capitalized (Інтэрфа́ксу) by that spelling. Inside a sentence a
+  capitalized token takes only such a key, so `сталі́н` (genitive plural of
+  сталі́на) does not reach `Сталін`, and the model keeps `Ста́лін`. At the
+  start of a sentence, where a common word is capitalized too, it takes
+  only the lowercase key, so the name `Я́на` does not reach the pronoun
+  `Яна́`. The runtime takes a sentence start after any `.`, `!`, `?` or
+  `…`, so also after an initial, an abbreviation, an ellipsis or a decimal
+  number, and a name alone is a sentence start. An all-caps token takes
+  either key. A name and a common word of one spelling that disagree give
+  neither key, and so do a lowercase key and its capitalized Wiktionary
+  spelling (сталі́н, Ста́лін).
+
+Each entry stores the ordinal of the stressed vowel, not a character
+offset, and the runtime maps it onto the token as written. A quote,
+apostrophe or soft hyphen in the token therefore does not move the mark,
+which is the defect the Ukrainian layer has with its character offsets.
+The layer is keyed like the runtime tokens, with every character outside
+the silero alphabet removed. That alphabet keeps `’` but not the ASCII
+apostrophe, so the layer carries both keys: `з'ява`, `з’ява` and `зʼява`
+all find their entry. A word in single typographic quotes (`‘слова’`)
+keeps the closing `’` in its key, finds no entry and stays with the model,
+as on a bundle without the layer.
+
+On the five Belarusian evaluation sets of `benchmarks/run.py` (ser9, two
+onnxruntime threads, the harness's bootstrap over rows and exact McNemar on
+the targets both scored; the difference column is a paired bootstrap over
+targets, 2,000 resamples):
+
+| Set (tier) | Targets | silero | with layer | Difference [95% CI] | Layer only right / model only right | McNemar |
+|---|---|---|---|---|---|---|
+| russtress (GOLD) | 2,902 | 0.908 | 0.923 | +0.015 [+0.010, +0.019] | 44 / 1 | p = 3e-12 |
+| wiktionary (GOLD) | 12,390 | 0.950 | 0.957 | +0.007 [+0.006, +0.009] | 92 / 3 | p = 7e-24 |
+| zascienak (GOLD) | 22,965 | 0.949 | 0.960 | +0.011 [+0.010, +0.012] | 252 / 0 | p = 3e-76 |
+| homographs-10x10 (GOLD) | 1,496 | 0.499 | 0.499 | 0 | 0 / 0 | n/a |
+| homographs-commonvoice (SILVER) | 2,877 | 0.696 | 0.696 | 0 | 0 / 0 | n/a |
+
+The four targets the layer loses are database readings the gold
+contradicts: існуе́ (russtress існу́е), навіна́ (Wiktionary наві́на, twice)
+and ву́чняў (Wiktionary вучня́ў). The homograph sets do not move because
+every homograph has several readings in the database and stays with the
+model. The zascienak and the homograph sets come from the BelVoice
+project, whose author also maintains GrammarDB, and its card says the
+stress of ordinary words is set through the grammar database; the
+zascienak row is therefore not independent of the layer's source, which
+its 252 against 0 shows. The russtress rows (Toloka-annotated UD treebank
+text) and the Wiktionary rows are independent of GrammarDB. On 75,174
+inflected forms of the English Wiktionary (kaikki, no context), which is
+also the cross-check source, the layer gives 0.957 against 0.954 without
+it, +0.0034 [+0.0030, +0.0039], 259 forms only right with the layer
+against 0 only right without it.
+
+The case rule was measured on the same sets against two alternatives: a
+capitalized token that always takes the lowercase key when it has no
+capitalized one, and one that never does. The rule gives 15 Wiktionary and
+28 zascienak targets more than "never" and 3 Wiktionary targets more than
+"always", and loses none against either.
+
+`export/build_be_grammardb_vocab.py` rebuilds the layer from the pinned
+release archive and the pinned kaikki dump, whose archived copy the script
+names. A rebuilt `accentor.onnx` or `exceptions.txt.gz` needs a
+rebuilt layer too, because the selection depends on the pipeline's own
+output.
+
 ### Why silero is also available for Russian
 
 The silero Russian model is accurate for unambiguous words and resolves
@@ -515,6 +630,87 @@ needs no morphology dependency for this model.
 - **Below `silero`** on the scoreboard (0.892 vs 0.944 on russtress) and
   those rows are the corpus the BiLSTM was trained on, so the gap is a
   lower bound.
+
+---
+
+## `"uk-accentor"`: seq2seq Transformer
+
+**Available for `uk`. Never a default, never chosen by `prefer=`.**
+
+A port of [ukrainian-accentor-transformer](https://github.com/Theodotus1243/ukrainian-accentor-transformer)
+(Bohdan Mykhailenko, MIT). Upstream trained a 4+4-layer Transformer
+(d 256, 8 heads, ffn 1024) with a shared SentencePiece vocabulary of 4095
+pieces on the lang-uk News corpus, stressed with
+[ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress),
+and ships it only as a CTranslate2 binary. `export/export_uk_accentor.py`
+reads that binary, rebuilds the network with CTranslate2's arithmetic and
+exports an encoder graph and a decoder graph; the SentencePiece model
+becomes a `tokenizer.json`. The model translates a sentence into the same
+sentence with U+0301 after each stressed vowel.
+
+```
+Input text
+      │
+      ├── U+0301 stripped, SentencePiece pieces (tokenizer.json)
+      │
+      ├── cut after every . , ! ? piece; chunks of 30+ pieces halved at a word start
+      │
+      ├── per chunk: encoder.onnx → memory; decoder.onnx step by step,
+      │              beam 2, repetition penalty 1.2, length penalty 1 (numpy)
+      │
+      ├── hypotheses joined and decoded to text
+      │
+      └── difflib alignment with the stripped input: a U+0301 the model
+          inserted marks the input letter before it; every other
+          difference is dropped → marks rendered onto the input
+```
+
+The model sees the whole chunk, so it can use context, and it marks what it
+was trained on: some words get two marks (`за́мо́к`, `ро́кі́в`), some stay
+unmarked, most monosyllables stay unmarked. The model also writes a mark
+after a consonant on some words (`хр́е́ще́ною́`); the port drops those,
+because a stressed index is the offset of a vowel.
+
+Parity with upstream: the output is identical except for marks after a
+consonant, which the port drops: 996 of the 1009 sentences in upstream's
+own test file and 12230 of the 12253 russtress windows are identical
+(upstream run with its own code on the same NFC text; 13 sentences and 21
+windows differ by a dropped consonant mark). The other differences are
+the two rules below.
+
+Differences from upstream `Accentor.__call__`: the port works on the NFC
+form of the text and maps offsets back, where upstream aligns its output
+with the raw text and loses the marks of a word spelled with a combining
+mark (`и` + U+0306 for `й`); and a word that already carries a stress mark
+keeps it, where upstream strips every mark and writes its own. The port
+never changes a letter: the output is the input with marks inserted at
+offsets, so a letter the model rewrote is dropped, as upstream does with
+its diff. Upstream decodes up to 256 pieces per chunk whatever the input;
+the port stops at 2 × (input pieces) + 20. The bound cuts short only the
+inputs the model never ends with an end token (`и`, `100`), and their
+output is the same.
+
+### Limitations
+
+- **Training labels come from ukrainian-word-stress**, the dictionary that
+  also feeds the `uk` dictionary layer proposed for the `silero` model.
+  The russtress Ukrainian rows are the only gold available and share that
+  lineage, so the scoreboard number is a ceiling, not an independent
+  measurement. The ukrainian-word-stress labels are MIT; the lang-uk News
+  corpus is a row of the UberText section of
+  [lang.org.ua](https://lang.org.ua/en/corpora/), whose page states that
+  the texts are distributed on condition of Fair Use for statistical and
+  scientific analysis, and the row carries no licence field. `meta.json`
+  records both as `training_data_license`.
+- **Slow.** Beam search runs the decoder graph once per output piece and
+  beam, and reads the whole prefix at every step. Median 123 ms per
+  russtress window of three words and 710 ms per sentence of upstream's
+  test file (median 98 characters), against silero's 0.2 ms per window on
+  the same box (24 cores under load, 2 threads).
+- **Double marks and unmarked words.** One reading per chunk, as the model
+  wrote it; no post-processing picks a single vowel.
+- **Ukrainian alphabet only.** A letter outside the SentencePiece vocabulary
+  becomes `<unk>` and the word around it is usually left unmarked.
 
 ---
 
@@ -740,7 +936,8 @@ mark at all.
 `prefer="best"` picks `ruaccent` where available. `prefer="fast"` and
 `prefer="smallest"` pick `silero` then `simple` for languages that have
 them. No strategy picks `kubataba` or `stressrnn` (Russian, 0.6 MB,
-onnxruntime + numpy, Apache-2.0): each is reached only by its `model=` id.
+onnxruntime + numpy, Apache-2.0): each is reached only by its `model=` id. `uk-accentor` (Ukrainian, 45 MB, onnxruntime + numpy + tokenizers,
+MIT) is reached only by `model="uk-accentor"` in the same way.
 
 ## `"kubataba"`: character-level seq2seq Transformer (Russian, opt-in)
 

@@ -4,6 +4,7 @@ from stressonnx.backends.ruaccent import RuAccentStressor
 from stressonnx.backends.silero import _SileroStressor
 from stressonnx.backends.simple import SimpleStressor
 from stressonnx.backends.stressrnn import StressRnnStressor
+from stressonnx.backends.uk_accentor import UkAccentorStressor
 
 __all__ = [
     "KubatabaStressor",
@@ -11,4 +12,5 @@ __all__ = [
     "_SileroStressor",
     "SimpleStressor",
     "StressRnnStressor",
+    "UkAccentorStressor",
 ]

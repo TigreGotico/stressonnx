@@ -37,6 +37,8 @@ export = [
     "silero_stress==1.5",
     # the Ukrainian dictionary layer tracks this exact release
     "ukrainian-word-stress==2.1.0",
+    # export_uk_accentor.py reads the upstream SentencePiece model
+    "sentencepiece",
 ]
 test = [
     "pytest",
