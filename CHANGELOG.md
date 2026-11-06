@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a27](https://github.com/TigreGotico/stressonnx/tree/0.0.3a27) (2026-11-06)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a26...0.0.3a27)
+
+**Merged pull requests:**
+
+- fix: language data of the simple model [\#60](https://github.com/TigreGotico/stressonnx/pull/60) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a26](https://github.com/TigreGotico/stressonnx/tree/0.0.3a26) (2026-11-06)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a25...0.0.3a26)
