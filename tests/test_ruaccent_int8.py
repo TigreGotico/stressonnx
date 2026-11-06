@@ -7,6 +7,7 @@ import pytest
 
 from stressonnx import make_stressor
 from stressonnx.backends import ruaccent as backend
+from stressonnx.backends import silero as silero_backend
 from stressonnx.backends.ruaccent import PRECISIONS, RuAccentStressor
 from stressonnx.errors import UnknownModelError
 from stressonnx.registry import MODEL_REGISTRY
@@ -57,6 +58,21 @@ def test_precision_selects_the_model_file(monkeypatch, model_id, name):
     assert "nn_yo_homograph/model.onnx" in asked
 
 
+@pytest.mark.parametrize("model_id", ["ruaccent", "ruaccent-silero", "ruaccent-int8", "ruaccent-silero-int8"])
+def test_download_errors_name_the_model_id(monkeypatch, model_id):
+    named = []
+
+    def fake(subdir, filenames, cache_dir, model_id=None):
+        named.append(model_id)
+        raise RuntimeError("stop after the first download")
+
+    monkeypatch.setattr(backend, "_download_files", fake)
+    monkeypatch.setattr(silero_backend._SileroStressor, "_ensure_loaded", lambda self: None)
+    with pytest.raises(RuntimeError):
+        make_stressor(model=model_id, lang="ru")._load()
+    assert named == [model_id]
+
+
 def test_default_precision_is_fp32(monkeypatch):
     asked = requested_files(monkeypatch, RuAccentStressor())
     assert "nn_stress_usage/model.onnx" in asked
@@ -69,10 +85,14 @@ def test_unknown_precision():
     assert err.value.supported == sorted(PRECISIONS)
 
 
-def test_int8_and_fp32_agree_on_a_homograph(model_cache_dir):
+@pytest.mark.parametrize("fp32_id, int8_id", [
+    ("ruaccent", "ruaccent-int8"),
+    ("ruaccent-silero", "ruaccent-silero-int8"),
+])
+def test_int8_and_fp32_agree_on_a_homograph(model_cache_dir, fp32_id, int8_id):
     """Both precisions resolve the same reading of a context homograph."""
     text = "на двери висел большой замок"
-    fp32 = make_stressor(model="ruaccent", cache_dir=model_cache_dir)(text)
-    int8 = make_stressor(model="ruaccent-int8", cache_dir=model_cache_dir)(text)
+    fp32 = make_stressor(model=fp32_id, cache_dir=model_cache_dir)(text)
+    int8 = make_stressor(model=int8_id, cache_dir=model_cache_dir)(text)
     assert int8 == fp32
     assert "замо́к" in int8

@@ -369,7 +369,7 @@ class RuAccentStressor:
             raise ValueError(f"fill must be one of {sorted(f for f in FILLS if f)} or None, not {fill!r}")
         self._omograph_dir = OMOGRAPH_MODELS[omograph]
         self._fill = fill
-        self._model_id = "ruaccent-silero" if fill else "ruaccent"
+        self._model_id = ("ruaccent-silero" if fill else "ruaccent") + ("-int8" if precision == "int8" else "")
         self._silero = None
         self._cache_dir = cache_dir
         self._loaded = False

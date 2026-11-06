@@ -270,6 +270,8 @@ Measured on a laptop with two onnxruntime threads per session:
 | ruaccent cold load | 4.2 s | 2.5 s |
 | ruaccent ms/row, russtress | 7.5 | 5.0 |
 | ruaccent ms/row, Wiktionary sentences | 84 | 23 |
+| ruaccent-silero ms/row, russtress | 10.8 | 12.3 |
+| ruaccent-silero ms/row, Wiktionary sentences | 32.7 | 16.2 |
 | ruaccent accuracy, russtress (11124 targets) | 0.9471 | 0.9463 |
 | ruaccent homograph accuracy, russtress (724) | 0.833 | 0.825 |
 | ruaccent accuracy, Wiktionary (137221 targets) | 0.9642 | 0.9640 |
@@ -280,8 +282,9 @@ Measured on a laptop with two onnxruntime threads per session:
 The loss is below 0.1 points on every set and falls on the homographs,
 the part the omograph model decides. A homograph whose margin is already
 small can flip: `Дверной замок надёжен.` after 80 filler sentences gets
-`за́мок` from int8 and `замо́к` from fp32. Choose int8 when download size,
-memory or latency matter more than that margin.
+`за́мок` from int8 and `замо́к` from fp32. Choose int8 when download size or
+memory matter more than that margin. int8 is faster on long sentences, but
+`ruaccent-silero-int8` is slower than fp32 on the short russtress windows.
 
 ### `ruaccent-silero`: the ruaccent pipeline with silero marks on its unmarked words
 
