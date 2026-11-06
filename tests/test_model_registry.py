@@ -38,7 +38,7 @@ def test_default_model_covers_all_langs():
 
 
 def test_default_model_ru():
-    assert DEFAULT_MODEL["ru"] == "ruaccent"
+    assert DEFAULT_MODEL["ru"] == "ruaccent-silero"
 
 
 def test_default_model_ukr_bel():

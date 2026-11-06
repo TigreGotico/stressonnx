@@ -33,9 +33,9 @@ def test_unsupported_language_names_lang_and_supported():
 
 
 def test_fallback_priority_order():
-    assert FALLBACK_PRIORITY == ("ruaccent", "silero", "simple")
+    assert FALLBACK_PRIORITY == ("ruaccent-silero", "ruaccent", "silero", "simple")
     assert _fallback_chain("ru") == [
-        ("ruaccent", "ru"), ("silero", "ru"), ("simple", "ru")
+        ("ruaccent-silero", "ru"), ("ruaccent", "ru"), ("silero", "ru"), ("simple", "ru")
     ]
     assert _fallback_chain("uk") == [("silero", "uk"), ("simple", "uk")]
     assert _fallback_chain("be") == [("silero", "be"), ("simple", "be")]
@@ -51,7 +51,7 @@ def test_download_failure_propagates_without_fallback(monkeypatch):
     stressonnx._SINGLETONS.clear()
     with pytest.raises(ModelDownloadError) as excinfo:
         stress("привет", "ru")
-    assert excinfo.value.model_id == "ruaccent"  # user-facing id, not the HF subdir
+    assert excinfo.value.model_id == "ruaccent-silero"  # user-facing id, not the HF subdir
 
 
 def test_fallback_walks_chain_and_warns(monkeypatch, caplog):

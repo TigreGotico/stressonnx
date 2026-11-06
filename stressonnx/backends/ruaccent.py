@@ -346,6 +346,7 @@ class RuAccentStressor:
             raise ValueError(f"fill must be one of {sorted(f for f in FILLS if f)} or None, not {fill!r}")
         self._omograph_dir = OMOGRAPH_MODELS[omograph]
         self._fill = fill
+        self._model_id = "ruaccent-silero" if fill else "ruaccent"
         self._silero = None
         self._cache_dir = cache_dir
         self._loaded = False
@@ -374,15 +375,21 @@ class RuAccentStressor:
             except (ModelDownloadError, ModelLoadError):
                 raise
             except Exception as exc:
-                raise ModelLoadError('ruaccent', exc) from exc
+                raise ModelLoadError(self._model_id, exc) from exc
             self._loaded = True
 
     def _load(self) -> None:
+        # silero loads first: a failure here costs no ruaccent session, and
+        # the pipeline retries a failed load after each cooldown
+        if self._fill == "silero":
+            from stressonnx.backends.silero import _SileroStressor
+            self._silero = _SileroStressor(lang="ru", cache_dir=self._cache_dir, model_id=self._model_id)
+            self._silero._ensure_loaded()
 
         omograph_files = [f"{self._omograph_dir}/model.onnx", f"{self._omograph_dir}/tokenizer.json"]
         data = _download_files(MODEL_REGISTRY['ruaccent'].hf_subdir,
                                _RUACCENT_FILES + omograph_files,
-                               self._cache_dir, model_id="ruaccent")
+                               self._cache_dir, model_id=self._model_id)
 
         try:
             import tokenizers  # noqa: F401
@@ -440,11 +447,6 @@ class RuAccentStressor:
         self._accents: dict = json.load(gzip.open(data["dictionary/accents_nn.json.gz"]))
         # Single-vowel mappings from RUAccent
         self._accents.update({"о": "+о", "О": "+О"})
-        if self._fill == "silero":
-            from stressonnx.backends.silero import _SileroStressor
-            self._silero = _SileroStressor(lang="ru", cache_dir=self._cache_dir)
-            self._silero._ensure_loaded()
-
 
     # ------------------------------------------------------------------
     # Internal helpers

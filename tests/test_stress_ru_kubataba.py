@@ -100,7 +100,7 @@ def test_kubataba_registry_entry():
 
 
 def test_kubataba_never_selected_by_default_prefer_or_fallback():
-    assert DEFAULT_MODEL["ru"] == "ruaccent"
+    assert DEFAULT_MODEL["ru"] == "ruaccent-silero"
     assert "kubataba" not in FALLBACK_PRIORITY
     pipeline = StressPipeline()
     for prefer in ("best", "fast", "smallest"):

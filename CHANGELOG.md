@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a29](https://github.com/TigreGotico/stressonnx/tree/0.0.3a29) (2026-11-06)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a28...0.0.3a29)
+
+**Merged pull requests:**
+
+- feat: ruaccent-silero is the Russian default [\#69](https://github.com/TigreGotico/stressonnx/pull/69) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a28](https://github.com/TigreGotico/stressonnx/tree/0.0.3a28) (2026-11-06)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a27...0.0.3a28)

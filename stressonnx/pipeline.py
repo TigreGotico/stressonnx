@@ -25,7 +25,7 @@ from stressonnx.stressor import make_stressor
 LOG = logging.getLogger("stressonnx")
 
 #: Model priority for ``fallback=True`` and ``prefer="best"``: quality first.
-FALLBACK_PRIORITY = ("ruaccent", "silero", "simple")
+FALLBACK_PRIORITY = ("ruaccent-silero", "ruaccent", "silero", "simple")
 
 #: ``prefer=`` strategies.  ``"best"`` orders by each language's measured
 #: accuracy (the ``accuracy`` field of its data file) where numbers exist,

@@ -11,6 +11,7 @@ import pytest
 
 from stressonnx import MODEL_REGISTRY, STRESS_TOKEN, make_stressor, stress
 from stressonnx.backends.ruaccent import RuAccentStressor
+from stressonnx.errors import ModelDownloadError, ModelLoadError
 
 VOWELS = "аеёиоуыэюя"
 
@@ -131,3 +132,20 @@ def test_module_api_reaches_the_model(model_cache_dir):
 def test_unknown_fill_is_rejected():
     with pytest.raises(ValueError):
         RuAccentStressor(fill="dictionary")
+
+
+@pytest.mark.parametrize("error", ["download", "load"])
+def test_silero_failure_builds_no_ruaccent_session(monkeypatch, error):
+    def fail(*args, model_id, **kwargs):
+        if error == "download":
+            raise ModelDownloadError(model_id, "ru/accentor.onnx", OSError("offline"))
+        raise ValueError("corrupt file")
+
+    def unreached(*args, **kwargs):
+        pytest.fail("ruaccent files loaded after silero failed")
+
+    monkeypatch.setattr("stressonnx.backends.silero._download_files", fail)
+    monkeypatch.setattr("stressonnx.backends.ruaccent._download_files", unreached)
+    with pytest.raises((ModelDownloadError, ModelLoadError)) as excinfo:
+        make_stressor(model="ruaccent-silero", lang="ru")._ensure_loaded()
+    assert excinfo.value.model_id == "ruaccent-silero"

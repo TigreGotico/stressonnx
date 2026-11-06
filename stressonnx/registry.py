@@ -367,10 +367,10 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
 #: opt-in only: it never wins a default, a ``prefer=`` strategy or the
 #: fallback chain.
 DEFAULT_MODEL: dict = {}
-# Build defaults: RUACCENT_LANGS → ruaccent, MAIN_LANGS → silero,
+# Build defaults: RUACCENT_LANGS → ruaccent-silero, MAIN_LANGS → silero,
 # SIMPLE_LANGS → simple (do not overwrite a higher-priority entry).
 for _lang in RUACCENT_LANGS:
-    DEFAULT_MODEL[_lang] = "ruaccent"
+    DEFAULT_MODEL[_lang] = "ruaccent-silero"
 for _lang in MAIN_LANGS:
     if _lang not in DEFAULT_MODEL:
         DEFAULT_MODEL[_lang] = "silero"
