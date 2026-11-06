@@ -10,6 +10,7 @@
 | Russian, function words left unmarked | `model="ruaccent"` |
 | Russian, comparing homograph models | `model="ruaccent-big-poetry"` (the RUAccent `big_poetry` homograph model, less accurate on prose) |
 | Russian in memory-constrained environment | `model="silero"` (about 50 MB download and 170 MB resident, vs about 470 MB download), or `prefer="fast"`. `prefer="smallest"` picks `simple`, the smallest download (10 MB), which holds about 510 MB once loaded |
+| Russian, less memory with homograph resolution | `model="ruaccent-silero-int8"`: about 145 MB download and 400 MB resident, a small loss on homographs |
 | Ukrainian / Belarusian | `model="silero"` (default) |
 | Turkic / Caucasian / minority languages | `model="simple"` (default) |
 | Don't care which model, just want a capability | `prefer="best"` / `"fast"` / `"smallest"` instead of a model id |
@@ -24,8 +25,10 @@ Full accuracy numbers, not just relative quality claims, live in
 | lang | model | accuracy | homograph accuracy |
 |------|-------|----------|--------------------|
 | ru | ruaccent | 0.947 | 0.833 |
+| ru | ruaccent-int8 | 0.946 | 0.825 |
 | ru | ruaccent-big-poetry | 0.942 | 0.753 |
 | ru | ruaccent-silero | 0.951 | 0.833 |
+| ru | ruaccent-silero-int8 | 0.951 | 0.825 |
 | ru | silero | 0.944 | 0.753 |
 | ru | stressrnn | 0.892 | 0.767 |
 | ru | kubataba | 0.888 | 0.816 |
@@ -243,10 +246,42 @@ run marks `оно́`).
 - Tokenizers: loaded via the `tokenizers` library (HuggingFace fast tokenizer
   JSON format). No `transformers` or `torch` required at runtime.
 - `onnxruntime` sessions are created lazily on the first call.
-- Total download: about 470 MB. Model files sit in the standard Hugging
+- Total download: about 500 MB (about 145 MB for the `-int8` ids). Model files sit in the standard Hugging
   Face cache (respecting `HF_HOME` and `HF_HUB_OFFLINE`) unless an explicit
   `cache_dir=` is passed, in which case the layout is
   `cache_dir/ru_ruaccent/<file>`.
+
+### Precision
+
+`ruaccent-int8` and `ruaccent-silero-int8` load `model.int8.onnx` for the
+stress-usage and omograph models: the fp32 graph with its MatMul weights
+and embeddings dynamically quantized by onnxruntime (`quantize_dynamic`,
+QInt8). The accent and yo-homograph models are small and stay fp32.
+`RuAccentStressor(precision="int8")` does the same. The default ids keep
+the fp32 weights, because the quantization costs homograph accuracy.
+
+Measured on a laptop with two onnxruntime threads per session:
+
+| | fp32 | int8 |
+|---|---|---|
+| ruaccent download | 501 MB | 144 MB |
+| ruaccent RSS after load | 652 MB | 313 MB |
+| ruaccent-silero RSS after load | 766 MB | 398 MB |
+| ruaccent cold load | 4.2 s | 2.5 s |
+| ruaccent ms/row, russtress | 7.5 | 5.0 |
+| ruaccent ms/row, Wiktionary sentences | 84 | 23 |
+| ruaccent accuracy, russtress (11124 targets) | 0.9471 | 0.9463 |
+| ruaccent homograph accuracy, russtress (724) | 0.833 | 0.825 |
+| ruaccent accuracy, Wiktionary (137221 targets) | 0.9642 | 0.9640 |
+| ruaccent-silero accuracy, russtress | 0.9513 | 0.9507 |
+| ruaccent-silero accuracy, Wiktionary | 0.9900 | 0.9900 |
+| ruaccent-silero accuracy, ruslan-stressed (SILVER, 176255) | 0.9780 | 0.9781 |
+
+The loss is below 0.1 points on every set and falls on the homographs,
+the part the omograph model decides. A homograph whose margin is already
+small can flip: `Дверной замок надёжен.` after 80 filler sentences gets
+`за́мок` from int8 and `замо́к` from fp32. Choose int8 when download size,
+memory or latency matter more than that margin.
 
 ### `ruaccent-silero`: the ruaccent pipeline with silero marks on its unmarked words
 

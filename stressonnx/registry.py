@@ -82,6 +82,11 @@ class ModelEntry:
         unmarked (the ruaccent family): ``"silero"`` runs the silero model
         on the text and takes its mark on each such word.  ``None`` leaves
         them unmarked.
+    precision:
+        Weight precision of the family's large models, for families that
+        ship more than one (the ruaccent family): ``"fp32"`` loads the
+        original weights, ``"int8"`` the dynamically quantized stress-usage
+        and omograph models.  ``None`` for families with one precision.
     """
 
     langs: frozenset
@@ -91,6 +96,7 @@ class ModelEntry:
     input_scripts: frozenset  # frozenset[Script]
     variant: str | None = None
     fill: str | None = None
+    precision: str | None = None
 
 
 @runtime_checkable
@@ -273,6 +279,20 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         ),
         input_scripts=_CYRILLIC_ONLY,
         variant="turbo3.1",
+        precision="fp32",
+    ),
+    "ruaccent-int8": ModelEntry(
+        langs=frozenset(RUACCENT_LANGS),
+        family="ruaccent",
+        hf_subdir="ru_ruaccent",
+        description=(
+            "The ruaccent pipeline with int8 weights in the stress-usage and "
+            "omograph models: a third of the download and memory, faster, "
+            "and a small loss on homographs."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+        variant="turbo3.1",
+        precision="int8",
     ),
     "ruaccent-big-poetry": ModelEntry(
         langs=frozenset(RUACCENT_LANGS),
@@ -284,6 +304,7 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         ),
         input_scripts=_CYRILLIC_ONLY,
         variant="big_poetry",
+        precision="fp32",
     ),
     "ruaccent-silero": ModelEntry(
         langs=frozenset(RUACCENT_LANGS),
@@ -298,6 +319,17 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         input_scripts=_CYRILLIC_ONLY,
         variant="turbo3.1",
         fill="silero",
+        precision="fp32",
+    ),
+    "ruaccent-silero-int8": ModelEntry(
+        langs=frozenset(RUACCENT_LANGS),
+        family="ruaccent",
+        hf_subdir="ru_ruaccent",
+        description="The ruaccent-silero pipeline with the int8 weights of ruaccent-int8.",
+        input_scripts=_CYRILLIC_ONLY,
+        variant="turbo3.1",
+        fill="silero",
+        precision="int8",
     ),
     "silero": ModelEntry(
         langs=frozenset(MAIN_LANGS),
