@@ -76,14 +76,18 @@ PRIOR_SOURCES = {
     },
 }
 
-# Closed word classes the rules read.  Each preposition set holds the
-# prepositions whose English Wiktionary entry carries the ``{{+obj|be|<case>}}``
-# template for exactly that case (https://en.wiktionary.org/wiki/<word>#Belarusian).
+# Closed word classes the rules read.  gen_preps, acc_preps and loc_preps
+# hold the prepositions whose English Wiktionary entry carries the
+# ``{{+obj|be|<case>}}`` template for exactly that case; loc_acc_preps the
+# ones whose entry lists the locative and the accusative (у and ва also a
+# genitive sense, па also the dative; see rule_loc)
+# (https://en.wiktionary.org/wiki/<word>#Belarusian).
 # The numerals follow https://be.wikipedia.org/wiki/Лічэбнік.
 SETS = {
-    "gen_preps": "без для да пасля акрамя сярод супраць дзеля замест апрача".split(),
+    "gen_preps": "без для да ад каля ля пасля акрамя сярод супраць дзеля замест апрача".split(),
     "loc_preps": ["пры"],
-    "loc_acc_preps": "у ва на аб па".split(),
+    # ў is the post-vocalic spelling of у
+    "loc_acc_preps": "у ў ва на аб па".split(),
     "acc_preps": "праз пад".split(),
     "num234": "два дзве тры чатыры абодва абедзве".split(),
     "num5": "пяць шэсць сем восем дзевяць дзесяць адзінаццаць дваццаць трыццаць сорак пяцьдзясят сто".split(),

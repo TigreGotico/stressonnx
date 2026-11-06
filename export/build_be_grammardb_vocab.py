@@ -91,7 +91,12 @@ bundle stresses differently, each with the ordinal of its stressed vowel.
 homographs.json.gz holds the database's spellings with two or more
 stresses, each reading with the ordinal of its stressed vowel and the
 grammatical tags of its forms, and the case and number of every
-pronoun-adjective and numeral form.  The other files of this bundle are
+pronoun-adjective and numeral form.  Its reading counts (prior_counts)
+are derived from two further CC-BY-SA works: the stressed novel text
+zascienak_Malinauka.txt of alex73/benchmarks-stress-bel
+(https://huggingface.co/datasets/alex73/benchmarks-stress-bel, CC-BY-SA-4.0)
+and the Belarusian usage examples of the English Wiktionary
+(https://en.wiktionary.org, CC-BY-SA).  The other files of this bundle are
 derived from silero_stress and stay under the MIT licence.  The full
 licence text follows.
 

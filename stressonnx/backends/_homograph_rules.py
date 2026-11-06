@@ -67,8 +67,8 @@ def rule_gen_prep(ctx, readings):
     """Genitive after a preposition that governs the genitive only.
 
     Source: English Wiktionary, the ``{{+obj|be|gen}}`` template on each
-    preposition entry (без, для, да, пасля, акрамя, сярод, супраць, дзеля,
-    замест, апрача: https://en.wiktionary.org/wiki/<word>#Belarusian)."""
+    preposition entry (без, для, да, ад, каля, ля, пасля, акрамя, сярод,
+    супраць, дзеля, замест, апрача: https://en.wiktionary.org/wiki/<word>#Belarusian)."""
     if ctx.l1 in ctx.sets["gen_preps"]:
         return _unique(readings, lambda t: "case:G" in t)
     return None
@@ -95,12 +95,16 @@ def rule_num5(ctx, readings):
 
 
 def rule_loc(ctx, readings):
-    """Locative after пры; the locative or accusative reading after у, ва,
-    на, аб, па when exactly one reading has either case.
+    """Locative after пры; the locative or accusative reading after у, ў,
+    ва, на, аб, па when exactly one reading has either case.
 
-    Source: English Wiktionary ``{{+obj}}`` on each preposition entry: пры
-    governs the locative only; у, ва, на, аб, па govern the locative or the
-    accusative (https://en.wiktionary.org/wiki/<word>#Belarusian)."""
+    Source: English Wiktionary (https://en.wiktionary.org/wiki/<word>#Belarusian):
+    пры ``{{+obj|be|loc}}`` only; на and аб ``{{+obj|be|acc}}`` and
+    ``{{+obj|be|loc}}``; у also a genitive sense ("in the possession of");
+    ва no template, gloss "+ genitive, accusative or locative"; па also
+    ``{{+obj|be|dat}}``; ў is the post-vocalic spelling of у.  The rule
+    answers only when exactly one reading is locative or accusative, so a
+    genitive or dative reading is never picked."""
     if ctx.l1 in ctx.sets["loc_preps"]:
         return _unique(readings, lambda t: "case:L" in t)
     if ctx.l1 in ctx.sets["loc_acc_preps"]:

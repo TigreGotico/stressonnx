@@ -94,6 +94,18 @@ def test_capitalized_name_inside_a_sentence_stays_with_the_model(silero_be, text
     assert expected in tokens(silero_be(text)), silero_be(text)
 
 
+# a rule never reads across a clause boundary: ста́ла (GrammarDB, past tense
+# of стаць) after "да." is not the genitive стала́ that да governs, and бакі́
+# after a comma (common_voice.txt row "Афарбоўка зеленаватая, бакі
+# карычневыя") is not a noun agreeing with зеленаватая
+@pytest.mark.parametrize("text,expected", [
+    ("Ён пайшоў да. Стала цёмна.", "Ста́ла"),
+    ("Афарбоўка зеленаватая, бакі карычневыя.", "бакі́"),
+])
+def test_rule_stops_at_a_clause_boundary(silero_be, text, expected):
+    assert expected in tokens(silero_be(text)), silero_be(text)
+
+
 def test_dictionary_layer_still_wins_before_the_rules(silero_be):
     silero_be._ensure_loaded()
     assert "эканаміста" in silero_be._dictionary and "эканаміста" not in silero_be._homographs

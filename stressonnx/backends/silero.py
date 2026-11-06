@@ -49,6 +49,9 @@ from stressonnx.registry import (
 #: Bundles already reported as lacking the homograph resolver
 _WARNED_NO_HOMOSOLVER: set = set()
 
+#: Characters that end a clause: the homograph rules read no word across them
+_CLAUSE_END = frozenset('.,;:!?»«()"—–')
+
 
 def _load_ngram_dict(path: str) -> dict:
     d = {}
@@ -172,7 +175,7 @@ class _SileroStressor:
             self._dictionary = _load_dictionary(layer[_DICTIONARY_FILE])
         self._homographs: HomographRules | None = None
         if "homograph_source" in meta:
-            layer = _download_files(subdir, [_HOMOGRAPH_FILE], self._cache_dir, model_id="silero")
+            layer = _download_files(subdir, [_HOMOGRAPH_FILE], self._cache_dir, model_id=self._model_id)
             self._homographs = HomographRules.load(layer[_HOMOGRAPH_FILE])
         self._sess = ort.InferenceSession(
             data["accentor.onnx"],
@@ -316,21 +319,29 @@ class _SileroStressor:
             return self._dictionary.get(capitalized) if ordinal is None else ordinal
         return self._dictionary.get(clean_word if sentence_start else capitalized)
 
-    def _homograph_ordinals(self, clean_tokens: list) -> dict:
+    def _homograph_ordinals(self, raw_tokens: list, clean_tokens: list) -> dict:
         """token index → stressed-vowel ordinal the homograph rules pick.
 
         The rules read the words before a homograph, so they see the clean
-        word tokens in order, without the separators the tokenizer keeps.
-        The caller applies an ordinal only where the token's case allows it
+        word tokens in order, with an empty word where a separator ends a
+        clause and nothing for the other separators.  The caller applies an ordinal only where the token's case allows it
         (:meth:`_homograph_applies`).
         """
         if self._homographs is None:
             return {}
-        indices = [i for i, w in enumerate(clean_tokens) if w]
-        words = [clean_tokens[i] for i in indices]
+        # a separator that ends a clause leaves an empty word, so a rule
+        # never reads across it; the prior still answers
+        words, indices = [], []
+        for i, (raw, clean_word) in enumerate(zip(raw_tokens, clean_tokens)):
+            if clean_word:
+                words.append(clean_word)
+                indices.append(i)
+            elif any(c in _CLAUSE_END for c in raw):
+                words.append("")
+                indices.append(i)
         out = {}
         for k, i in enumerate(indices):
-            if words[k] in self._homographs:
+            if words[k] and words[k] in self._homographs:
                 ordinal, _ = self._homographs.resolve(words, k)
                 if ordinal is not None:
                     out[i] = ordinal
@@ -448,7 +459,7 @@ class _SileroStressor:
         homo_marks, homo_yo = self._homograph_offsets(text)
         raw_tokens, clean_tokens, prediction_mask = self._tokenize(text)
         stress_preds, stress_probs, yo_preds, yo_probs = self._predict(clean_tokens)
-        homograph_ordinals = self._homograph_ordinals(clean_tokens)
+        homograph_ordinals = self._homograph_ordinals(raw_tokens, clean_tokens)
 
         marks, yo_out = [], []
         pos = 0

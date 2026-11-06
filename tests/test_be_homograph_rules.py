@@ -12,7 +12,9 @@ case and number).  The readings are GrammarDB RELEASE-202601 forms:
 склада́), два́ры (locative singular of дво́р) and двары́ (nominative plural),
 гу́льні (nominative plural of гу́льня) and гульні́ (genitive, dative
 and locative singular), ву́чыцца (third person singular) and вучы́цца
-(infinitive).
+(infinitive).  The entries гады, гадоў and стала of ``LAYER`` are synthetic
+tag sets written to exercise the numeral rules; the others follow the
+GrammarDB entries.
 """
 import pytest
 
