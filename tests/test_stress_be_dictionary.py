@@ -88,14 +88,20 @@ def test_dictionary_form_keeps_case_and_quotes(silero_be, text, expected):
 
 
 @pytest.mark.parametrize("text,expected", [
-    ("мука", "му́ка"),
-    ("пара", "па́ра"),
+    ("мука", "мука́"),
+    ("пара", "пара́"),
     ("рукі", "ру́кі"),
 ])
-def test_homograph_stays_with_the_model(silero_be, text, expected):
-    """GrammarDB lists му́ка and мука́, so the key is not in the layer."""
+def test_homograph_leaves_the_dictionary_layer(silero_be, text, expected):
+    """GrammarDB lists му́ка and мука́, so the key is not in the dictionary layer.
+
+    Alone, the word takes the reading the homograph layer's prior corpora
+    count most: мука́ 2 of 2, пара́ 7 of 9, ру́кі 35 of 38 (``prior_counts``
+    in ``homographs.json.gz``).
+    """
     silero_be._ensure_loaded()
     assert text not in silero_be._dictionary
+    assert text in silero_be._homographs
     assert silero_be(text) == expected
 
 

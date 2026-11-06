@@ -80,16 +80,25 @@ LICENSE_SHA256 = "3b2890eacd851373001c4a14623458e3adaf1b1967939aa9c38a318e28d61c
 KAIKKI_URL = "https://kaikki.org/dictionary/Belarusian/kaikki.org-dictionary-Belarusian.jsonl"
 KAIKKI_SHA256 = "7331d5ea2c55baa5c8b7e84e7005cff17f48b93a8b26d9b35d20db079d3300cf"
 ACUTE = "\u0301"
-NOTICE = f"""The file dictionary.txt.gz of this bundle is derived from GrammarDB,
-the grammar database of the Belarusian language, {RELEASE}
-({UPSTREAM_URL}/releases/tag/{RELEASE}, commit {RELEASE_COMMIT}),
-by Aleś Bułojčyk and contributors, and is licensed under the Creative
-Commons Attribution-ShareAlike 4.0 International licence (CC-BY-SA-4.0).
-It holds a selection of the database's spellings with one stress, those
-the silero pipeline of this bundle stresses differently, each with the
-ordinal of its stressed vowel.  The other files of this bundle are derived
-from silero_stress and stay under the MIT licence.  The full licence text
-follows.
+NOTICE = f"""The files dictionary.txt.gz and homographs.json.gz of this bundle are
+derived from GrammarDB, the grammar database of the Belarusian language,
+{RELEASE} ({UPSTREAM_URL}/releases/tag/{RELEASE}, commit
+{RELEASE_COMMIT}), by Aleś Bułojčyk and contributors, and are licensed
+under the Creative Commons Attribution-ShareAlike 4.0 International
+licence (CC-BY-SA-4.0).  dictionary.txt.gz holds a selection of the
+database's spellings with one stress, those the silero pipeline of this
+bundle stresses differently, each with the ordinal of its stressed vowel.
+homographs.json.gz holds the database's spellings with two or more
+stresses, each reading with the ordinal of its stressed vowel and the
+grammatical tags of its forms, and the case and number of every
+pronoun-adjective and numeral form.  Its reading counts (prior_counts)
+are derived from two further CC-BY-SA works: the stressed novel text
+zascienak_Malinauka.txt of alex73/benchmarks-stress-bel
+(https://huggingface.co/datasets/alex73/benchmarks-stress-bel, CC-BY-SA-4.0)
+and the Belarusian usage examples of the English Wiktionary
+(https://en.wiktionary.org, CC-BY-SA).  The other files of this bundle are
+derived from silero_stress and stay under the MIT licence.  The full
+licence text follows.
 
 """
 

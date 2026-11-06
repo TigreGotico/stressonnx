@@ -13,6 +13,11 @@ fixes the stress (and ё) of every dictionary homograph from its context; the
 accentor then leaves those words stressed as resolved.  A ru bundle without
 the resolver logs a warning and leaves the homographs of its skip lists
 unstressed.
+
+A bundle with a dictionary layer (``be``) reads it before the exceptions
+table and the model; the spellings the dictionary source lists with several
+stresses go to the homograph rules (:mod:`._homograph_rules`) when the
+bundle carries them, and to the model otherwise.
 """
 import threading
 import gzip
@@ -24,6 +29,7 @@ import numpy as np
 import onnxruntime as ort
 
 from stressonnx._common import _RE_RU_COND, _RU_VOWELS, _softmax, lower_preserving_length, tokenize
+from stressonnx.backends._homograph_rules import HomographRules
 from stressonnx.backends._silero_homosolver import HomoSolver
 from stressonnx.download import LOG, _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError
@@ -33,6 +39,7 @@ from stressonnx.registry import (
     HF_REPO_REVISION,
     MAIN_LANGS,
     _DICTIONARY_FILE,
+    _HOMOGRAPH_FILE,
     _HOMOSOLVER_FILES,
     _MAIN_FILES,
     _SKIP_FILES,
@@ -41,6 +48,9 @@ from stressonnx.registry import (
 
 #: Bundles already reported as lacking the homograph resolver
 _WARNED_NO_HOMOSOLVER: set = set()
+
+#: Characters that end a clause: the homograph rules read no word across them
+_CLAUSE_END = frozenset('.,;:!?»«()"—–')
 
 
 def _load_ngram_dict(path: str) -> dict:
@@ -163,6 +173,10 @@ class _SileroStressor:
         if "dictionary_source" in meta:
             layer = _download_files(subdir, [_DICTIONARY_FILE], self._cache_dir, model_id=self._model_id)
             self._dictionary = _load_dictionary(layer[_DICTIONARY_FILE])
+        self._homographs: HomographRules | None = None
+        if "homograph_source" in meta:
+            layer = _download_files(subdir, [_HOMOGRAPH_FILE], self._cache_dir, model_id=self._model_id)
+            self._homographs = HomographRules.load(layer[_HOMOGRAPH_FILE])
         self._sess = ort.InferenceSession(
             data["accentor.onnx"],
             providers=["CPUExecutionProvider"],
@@ -305,6 +319,49 @@ class _SileroStressor:
             return self._dictionary.get(capitalized) if ordinal is None else ordinal
         return self._dictionary.get(clean_word if sentence_start else capitalized)
 
+    def _homograph_ordinals(self, raw_tokens: list, clean_tokens: list) -> dict:
+        """token index → stressed-vowel ordinal the homograph rules pick.
+
+        The rules read the words before a homograph, so they see the clean
+        word tokens in order, with an empty word where a separator ends a
+        clause and nothing for the other separators.  The caller applies an ordinal only where the token's case allows it
+        (:meth:`_homograph_applies`).
+        """
+        if self._homographs is None:
+            return {}
+        # a separator that ends a clause leaves an empty word, so a rule
+        # never reads across it; the prior still answers
+        words, indices = [], []
+        for i, (raw, clean_word) in enumerate(zip(raw_tokens, clean_tokens)):
+            if clean_word:
+                words.append(clean_word)
+                indices.append(i)
+            elif any(c in _CLAUSE_END for c in raw):
+                words.append("")
+                indices.append(i)
+        out = {}
+        for k, i in enumerate(indices):
+            if words[k] and words[k] in self._homographs:
+                ordinal, _ = self._homographs.resolve(words, k)
+                if ordinal is not None:
+                    out[i] = ordinal
+        return out
+
+    @staticmethod
+    def _homograph_applies(raw_word: str, sentence_start: bool) -> bool:
+        """Whether the homograph layer may stress *raw_word*.
+
+        The layer keys common words in lowercase.  A capitalized token
+        inside a sentence marks a name the layer does not know (Я́на against
+        the pronoun яна́), so it stays with the model, as in the dictionary
+        layer.  A lowercase token, a capitalized token at the start of a
+        sentence and an all-caps token take the layer.
+        """
+        letters = [c for c in raw_word if c.isalpha()]
+        if not letters or not letters[0].isupper():
+            return True
+        return sentence_start or all(c.isupper() for c in letters)
+
     def _exception_offsets(self, clean_word: str, raw_word: str, with_yo: bool):
         """(mark, yo) offsets within *raw_word* for an exceptions-dict entry."""
         exc_stress, exc_yo = self._exceptions[clean_word]
@@ -402,6 +459,7 @@ class _SileroStressor:
         homo_marks, homo_yo = self._homograph_offsets(text)
         raw_tokens, clean_tokens, prediction_mask = self._tokenize(text)
         stress_preds, stress_probs, yo_preds, yo_probs = self._predict(clean_tokens)
+        homograph_ordinals = self._homograph_ordinals(raw_tokens, clean_tokens)
 
         marks, yo_out = [], []
         pos = 0
@@ -449,6 +507,8 @@ class _SileroStressor:
                 continue
 
             ordinal = self._dictionary_ordinal(clean_word, raw_word, at_sentence_start)
+            if ordinal is None and self._homograph_applies(raw_word, at_sentence_start):
+                ordinal = homograph_ordinals.get(wi)
             if ordinal is not None:
                 positions, _, _, _ = self._get_positions(raw_lower, [ordinal], [])
                 marks.extend(start + p for p in positions)

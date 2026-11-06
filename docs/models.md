@@ -599,6 +599,105 @@ names. A rebuilt `accentor.onnx` or `exceptions.txt.gz` needs a
 rebuilt layer too, because the selection depends on the pipeline's own
 output.
 
+### Belarusian homograph rules
+
+GrammarDB lists 20,539 spellings with two or more stresses (за́мак/зама́к,
+ба́цькі/бацькі́, ву́чыцца/вучы́цца). The dictionary layer leaves them to
+the model, which picks one reading of each pair whatever the context: on
+the balanced `homographs-10x10` set it gets 75 of the 150 readings
+entirely wrong. The bundle's `homographs.json.gz` (65 KB, pure Python at
+runtime, `stressonnx/backends/_homograph_rules.py`) resolves such a
+spelling from the two words before it, inside the same clause: a rule
+never reads across `.,;:!?`, quotation marks, brackets or a dash. For
+each reading the file carries
+the ordinal of the stressed vowel and the grammatical tags of the
+database forms that have it (part of speech, case, number, finite or
+infinitive). A rule picks a reading when exactly one reading satisfies
+it. The rules are tried in the order of the table, and the first answer
+wins. A spelling with no rule answer takes its most frequent reading in
+two stressed corpora, and a spelling with neither stays with the model.
+The runtime reads the layer after the dictionary layer and before the
+exceptions table. A token is looked up in lowercase, and a capitalized
+token inside a sentence marks a name the layer does not know (Я́на
+against the pronoun яна́), so it stays with the model, as in the
+dictionary layer. A capitalized token at the start of a sentence and an
+all-caps token take the layer.
+
+| Rule | Fires when | Picks | Source |
+|---|---|---|---|
+| `gen_prep` | the word before is без, для, да, ад, каля, ля, пасля, акрамя, сярод, супраць, дзеля, замест or апрача | the one genitive reading | English Wiktionary, `{{+obj\|be\|gen}}` on each preposition entry |
+| `num234` | the word before is два, дзве, тры, чатыры, абодва or абедзве and every reading is declined | the one nominative plural noun | [be.wikipedia.org/wiki/Лічэбнік](https://be.wikipedia.org/wiki/Лічэбнік): after два, дзве, тры, чатыры "назоўнікі ў назоўным склоне маюць форму множнага ліку" |
+| `num5` | the word before is пяць … сто and every reading is declined | the one genitive plural noun | the same page: "ужываюцца назоўнікі ў форме роднага склону множнага ліку" |
+| `loc` | the word before is пры; or у, ў, ва, на, аб, па | the one locative reading, or the one locative or accusative reading | English Wiktionary, `{{+obj}}` on each entry: пры `loc` only; на and аб `acc` and `loc`; у `acc`, `loc` and a genitive sense; ва no template, gloss "+ genitive, accusative or locative"; па `acc`, `loc` and `dat`. ў is the post-vocalic spelling of у. The rule answers only when exactly one reading is locative or accusative, so a genitive or dative reading is never picked |
+| `acc_prep` | the word before is праз or пад | the one accusative reading | English Wiktionary, `{{+obj\|be\|acc}}` |
+| `agree` | the word before is a pronoun-adjective or numeral form of GrammarDB, and a preposition before that restricts its case | the one reading that agrees in case and number | [be.wikipedia.org/wiki/Прыметнік](https://be.wikipedia.org/wiki/Прыметнік) (agreement); the case and number set of each modifier form from the GrammarDB `SA` and `M` paradigm tags (`tags.svg`) |
+| `agree_ending` | as `agree`, for a word of four or more letters with an adjectival ending (-ага, -аму, -ай, -ую, -ыя, -ых, …) that is not in the modifier table | the one reading that agrees | MINED: the endings and their case and number sets were read off the adjective paradigms, no citation. Right on 37 of the 43 prior-corpus contexts it fires on |
+| `subject_pronoun` | the readings are one infinitive and one finite verb form, and the word before is я, ты, ён, яна, яно, мы, вы, яны, хто (finite) or a modal such as можа, трэба, хачу, буду (infinitive) | that reading | MINED: no citation. Right on 14 of 14 prior-corpus contexts |
+| prior | no rule answers | the most frequent reading of the spelling in the prior corpora, none on a tie | MINED: counts on 3,169 homograph targets of zascienak_Malinauka.txt (2,312, CC-BY-SA-4.0) and the Belarusian usage examples of English Wiktionary (857, CC-BY-SA). 733 spellings get a prior, 15 tie |
+
+The prior corpora are two of the harness's general stress sets and not
+the two homograph sets. The build pins both by sha256, and they share no
+sentence with `homographs-10x10` or `homographs-commonvoice`. The
+russtress rows are not a prior source, so that set is independent of the
+layer. Only the
+reading counts leave the corpora. A tie gives no prior, so a rare reading
+is chosen only on a rule signal and the common reading is the default.
+
+Precision of each rule on the homograph targets it decides, and the
+coverage of the layer by stage (`benchmarks/homograph_readings.py` on the
+harness rows):
+
+| Stage | 10x10 (GOLD): targets, right | commonvoice (SILVER): targets, right |
+|---|---|---|
+| `gen_prep` | 3, 3 | 17, 17 |
+| `loc` | 8, 8 | 63, 63 |
+| `agree` | 28, 27 | 17, 16 |
+| `agree_ending` (mined) | 84, 74 | 53, 44 |
+| `subject_pronoun` (mined) | 11, 11 | 125, 122 |
+| `num234`, `acc_prep`, `num5` | 0 | 0 |
+| prior | 1,178, 597 | 2,371, 1,960 |
+| no answer (tie or no context) | 105 | 177 |
+| not in the layer | 79 | 54 |
+
+On the five Belarusian sets of `benchmarks/run.py` (ser9, two onnxruntime
+threads, paired bootstrap over rows, exact McNemar on the targets both
+models scored). "Rules only" is the same file with the prior removed, run
+to separate the two sources of the gain:
+
+| Set (tier) | Targets | silero | with layer | silero only right / layer only right, McNemar | rules only | silero only / rules only right, McNemar |
+|---|---|---|---|---|---|---|
+| homographs-10x10 (GOLD) | 1,496 | 0.499 [0.475, 0.526] | 0.543 [0.518, 0.570] | 135 / 202, p = 3e-4 | 0.549 [0.525, 0.576] | 1 / 76, p = 1e-21 |
+| homographs-commonvoice (SILVER) | 2,877 | 0.696 [0.679, 0.711] | 0.829 [0.815, 0.843] | 179 / 561, p = 1e-46 | 0.754 [0.738, 0.768] | 9 / 176, p = 3e-41 |
+| russtress (GOLD, independent) | 2,902 | 0.923 [0.914, 0.932] | 0.924 [0.914, 0.932] | 5 / 6, p = 1 | 0.924 | 0 / 1 |
+| wiktionary (GOLD, prior source) | 12,390 | 0.957 [0.953, 0.962] | 0.968 [0.964, 0.972] | 16 / 145, p = 4e-27 | 0.958 [0.955, 0.962] | 4 / 15, p = 0.019 |
+| zascienak (GOLD, prior source) | 22,965 | 0.960 [0.957, 0.963] | 0.976 [0.974, 0.978] | 24 / 392, p = 7e-87 | 0.962 [0.959, 0.964] | 7 / 40, p = 1e-6 |
+
+Readings entirely wrong on 10x10: 75 of 150 for silero, 58 with the layer,
+58 with the rules only. On commonvoice: 34 of 82, 26 and 25. The rules are
+the gain on the balanced gold set: on the 1,178 targets the prior decides
+there it is right on 597 where silero alone is right on 605, so the prior
+neither helps nor hurts that set, and its wins and losses come in tens per
+word and cancel. The prior is the gain on the silver set and on the two
+general sets that are its own sources. Those two rows measure agreement
+with the counts, not an independent gain, and the rules-only column is
+the independent part of each. On the silver set 103 of the layer's 561
+wins are one spelling, складзе (скла́дзе in "у складзе", the locative of
+склад, against the verb складзе́), which the prior decides where the
+sentence writes ў and the `loc` rule where it writes у. On russtress,
+which is independent of the layer, the layer wins 6 targets and loses 5.
+No gold set loses: the layer's losses on the general sets are 5, 16 and
+24 targets against 6, 145 and 392 wins. Per-reading tables for every
+model are in the evidence of the build. The layer costs 19 to 47 µs per
+homograph token on ser9, under 0.08 ms per row on every set, within the
+run-to-run noise of the model's own 0.2 to 5 ms per row.
+
+`export/build_be_homographs.py` rebuilds the file from the pinned release
+archive, the pinned kaikki dump and the pinned zascienak file, checks
+every sha256, prints the forms in and the keys out, and writes the same
+bytes on every run. A spelling whose readings all carry one tag set gives
+no rule a choice and is kept only with a prior (12,223 dropped), so the
+file holds 8,363 keys.
+
 ### Why silero is also available for Russian
 
 The silero Russian model is accurate for unambiguous words and resolves
