@@ -113,7 +113,7 @@ HF_REPO_ID = "TigreGotico/stressonnx-models"
 #: fetched from exactly this revision, so releases are reproducible and an
 #: upstream force-push cannot change what users run.  Bump deliberately when
 #: models are uploaded (see export/ADDING_A_LANGUAGE.md).
-HF_REPO_REVISION = "13ab09f55a725395f857695ac218b5ae1f5b22e4"
+HF_REPO_REVISION = "03e0affeb429191fa52d6548a5be846f5ea9dfb0"
 
 # Files for main_accentor family
 _MAIN_FILES = [
@@ -123,6 +123,11 @@ _MAIN_FILES = [
     "exceptions.txt.gz",
     "meta.json",
 ]
+
+#: Dictionary layer of a main_accentor bundle whose meta.json declares a
+#: ``dictionary_source``: one ``word<TAB>vowel ordinal`` line per form,
+#: consulted before the exceptions table and the model
+_DICTIONARY_FILE = "dictionary.txt.gz"
 
 # Extra files of a main_accentor bundle whose meta.json declares a
 # ``homosolver`` (ru)
@@ -144,6 +149,15 @@ _SKIP_FILES = [
 _STRESSRNN_FILES = [
     "model.onnx",
     "exception_dictionary.txt.gz",
+    "meta.json",
+]
+
+# Files for the uk_accentor family
+_UK_ACCENTOR_FILES = [
+    "encoder.onnx",
+    "decoder.onnx",
+    "tokenizer.json",
+    "vocab.txt",
     "meta.json",
 ]
 
@@ -175,6 +189,9 @@ MAIN_LANGS = {t for t, spec in LANGUAGES.items() if "silero" in spec["hf"]}
 
 #: Languages backed by the StressRNN character BiLSTM.
 STRESSRNN_LANGS = {t for t, spec in LANGUAGES.items() if "stressrnn" in spec["hf"]}
+
+#: Languages backed by the ukrainian-accentor-transformer seq2seq model.
+UK_ACCENTOR_LANGS = {t for t, spec in LANGUAGES.items() if "uk_accentor" in spec["hf"]}
 
 #: Languages backed by vocabulary + rules (simple_accentor) — every language.
 SIMPLE_LANGS = {t for t, spec in LANGUAGES.items() if "simple" in spec["hf"]}
@@ -299,6 +316,17 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
             "fork of RusStress by Ponomareva and Milintsevich) with a "
             "Zaliznyak exception dictionary.  Russian only; selectable, "
             "never a default."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+    ),
+    "uk-accentor": ModelEntry(
+        langs=frozenset(UK_ACCENTOR_LANGS),
+        family="uk_accentor",
+        hf_subdir="ukr_accentor",
+        description=(
+            "Seq2seq Transformer accentor from ukrainian-accentor-transformer "
+            "(Mykhailenko, MIT), trained on lang-uk news text stressed with "
+            "ukrainian-word-stress.  Ukrainian only; selectable, never a default."
         ),
         input_scripts=_CYRILLIC_ONLY,
     ),

@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.0.3a26](https://github.com/TigreGotico/stressonnx/tree/0.0.3a26) (2026-11-06)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a25...0.0.3a26)
+
+**Merged pull requests:**
+
+- feat: uk\_accentor, the ukrainian-accentor-transformer seq2seq model as a selectable Ukrainian model [\#57](https://github.com/TigreGotico/stressonnx/pull/57) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a25](https://github.com/TigreGotico/stressonnx/tree/0.0.3a25) (2026-11-06)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a24...0.0.3a25)
+
+**Merged pull requests:**
+
+- feat: Belarusian dictionary layer of the silero model from GrammarDB [\#53](https://github.com/TigreGotico/stressonnx/pull/53) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a24](https://github.com/TigreGotico/stressonnx/tree/0.0.3a24) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a23...0.0.3a24)
