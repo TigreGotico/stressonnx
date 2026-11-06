@@ -129,6 +129,11 @@ _MAIN_FILES = [
 #: consulted before the exceptions table and the model
 _DICTIONARY_FILE = "dictionary.txt.gz"
 
+#: Homograph layer of a main_accentor bundle whose meta.json declares a
+#: ``homograph_source``: grammar rules and a frequency prior over the
+#: spellings the dictionary source lists with several stresses
+_HOMOGRAPH_FILE = "homographs.json.gz"
+
 # Extra files of a main_accentor bundle whose meta.json declares a
 # ``homosolver`` (ru)
 _HOMOSOLVER_FILES = [

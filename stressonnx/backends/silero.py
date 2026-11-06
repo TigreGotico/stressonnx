@@ -13,6 +13,11 @@ fixes the stress (and ё) of every dictionary homograph from its context; the
 accentor then leaves those words stressed as resolved.  A ru bundle without
 the resolver logs a warning and leaves the homographs of its skip lists
 unstressed.
+
+A bundle with a dictionary layer (``be``) reads it before the exceptions
+table and the model; the spellings the dictionary source lists with several
+stresses go to the homograph rules (:mod:`._homograph_rules`) when the
+bundle carries them, and to the model otherwise.
 """
 import threading
 import gzip
@@ -24,6 +29,7 @@ import numpy as np
 import onnxruntime as ort
 
 from stressonnx._common import _RE_RU_COND, _RU_VOWELS, _softmax, lower_preserving_length, tokenize
+from stressonnx.backends._homograph_rules import HomographRules
 from stressonnx.backends._silero_homosolver import HomoSolver
 from stressonnx.download import LOG, _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError
@@ -33,6 +39,7 @@ from stressonnx.registry import (
     HF_REPO_REVISION,
     MAIN_LANGS,
     _DICTIONARY_FILE,
+    _HOMOGRAPH_FILE,
     _HOMOSOLVER_FILES,
     _MAIN_FILES,
     _SKIP_FILES,
@@ -162,6 +169,10 @@ class _SileroStressor:
         if "dictionary_source" in meta:
             layer = _download_files(subdir, [_DICTIONARY_FILE], self._cache_dir, model_id="silero")
             self._dictionary = _load_dictionary(layer[_DICTIONARY_FILE])
+        self._homographs: HomographRules | None = None
+        if "homograph_source" in meta:
+            layer = _download_files(subdir, [_HOMOGRAPH_FILE], self._cache_dir, model_id="silero")
+            self._homographs = HomographRules.load(layer[_HOMOGRAPH_FILE])
         self._sess = ort.InferenceSession(
             data["accentor.onnx"],
             providers=["CPUExecutionProvider"],
@@ -304,6 +315,24 @@ class _SileroStressor:
             return self._dictionary.get(capitalized) if ordinal is None else ordinal
         return self._dictionary.get(clean_word if sentence_start else capitalized)
 
+    def _homograph_ordinals(self, clean_tokens: list) -> dict:
+        """token index → stressed-vowel ordinal the homograph rules pick.
+
+        The rules read the words before a homograph, so they see the clean
+        word tokens in order, without the separators the tokenizer keeps.
+        """
+        if self._homographs is None:
+            return {}
+        indices = [i for i, w in enumerate(clean_tokens) if w]
+        words = [clean_tokens[i] for i in indices]
+        out = {}
+        for k, i in enumerate(indices):
+            if words[k] in self._homographs:
+                ordinal, _ = self._homographs.resolve(words, k)
+                if ordinal is not None:
+                    out[i] = ordinal
+        return out
+
     def _exception_offsets(self, clean_word: str, raw_word: str, with_yo: bool):
         """(mark, yo) offsets within *raw_word* for an exceptions-dict entry."""
         exc_stress, exc_yo = self._exceptions[clean_word]
@@ -401,6 +430,7 @@ class _SileroStressor:
         homo_marks, homo_yo = self._homograph_offsets(text)
         raw_tokens, clean_tokens, prediction_mask = self._tokenize(text)
         stress_preds, stress_probs, yo_preds, yo_probs = self._predict(clean_tokens)
+        homograph_ordinals = self._homograph_ordinals(clean_tokens)
 
         marks, yo_out = [], []
         pos = 0
@@ -448,6 +478,8 @@ class _SileroStressor:
                 continue
 
             ordinal = self._dictionary_ordinal(clean_word, raw_word, at_sentence_start)
+            if ordinal is None:
+                ordinal = homograph_ordinals.get(wi)
             if ordinal is not None:
                 positions, _, _, _ = self._get_positions(raw_lower, [ordinal], [])
                 marks.extend(start + p for p in positions)

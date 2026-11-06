@@ -246,7 +246,10 @@ The script:
   A bundle whose `meta.json` declares a `dictionary_source` also ships
   `dictionary.txt.gz` (`word<TAB>vowel ordinal`), a dictionary layer the
   runtime reads before the exceptions table; `build_uk_word_stress_vocab.py`
-  and `build_be_grammardb_vocab.py` build the two that exist.
+  and `build_be_grammardb_vocab.py` build the two that exist.  A bundle whose
+  `meta.json` declares a `homograph_source` also ships `homographs.json.gz`,
+  grammar rules and a frequency prior over the spellings the dictionary
+  source lists with several stresses; `build_be_homographs.py` builds it.
 - Verifies the ONNX classifier's output matches the original PyTorch output
   (the largest difference is below 3e-5 of the largest logit).
 
