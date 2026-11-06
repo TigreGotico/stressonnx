@@ -77,7 +77,7 @@ Four layers:
    backend. Notation conversion runs through `_apply_notation()`. When
    `fallback=True` and the selected model's files cannot be fetched
    (`ModelDownloadError`/`ModelLoadError`), the pipeline walks
-   `FALLBACK_PRIORITY` (`"ruaccent"`, `"silero"`, `"simple"`) for the same
+   `FALLBACK_PRIORITY` (`"ruaccent-silero"`, `"ruaccent"`, `"silero"`, `"simple"`) for the same
    language, logging a warning at each hop. Every language falls back to
    `model="simple"`.
 2. **`StressPipeline.analyze(text, lang, ...)`** calls `.stress()` for the

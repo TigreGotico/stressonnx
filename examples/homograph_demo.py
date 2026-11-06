@@ -1,4 +1,4 @@
-"""Russian homograph disambiguation — why ruaccent is the default for Russian.
+"""Russian homograph disambiguation — why ruaccent is the base of the Russian default.
 
 Russian has many word pairs (and triples) that look identical in spelling but
 carry different stress depending on grammatical meaning or context:
@@ -50,7 +50,7 @@ HOMOGRAPH_PAIRS = [
     ),
 ]
 
-print("=== ruaccent (default, homograph-aware) ===\n")
+print("=== ruaccent (homograph-aware) ===\n")
 for sent_a, exp_a, sent_b, exp_b, note in HOMOGRAPH_PAIRS:
     out_a = stress(sent_a, "ru", model="ruaccent")
     out_b = stress(sent_b, "ru", model="ruaccent")

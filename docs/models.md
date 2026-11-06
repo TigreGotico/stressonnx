@@ -6,8 +6,8 @@
 
 | Situation | Recommendation |
 |-----------|---------------|
-| Russian general-purpose | `model="ruaccent"` (default), or `prefer="best"` |
-| Russian, every polysyllable marked | `model="ruaccent-silero"` (the `ruaccent` pipeline, then the `silero` mark on the words it leaves unmarked; the most accurate id on both gold sets) |
+| Russian general-purpose | `model="ruaccent-silero"` (default), or `prefer="best"`: the `ruaccent` pipeline, then the `silero` mark on the words it leaves unmarked; the most accurate id on both gold sets |
+| Russian, function words left unmarked | `model="ruaccent"` |
 | Russian, comparing homograph models | `model="ruaccent-big-poetry"` (the RUAccent `big_poetry` homograph model, less accurate on prose) |
 | Russian in memory-constrained environment | `model="silero"` (about 50 MB vs about 470 MB), or `prefer="smallest"`/`prefer="fast"` |
 | Ukrainian / Belarusian | `model="silero"` (default) |
@@ -144,7 +144,7 @@ or `silero` for that language, or check for U+0301 yourself before calling.
 
 ## `"ruaccent"`: homograph-aware Russian
 
-**Default for `ru`.**
+The base of `ruaccent-silero`, the default for `ru`.
 
 ### Why Russian needs a dedicated model
 
@@ -990,7 +990,7 @@ mark at all.
 | **Idempotent on pre-marked text** | No (re-derives) | Yes (skips) | Yes (skips) | Yes (skips) |
 | **License** | MIT | MIT | MIT | MIT |
 
-`prefer="best"` picks `ruaccent` where available. `prefer="fast"` and
+`prefer="best"` picks `ruaccent-silero` for `ru`. `prefer="fast"` and
 `prefer="smallest"` pick `silero` then `simple` for languages that have
 them. No strategy picks `kubataba` or `stressrnn` (Russian, 0.6 MB,
 onnxruntime + numpy, Apache-2.0): each is reached only by its `model=` id. `uk-accentor` (Ukrainian, 45 MB, onnxruntime + numpy + tokenizers,
@@ -1055,7 +1055,7 @@ all 1011 inputs checked (1000 russtress windows plus the test sentences).
   dropped in alignment: a run of one matching character is ignored.
 - When the model drops one of two adjacent identical vowels (`нии` to
   `ни'`), the mark can land on either twin.
-- Accuracy is below both Russian defaults, so it is never selected by
+- Accuracy is below `ruaccent` and `silero`, so it is never selected by
   default, by `prefer=` or by `fallback=True`.
 
 See [`../benchmarks/RESULTS.md`](../benchmarks/RESULTS.md) for measured

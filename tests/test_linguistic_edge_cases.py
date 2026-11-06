@@ -46,7 +46,8 @@ def test_digits_are_boundaries():
 # ---------------------------------------------------------------------------
 
 def test_ruaccent_clitics_unstressed():
-    assert stress("что-либо взял-таки, скажи-ка", "ru") == "что-либо взял-таки, скажи́-ка"
+    assert stress("что-либо взял-таки, скажи-ка", "ru") == "что́-либо взя́л-таки, скажи́-ка"
+    assert stress("что-либо взял-таки, скажи-ка", "ru", model="ruaccent") == "что-либо взял-таки, скажи́-ка"
 
 
 def test_ruaccent_standalone_libo_is_stressed():
@@ -135,7 +136,7 @@ def test_capitalized_word_mark_position():
 
 def test_ru_homographs_in_context():
     assert stress("я купил муку в магазине", "ru") == "я купи́л муку́ в магази́не"
-    assert stress("эта мука невыносима", "ru") == "эта му́ка невыноси́ма"
+    assert stress("эта мука невыносима", "ru") == "э́та му́ка невыноси́ма"
     assert stress("белок яйца полезен", "ru") == "бело́к яйца́ поле́зен"
     assert stress("белка прыгает по деревьям", "ru") == "бе́лка пры́гает по дере́вьям"
 
@@ -183,8 +184,8 @@ def test_notation_round_trip():
 # ---------------------------------------------------------------------------
 
 def test_full_default_model_mapping():
-    """The complete DEFAULT_MODEL table, frozen: priority ruaccent > silero > simple."""
-    expected = {"ru": "ruaccent", "uk": "silero", "be": "silero"}
+    """The complete DEFAULT_MODEL table, frozen: priority ruaccent-silero > silero > simple."""
+    expected = {"ru": "ruaccent-silero", "uk": "silero", "be": "silero"}
     expected.update({lang: "simple" for lang in SIMPLE_LANGS if lang not in expected})
     assert DEFAULT_MODEL == expected
 
