@@ -25,8 +25,8 @@ small.  A rebuilt ``accentor.onnx`` requires a rebuild of this file too.
 Exceptions are keyed like the runtime keys a token: lowercased, with every
 character outside the silero alphabet removed.  The silero alphabet has no
 apostrophe, so ``м'ячем``, ``м’ячем`` and ``мʼячем`` all look up ``мячем``.
-The stored stress is a character index into the token as written (with its
-apostrophe), because that is how the runtime applies it.
+The stored stress is a character index into the key, and the runtime maps it
+onto the token as written, so every spelling of a form takes the same mark.
 
 Usage::
 
@@ -85,6 +85,11 @@ def stress_options(value: bytes) -> set:
     return {tuple(rec.partition(POS_SEP)[0]) for rec in value.split(REC_SEP) if rec}
 
 
+def key_index(stressor: _SileroStressor, form: str, index: int) -> int:
+    """The index in the runtime key of the character at *index* of *form*."""
+    return stressor._key_offsets(form).index(index)
+
+
 def collect(trie: marisa_trie.BytesTrie, stressor: _SileroStressor):
     """Map each runtime key to its single stressed-vowel index, plus counts.
 
@@ -118,7 +123,7 @@ def collect(trie: marisa_trie.BytesTrie, stressor: _SileroStressor):
         indices = set()
         for opt in opts:
             if len(opt) == 1 and 0 < opt[0] <= len(lower) and lower[opt[0] - 1] in vowels:
-                indices.add(opt[0] - 1)
+                indices.add(key_index(stressor, lower, opt[0] - 1))
             else:
                 if len(opt) == 1:
                     counts["bad_position"] += 1
@@ -148,7 +153,7 @@ def wiktionary_disagrees(entries: dict, vocab: dict) -> set:
     disagree = set()
     for key, (index, form) in entries.items():
         ordinal = vocab.get(form.replace("'", "’"))
-        if ordinal is not None and ordinal != sum(1 for c in form[:index] if c in vowels):
+        if ordinal is not None and ordinal != sum(1 for c in key[:index] if c in vowels):
             disagree.add(key)
     return disagree
 
@@ -202,7 +207,10 @@ def main():
     counts["wiktionary_disagrees"] = len(contradicted)
     keys = sorted(set(entries) - contradicted)
     predicted = silero_marks(stressor, [entries[k][1] for k in keys])
-    corrections = {k: entries[k][0] for k, p in zip(keys, predicted) if p != entries[k][0]}
+    corrections = {
+        k: entries[k][0] for k, p in zip(keys, predicted)
+        if p is None or key_index(stressor, entries[k][1], p) != entries[k][0]
+    }
     counts["silero_agrees"] = len(keys) - len(corrections)
     counts["exceptions"] = len(corrections)
 

@@ -172,3 +172,13 @@ def test_silero_ru_homosolver_chunks_match_one_batch(silero_ru):
     assert len(chunks) > 2
     np.testing.assert_allclose(chunked, whole, rtol=0, atol=1e-4 * np.abs(whole).max())
     assert picks == [int(v > 0) for v in whole[:, 0]]
+
+
+@pytest.mark.parametrize("text,expected", [
+    ("'помыкать'", "'помыка́ть'"),
+    ("по­мыкать", "по­мыка́ть"),
+    ("мол́око", "мол́око́"),
+    ("у­четом", "у­чё́том"),
+])
+def test_exception_entry_keeps_its_letter_past_characters_outside_the_key(silero_ru, text, expected):
+    assert silero_ru(text) == expected

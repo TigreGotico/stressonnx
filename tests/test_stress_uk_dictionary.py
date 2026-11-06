@@ -58,6 +58,23 @@ def test_dictionary_form_with_any_apostrophe(silero_uk, text, expected):
 
 
 @pytest.mark.parametrize("text,expected", [
+    ("перемиря", "переми́ря"),
+    ("попамятаємо", "попамята́ємо"),
+    ("'перемир'я'", "'переми́р'я'"),
+    ("пере\u00adмир'я", "пере\u00adми́р'я"),
+])
+def test_dictionary_form_keeps_its_letter_in_every_spelling(silero_uk, text, expected):
+    assert silero_uk(text) == expected
+
+
+def test_every_entry_indexes_a_vowel_of_its_key(silero_uk):
+    silero_uk._ensure_loaded()
+    entries = silero_uk._exceptions
+    assert len(entries) > 90_000
+    assert [k for k, (stress, _) in entries.items() if k[stress] not in silero_uk._vowels] == []
+
+
+@pytest.mark.parametrize("text,expected", [
     ("Навіть були проти.", "На́віть були́ про́ти."),
     ("НАВІТЬ", "НА́ВІТЬ"),
     ("Влада", "Вла́да"),

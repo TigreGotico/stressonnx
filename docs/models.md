@@ -462,22 +462,9 @@ The neural model still decides these cases:
 
 The layer is keyed like the runtime tokens: lowercase, without the
 apostrophe. `м'яч`, `м’яч` and `мʼяч` therefore all find the same entry.
-The stored stress is a character offset into the word as the dictionary
-spells it, and the runtime applies that offset to the token as written.
-Some tokens therefore lose the mark on a layer word:
-
-- A word inside `'…'` or `‘…’` quotes, or with a leading `’` or backtick.
-  The quote stays in the token and moves the offset onto a consonant.
-- A word with a soft hyphen (U+00AD) before the stressed vowel.
-- A dictionary word with an apostrophe, written without it. 18,334 of the
-  96,245 entries have an apostrophe before the stressed vowel. Written
-  without it, 17,493 of them get no mark and 841 get the mark on another
-  vowel (`попамятаємо`).
-
-Every layer entry is a form that the neural model alone stresses
-differently from the dictionary. On these tokens the output therefore
-changes from a mark the dictionary rejects to no mark. Double quotes `"…"` and
-guillemets `«…»` split off and are not affected.
+The stored stress is an index into the key, and the runtime maps it onto the
+token as written. A quote, a soft hyphen or a missing apostrophe therefore
+keeps the mark on the same letter.
 
 With the layer, `silero` scores 0.843 on the russtress Ukrainian gold and
 0.905 on the Wiktionary example sentences (`benchmarks/RESULTS.md`).
