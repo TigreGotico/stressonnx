@@ -75,7 +75,9 @@ type it as е, so restoring ё and placing stress are the same problem.
 - `simple` (dictionary path, `model="simple"`): 108,972 unambiguous entries
   from the RUAccent pronunciation dictionary, with no guessing on unknown
   words (rule `none`), because Russian stress placement genuinely cannot be
-  predicted from word shape. The East Slavic accentological literature is
+  predicted from word shape. An unknown word with exactly one ё is stressed
+  on it (зелё́ный): ё is almost always stressed, so the mark lands where the
+  other Russian backends put it. The East Slavic accentological literature is
   unanimous that surface stress is unpredictable without paradigm/accent-class
   information.
 
@@ -116,7 +118,16 @@ is in [docs/models.md](models.md#belarusian-dictionary-layer).
 cost of dropping the neural model, published so the trade-off is explicit).
 Rule `none`: the accentological literature treats Belarusian surface stress
 as lexically governed, so an unknown multi-vowel word is left unmarked
-rather than guessed.
+rather than guessed. An unknown word with exactly one ё is stressed on it,
+because ё occurs in a stressed syllable in the overwhelming majority of
+Belarusian words. ў is the non-syllabic u and never carries stress. The
+upstream silero_stress file indexes ў itself in 421 entries; the shipped
+vocabulary moves each of them to the vowel after ў (аўто́бус, даўно́), or
+to the vowel before it when none follows (зно́ў). The gold sets hold 67 of
+these words and agree with that rule in 64 of them. An entry that still
+points at a non-vowel is dropped at load.
+The apostrophe is not part of the lookup key, so сям’я and сям'я find the
+same entry.
 
 ---
 
@@ -146,7 +157,9 @@ vowels do not reduce. TTS mostly needs the rule for natural rhythm, plus a
 list of the exceptions, which are mainly recent loanwords (клише́,
 резиме́) and certain adverbs.
 
-**What stressonnx does.** The `antepenult` rule implements the default. A
+**What stressonnx does.** The `antepenult` rule implements the default. р
+between two consonants is a syllable nucleus (црква → цр́ква, прв → пр́в,
+Србија → Ср́бија) and counts as a syllable for the rule. A
 1,667-word vocabulary carries exactly the exceptions: English Wiktionary
 marks stress on Macedonian words only when it deviates from the rule, so
 the extraction is an exceptions list by construction. (This is why the
@@ -215,6 +228,9 @@ needs morphological segmentation, so they are documented rather than
 enabled. Tatar is the exception: four suffix variants (-ча/-чә adverbial,
 -сең 2sg, -ме interrogative; Comrie 1997b) pass a 0.7-or-higher
 vocabulary-evidence bar and are enabled in the `tt` rule (0.896 → 0.904).
+
+Azerbaijani Latin text is lowercased the Turkic way for the lookup: İ to i
+and I to ı, so İbrahimov finds its vocabulary entry.
 
 **For linguists.** Azerbaijani imperative/negation initial stress is
 attested in the JIPA Illustration (Ghaffarvand Mokari & Werner 2017). Uzbek

@@ -36,7 +36,12 @@ SCRIPT_VOWELS = {
 }
 
 
-def lower_preserving_length(text: str) -> str:
+#: Turkic case pairs: İ ↔ i and I ↔ ı.  ``str.lower()`` maps I to i, which
+#: is a different letter in an alphabet with ı.
+_TURKIC_I = str.maketrans({"İ": "i", "I": "ı"})
+
+
+def lower_preserving_length(text: str, turkic: bool = False) -> str:
     """Lowercase *text* without changing its length.
 
     Stress indices are computed on the lowercased word and then spliced into
@@ -44,8 +49,11 @@ def lower_preserving_length(text: str) -> str:
     ``str.lower()`` breaks that for the Turkic dotted capital İ (U+0130 →
     ``i`` + combining dot, two code points), live in the aze_lat / uzb_lat /
     tat alphabets.  Any character whose lowercase form expands keeps only
-    the first code point of that form.
+    the first code point of that form.  With ``turkic=True`` the pairs
+    İ → i and I → ı apply before the generic lowering.
     """
+    if turkic:
+        text = text.translate(_TURKIC_I)
     return "".join(c.lower() if len(c.lower()) == 1 else c.lower()[0] for c in text)
 
 
@@ -69,14 +77,15 @@ class Tokenized(NamedTuple):
     predict: list
 
 
-def tokenize(sentence: str, clean_re: re.Pattern, mask_clitics: bool = False) -> Tokenized:
+def tokenize(sentence: str, clean_re: re.Pattern, mask_clitics: bool = False,
+             turkic: bool = False) -> Tokenized:
     """Split *sentence* into stressable tokens (the one shared tokenizer).
 
     Words are cut at the shared boundary set (:data:`_RE_SPLIT`) and then at
     hyphens, each hyphen part predicted independently.  With
     ``mask_clitics=True`` a final hyphen part in
     :data:`_UNSTRESSED_HYPHEN_CLITICS` (кто́-то, како́й-нибудь …) is excluded
-    from prediction.
+    from prediction.  ``turkic=True`` lowercases I to ı and İ to i.
     """
     raw, clean, predict = [], [], []
     for word in _RE_SPLIT.split(sentence):
@@ -89,7 +98,7 @@ def tokenize(sentence: str, clean_re: re.Pattern, mask_clitics: bool = False) ->
             mask = [True] * (len(parts) - 1) + [
                 not (mask_clitics and parts[-1] in _UNSTRESSED_HYPHEN_CLITICS)
             ]
-        keys = [clean_re.sub("", t.lower()) for t in tokens]
+        keys = [clean_re.sub("", (t.translate(_TURKIC_I) if turkic else t).lower()) for t in tokens]
         raw.extend(tokens)
         clean.extend(keys)
         predict.extend(bool(k) and m for k, m in zip(keys, mask))

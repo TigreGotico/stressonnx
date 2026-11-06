@@ -70,7 +70,8 @@ class StressedWord:
 
     ``start``/``end`` slice the **original input** (``text ==
     original[start:end]``).  ``stressed_indices`` holds the offset *within
-    the word* of every stressed vowel, in order; a hyphenated compound such
+    the word* of every stressed vowel or syllabic consonant (Macedonian р),
+    in order; a hyphenated compound such
     as ``се́веро-за́падный`` carries one mark per part.  ``stressed_index``
     is the first of them, or ``None`` when the word carries no mark; a value
     that contradicts ``stressed_indices`` raises :class:`ValueError`.  A word
@@ -301,7 +302,7 @@ class StressPipeline:
         """Structured stressing: spans with offsets into the original input.
 
         Words are the whitespace-delimited tokens of *text*; each carries
-        the offsets of its stressed vowels and whether е→ё was restored
+        the offsets of its stressed vowels (or syllabic р) and whether е→ё was restored
         inside it.  Offsets refer to the input exactly as the
         caller passed it.
         """

@@ -11,7 +11,7 @@
     "East Slavic accentology: free mobile stress"
   ],
   "tag": "uk",
-  "alpha": "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя’",
+  "alpha": "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя",
   "vowels": "аеєиіїоуюя",
   "accuracy": {
     "silero": 0.843,
