@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a36](https://github.com/TigreGotico/stressonnx/tree/0.0.3a36) (2026-11-06)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a35...0.0.3a36)
+
+**Merged pull requests:**
+
+- fix: ruaccent reads one stress-usage and yo label per word of its own word list [\#83](https://github.com/TigreGotico/stressonnx/pull/83) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a35](https://github.com/TigreGotico/stressonnx/tree/0.0.3a35) (2026-11-06)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a34...0.0.3a35)
