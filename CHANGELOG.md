@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a33](https://github.com/TigreGotico/stressonnx/tree/0.0.3a33) (2026-11-06)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a32...0.0.3a33)
+
+**Merged pull requests:**
+
+- docs: point the OOV rule comment at the rule table [\#77](https://github.com/TigreGotico/stressonnx/pull/77) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a32](https://github.com/TigreGotico/stressonnx/tree/0.0.3a32) (2026-11-06)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a31...0.0.3a32)
