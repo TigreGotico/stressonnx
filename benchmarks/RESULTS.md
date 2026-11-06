@@ -357,7 +357,7 @@ available for them, so no accuracy row is reported (the parity test in
 Accuracy of each language's out-of-vocabulary rule measured against its own
 curated vocabulary (multi-vowel words only; `python
 benchmarks/oov_rules_eval.py`).  Rules are grounded in the descriptive
-literature cited in `SimpleStressor._accentuate_oov`.
+literature cited in the rule functions of `stressonnx/backends/simple.py`.
 
 | lang | rule | words | accuracy | note |
 |------|------|-------|----------|------|
