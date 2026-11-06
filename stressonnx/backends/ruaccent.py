@@ -71,6 +71,12 @@ FILLS = frozenset({None, "silero"})
 # A whitespace token of letters and hyphens: the unit the silero fill marks
 _FILL_UNIT_RE = re.compile(r"[^\W_]+(?:-[^\W_]+)*")
 
+# Compound prepositions are proclitics whose dictionary stress sits on the
+# first part (Wiktionary: и́з-за, и́з-под); every other hyphenated word
+# carries its primary stress on the last part (чу̀ть-чу́ть, Нью̀-Йо́рк,
+# ко̀е-что́, нау̀чно-техни́ческий).
+_FIRST_PART_STRESSED = frozenset({"из-за", "из-под", "по-за", "по-над"})
+
 # Characters the models never see (matches RUAccent normalize regex).  They
 # stay in the output: marks found on the normalized text map back to the input.
 _RE_RUACCENT_NORM = re.compile(
@@ -722,10 +728,14 @@ class RuAccentStressor:
         """silero's marks, as offsets into *base*, on the tokens *marks* leaves unmarked.
 
         A token is a run of letters and hyphens with two or more vowels
-        (``что-то`` is one token; ``на`` and ``из-за`` are not filled), whose
-        letters the models all saw whole, and that carries no mark of
+        (``что-то`` and ``из-за`` are one token each; ``на`` is not filled),
+        whose letters the models all saw whole, and that carries no mark of
         *marks* on any part.  A token with a mark on one part keeps it
-        alone, so ``по-мо́ему`` does not become ``по́-мо́ему``.
+        alone, so ``по-мо́ему`` does not become ``по́-мо́ему``.  silero marks
+        each hyphen part on its own; the token keeps one mark, on its last
+        marked part, or on its first for a compound preposition
+        (``чуть-чу́ть``, ``Нью-Йо́рк``, ``и́з-за``).  A secondary stress
+        (``нау̀чно-техни́ческий``) is not written.
         """
         silero_marks = self._silero.mark_offsets(base)[0]
         fill = []
@@ -736,5 +746,8 @@ class RuAccentStressor:
             letters = (o for o in range(m.start(), m.end()) if norm[o] != "-")
             if any(o not in whole for o in letters) or any(o in span for o in marks):
                 continue
-            fill += [o for o in silero_marks if o in span]
+            unit = [o for o in silero_marks if o in span]
+            if len(unit) > 1:
+                unit = [min(unit) if m.group().lower() in _FIRST_PART_STRESSED else max(unit)]
+            fill += unit
         return fill
