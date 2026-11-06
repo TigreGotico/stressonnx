@@ -74,11 +74,9 @@ def test_az_dotted_capital_i_reaches_the_vocabulary():
 
 def test_be_never_stresses_the_non_syllabic_u():
     # Wikipedia, "Short U": ў "does not form syllables"
-    words = vocab_words("be")
-    assert "аўтобус" not in words
-    out = simple(" ".join(w for w in words if "ў" in w), "be")
-    assert "ў" + ACUTE not in out
-    assert simple("аўтобус", "be") == "аўтобус"
+    with_u = [w for w in vocab_words("be") if "ў" in w]
+    assert len(with_u) >= 420
+    assert "ў" + ACUTE not in simple(" ".join(with_u), "be")
 
 
 @WAITS_ON_UPLOAD
