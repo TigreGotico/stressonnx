@@ -244,9 +244,10 @@ class _Tokenizer:
     """A ``tokenizer.json`` with truncation off, on tokenizers 0.x and 1.x.
 
     tokenizers 1.x has no ``Encoding.word_ids`` and refuses vocab keys that
-    hold NUL, so this class reads the file itself.  :meth:`word_ids` needs a
-    WordPiece model with a template post-processor, as the BERT tokenizers of
-    this pipeline have.
+    hold NUL, so this class reads the file itself.  :meth:`word_ids` and
+    :meth:`pretokens` need a WordPiece model behind a BERT pre-tokenizer
+    with a template post-processor, as the BERT tokenizers of this
+    pipeline have.
     """
 
     def __init__(self, path: str) -> None:
@@ -278,20 +279,27 @@ class _Tokenizer:
             template = [next(iter(item)) for item in spec["post_processor"]["single"]]
             self._lead = template.index("Sequence")
             self._trail = len(template) - self._lead - 1
+            # the BERT pre-tokenizer cuts the text at whitespace and makes
+            # each punctuation character a word of its own; an added token
+            # ([SEP], [UNK]) written in the text is one word wherever it is
+            added = sorted((t["content"] for t in spec["added_tokens"]), key=len, reverse=True)
+            self._pretoken_re = re.compile(
+                "|".join([*map(re.escape, added), r"\w+", r"[^\w\s]"])
+            )
+
+    def _encoding(self, text: str, pair: str | None = None):
+        if self._tokenizers_1x:
+            return self._tok.encode(text if pair is None else (text, pair))
+        return self._tok.encode(text, pair=pair)
 
     def encode(self, text: str, pair: str | None = None) -> tuple[list, list]:
         """Token ids and attention mask of *text*, or of the pair (*text*, *pair*)."""
-        if self._tokenizers_1x:
-            enc = self._tok.encode(text if pair is None else (text, pair))
-        else:
-            enc = self._tok.encode(text, pair=pair)
+        enc = self._encoding(text, pair)
         return enc.ids, enc.attention_mask
 
     def type_ids(self, text: str, pair: str) -> list:
         """Segment id of each token of the pair (*text*, *pair*)."""
-        if self._tokenizers_1x:
-            return self._tok.encode((text, pair)).type_ids
-        return self._tok.encode(text, pair=pair).type_ids
+        return self._encoding(text, pair).type_ids
 
     def word_ids(self, ids: list) -> list:
         """Word index of each token of one sequence, ``None`` for added specials.
@@ -306,6 +314,13 @@ class _Tokenizer:
                 word += 1
             word_ids[i] = word
         return word_ids
+
+    def pretokens(self, text: str) -> list:
+        """``(start, end)`` of each word the pre-tokenizer cuts *text* into.
+
+        Word *k* of :meth:`word_ids` is ``text[start:end]`` of item *k*.
+        """
+        return [m.span() for m in self._pretoken_re.finditer(text)]
 
 
 class RuAccentStressor:
@@ -484,7 +499,14 @@ class RuAccentStressor:
         id2label: dict,
         has_tti: bool = True,
     ) -> list:
-        """Run a token-classification model and aggregate subword → word labels.
+        """Run a token-classification model and give one label per word of *text*.
+
+        The words are those of :func:`_ruaccent_split_by_words`, so the
+        list is index-aligned with the pipeline's word list.  A word's
+        label is the argmax of the mean probabilities of its tokens.  A
+        punctuation run is one word, although the BERT pre-tokenizer cuts
+        it into one word per character.  A word with no token gets
+        ``None``.
 
         A text past the model's position limit is split in half at a space
         and each half is labelled on its own, so no word loses its label to
@@ -513,15 +535,18 @@ class RuAccentStressor:
         logits = sess.run(None, feed)[0][0]
         probs = _softmax(logits)
 
+        spans = [m.span() for m in _RU_SPLIT_RE.finditer(text)]
+        word_of = {o: w for w, (start, end) in enumerate(spans) for o in range(start, end)}
+        pretokens = tok.pretokens(text)
         word_probs: dict = {}
         for i, wid in enumerate(tok.word_ids(ids)):
-            if wid is None:
-                continue
-            word_probs.setdefault(wid, []).append(probs[i])
+            if wid is not None and wid < len(pretokens):
+                word_probs.setdefault(word_of[pretokens[wid][0]], []).append(probs[i])
 
         return [
-            id2label[str(int(np.stack(word_probs[wid]).mean(0).argmax()))]
-            for wid in sorted(word_probs)
+            id2label[str(int(np.stack(word_probs[w]).mean(0).argmax()))]
+            if w in word_probs else None
+            for w in range(len(spans))
         ]
 
     def _put_accent(self, word: str) -> str:
@@ -573,7 +598,7 @@ class RuAccentStressor:
         for i, word in enumerate(words):
             lw = word.lower()
             words[i] = _fix_capital(word, self._yo_words.get(lw, word))
-            if yo_preds and i < len(yo_preds) and yo_preds[i] == "YO":
+            if yo_preds and yo_preds[i] == "YO":
                 words[i] = _fix_capital(word, self._yo_homographs.get(lw, word))
         return words
 
@@ -653,7 +678,7 @@ class RuAccentStressor:
                 and words[i - 1] == "-"
             ):
                 continue
-            if i < len(stress_usages) and stress_usages[i] == "STRESS":
+            if stress_usages[i] == "STRESS":
                 lower = word.lower()
                 stressed = self._accents.get(lower, lower)
                 if (
@@ -693,8 +718,8 @@ class RuAccentStressor:
         # the same word written with е, whose ё the yo step then restores.
         # ё carries the stress, so a word written with ё is always marked.
         stress_usages = [
-            "STRESS" if i < len(words) and "ё" in words[i].lower() else label
-            for i, label in enumerate(stress_usages)
+            "STRESS" if "ё" in word.lower() else label
+            for word, label in zip(words, stress_usages)
         ]
         original = list(words)
         words = self._process_yo(words, sentence)

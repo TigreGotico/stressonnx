@@ -61,10 +61,30 @@ def test_omograph_pair(stressor):
 
 
 def test_run_without_spaces_past_512_tokens(stressor):
-    # each "!" is one word; the head that fits is 512 - [CLS] - [SEP]
+    # the tokenizer cuts the run into 600 one-character words, of which the
+    # head of 512 - [CLS] - [SEP] fits; the pipeline reads the run as one
+    # word with one label
     labels = stressor._predict_word_labels(
         "!" * 600, stressor._stress_usage_sess, stressor._stress_usage_tok,
         stressor._stress_id2label,
     )
-    assert len(labels) == 510
+    assert len(labels) == 1
     assert stressor("!" * 600) == "!" * 600
+
+
+# each text with the number of words the BERT pre-tokenizer cuts it into:
+# one per punctuation character, one per added token written in the text
+PRETOKEN_COUNTS = [
+    (SPECIALS_TEXT, 7),
+    ("Она хотела хлеба [...] но она не нашла его.", 14),
+    ("«Да», — сказал он?!..", 11),
+    ("по-моему (же) 10—12", 9),
+]
+
+
+@pytest.mark.parametrize("text,n", PRETOKEN_COUNTS)
+def test_pretokens_match_the_tokenizer(stressor, text, n):
+    for tok in (stressor._stress_usage_tok, stressor._yo_hom_tok):
+        ids, _ = tok.encode(text)
+        assert max(w for w in tok.word_ids(ids) if w is not None) + 1 == n
+        assert len(tok.pretokens(text)) == n

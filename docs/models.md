@@ -227,7 +227,11 @@ from the sentence context: `все люди пришли` stays `все`, and `�
 no acute from `ruaccent`. The decision is a model prediction and can be wrong
 (`мы все устали` becomes `мы всё уста́ли`).
 
-The models read the sentence as written, as upstream RUAccent does. A word
+The models read the sentence as written, as upstream RUAccent does. The
+stress-usage and yo labels are grouped per word of the pipeline's own word
+list: a punctuation run (`[…]`, `...`, `»,`) is one word to the pipeline
+and one token per character to the BERT pre-tokenizer, and upstream
+RUAccent 1.5.8.3 reads a shifted label on every word after such a run. A word
 that holds ё is then labelled as stressed whatever the stress-usage model
 said, because such a word always carries a stress. The mark position comes
 from the accent dictionary or, for a word absent from it, from the character
