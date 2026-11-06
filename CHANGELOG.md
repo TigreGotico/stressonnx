@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a28](https://github.com/TigreGotico/stressonnx/tree/0.0.3a28) (2026-11-06)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a27...0.0.3a28)
+
+**Merged pull requests:**
+
+- feat: ruaccent-silero, the ruaccent pipeline with silero marks on its unmarked words [\#64](https://github.com/TigreGotico/stressonnx/pull/64) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a27](https://github.com/TigreGotico/stressonnx/tree/0.0.3a27) (2026-11-06)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a26...0.0.3a27)

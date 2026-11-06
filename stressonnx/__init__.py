@@ -172,7 +172,7 @@ def warm_up(lang: str, model: str | None = None) -> None:
     """Download and load the model for *lang* ahead of the first request.
 
     Call once at service startup so no synthesis request ever blocks on a
-    model download (the ``ru`` default is ≈500 MB cold).
+    model download (the ``ru`` default is ≈550 MB cold).
     """
     DEFAULT_PIPELINE.warm_up(lang, model)
 

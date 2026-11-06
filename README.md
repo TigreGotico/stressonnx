@@ -77,9 +77,9 @@ Numbers come from the committed, reproducible
 [benchmark scoreboard](benchmarks/RESULTS.md), which also scores the
 Wiktionary example sentences, the Belarusian hand-marked sets and the
 silver sets; read its label-tier note before quoting absolutes. Defaults per
-language: `ru → ruaccent`, `uk/be → silero`, everything else → `simple`.
+language: `ru → ruaccent-silero`, `uk/be → silero`, everything else → `simple`.
 `kubataba` is reached only with `model="kubataba"`: on russtress it is
-below both Russian defaults (McNemar p = 7e-91 against `silero`, p = 2e-104
+below `ruaccent` and `silero` (McNemar p = 7e-91 against `silero`, p = 2e-104
 against `ruaccent`) and took about 0.4 s per row in the scoreboard run (two
 onnxruntime threads on a shared host), so no default, `prefer=` strategy or
 fallback picks it. The scoreboard does not run it on the two large sets

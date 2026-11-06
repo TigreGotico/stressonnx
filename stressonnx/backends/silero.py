@@ -116,7 +116,8 @@ class _SileroStressor:
         Hugging Face cache).
     """
 
-    def __init__(self, lang: str, cache_dir: str | None = None) -> None:
+    def __init__(self, lang: str, cache_dir: str | None = None, model_id: str = "silero") -> None:
+        self._model_id = model_id
         self.lang = resolve_lang(lang, MAIN_LANGS)
         self._cache_dir = cache_dir
         self._loaded = False
@@ -142,12 +143,12 @@ class _SileroStressor:
             except (ModelDownloadError, ModelLoadError):
                 raise
             except Exception as exc:
-                raise ModelLoadError('silero', exc) from exc
+                raise ModelLoadError(self._model_id, exc) from exc
             self._loaded = True
 
     def _load(self) -> None:
         subdir = hf_dir(self.lang, "silero")
-        data = _download_files(subdir, _MAIN_FILES, self._cache_dir, model_id="silero")
+        data = _download_files(subdir, _MAIN_FILES, self._cache_dir, model_id=self._model_id)
 
         with open(data["meta.json"]) as fh:
             meta = json.load(fh)
@@ -160,7 +161,7 @@ class _SileroStressor:
         # quote or apostrophe in the token does not shift the mark
         self._dictionary: dict = {}
         if "dictionary_source" in meta:
-            layer = _download_files(subdir, [_DICTIONARY_FILE], self._cache_dir, model_id="silero")
+            layer = _download_files(subdir, [_DICTIONARY_FILE], self._cache_dir, model_id=self._model_id)
             self._dictionary = _load_dictionary(layer[_DICTIONARY_FILE])
         self._sess = ort.InferenceSession(
             data["accentor.onnx"],
@@ -176,11 +177,11 @@ class _SileroStressor:
         self._skip_stress: set = set()
         self._skip_yo: set = set()
         if "homosolver" in meta:
-            homo_files = _download_files(subdir, _HOMOSOLVER_FILES, self._cache_dir, model_id="silero")
+            homo_files = _download_files(subdir, _HOMOSOLVER_FILES, self._cache_dir, model_id=self._model_id)
             self._homosolver = HomoSolver(homo_files, meta["homosolver"])
         elif self._has_yo:
             _warn_no_homosolver(subdir, self._cache_dir)
-            skip = _download_files(subdir, _SKIP_FILES, self._cache_dir, model_id="silero")
+            skip = _download_files(subdir, _SKIP_FILES, self._cache_dir, model_id=self._model_id)
             self._skip_stress = _load_set(skip["skip_stress_words.txt.gz"])
             self._skip_yo = _load_set(skip["skip_yo_words.txt.gz"])
         alpha = meta.get("alpha")
