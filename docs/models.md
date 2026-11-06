@@ -271,12 +271,11 @@ sets score and what `ruaccent` writes for the words it marks itself. On
 the 326 gold targets where `silero` marks two parts of a token `ruaccent`
 left empty, this rule matches the gold vowel 271 times; the last mark alone
 164, the first mark alone 155, `silero`'s higher-confidence part 150. The
-rest were mostly `по-моему`, which both models read as `моему́`, and
-russtress rows that write `из-за́`. `по-мо́ему` and `по-тво́ему` now come
-from a two-entry table in the `ruaccent` pipeline (en.wiktionary headwords;
-the datives `моему́` and `твоему́` keep the dictionary stress), so the fill
-never sees them; `по-сво́ему`, `по-на́шему` and `по-ва́шему` were already
-right and are not in the table.
+rest are russtress rows that write `из-за́`. `по-мо́ему` and `по-тво́ему`
+come from a two-entry table in the `ruaccent` pipeline (en.wiktionary
+headwords; the datives `моему́` and `твоему́` keep the dictionary stress),
+so the fill never sees them; `по-сво́ему`, `по-на́шему` and `по-ва́шему`
+come out right without an entry.
 
 The words `ruaccent` leaves unmarked are common. Its stress-usage model
 labels function words NO_STRESS in most contexts (`или`, `это`, `его`,
