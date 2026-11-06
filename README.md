@@ -53,6 +53,7 @@ with sense-dependent pronunciation needs a bifonia-style diacritic restorer.
 | `ruaccent-big-poetry` | `ru` | The `ruaccent` pipeline with the RUAccent `big_poetry` homograph model in place of `turbo3.1` | 0.942 word accuracy, 0.753 on homographs; below `ruaccent`, see [docs/models.md](docs/models.md#the-big_poetry-omograph-model) |
 | `silero` | `uk`, `be` (defaults), `ru` | Neural ONNX pipeline exported from [silero_stress](https://github.com/snakers4/silero-stress) (MIT); the `ru` variant also restores е→ё and resolves homographs; the `uk` variant looks words up in a dictionary layer from [ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) (MIT) first, and the `be` variant in one from [GrammarDB](https://github.com/Belarus/GrammarDB) (CC-BY-SA-4.0) | ru 0.944 (0.753 on homographs) / uk 0.843 / be 0.908² |
 | `stressrnn` | `ru` (selectable) | Character BiLSTM with a Zaliznyak exception dictionary, ported from [StressRNN](https://github.com/dbklim/StressRNN) (Apache-2.0; a fork of RusStress). No sentence context, no е→ё; 0.6 MB | ru 0.892, scored on the model's own training corpus |
+| `uk-accentor` | `uk` (selectable) | Seq2seq Transformer ported from [ukrainian-accentor-transformer](https://github.com/Theodotus1243/ukrainian-accentor-transformer) (MIT); rewrites the sentence with marks, the port keeps every input letter; 45 MB | uk 0.795 (silero 0.843) |
 | `simple` | 26 languages¹ | Curated vocabulary + per-language positional rule; no neural inference | parity-locked to upstream / sourced rules, see scoreboard |
 | `kubataba` | `ru` (opt-in) | Character-level seq2seq Transformer exported from [Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor) (MIT); sentence-level, no homograph resolution, no ё restoration | 0.888 word accuracy (0.816 on homographs) where `silero` gets 0.944 and `ruaccent` 0.947; see docs/models.md |
 
@@ -348,4 +349,8 @@ files stay MIT. The `kubataba` model is derived from
 [Russian-Stress-Accent-Predictor](https://github.com/kubataba/Russian-Stress-Accent-Predictor)
 (kubataba, MIT). StressRNN (Vladislav Klim, Apache-2.0; BiLSTM
 from RusStress by Ponomareva and Milintsevich, exception dictionary from
-A. A. Zaliznyak's Grammatical Dictionary via odict.ru).
+A. A. Zaliznyak's Grammatical Dictionary via odict.ru). The `uk-accentor` model
+is derived from ukrainian-accentor-transformer (Copyright (c) 2023 Bohdan
+Mykhailenko, MIT); `ukr_accentor/` carries the licence text as
+`LICENSE.ukrainian-accentor-transformer` and names the source commit and
+Hugging Face revision in `meta.json`.

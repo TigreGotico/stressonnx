@@ -18,7 +18,7 @@ from stressonnx import (
 
 def test_registry_keys():
     assert set(MODEL_REGISTRY.keys()) == {
-        "ruaccent", "ruaccent-big-poetry", "silero", "simple", "kubataba", "stressrnn",
+        "ruaccent", "ruaccent-big-poetry", "silero", "simple", "kubataba", "stressrnn", "uk-accentor",
     }
 
 
