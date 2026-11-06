@@ -362,23 +362,27 @@ class _SileroStressor:
             return True
         return sentence_start or all(c.isupper() for c in letters)
 
+    def _key_offsets(self, raw_lower: str) -> list:
+        """Offsets in *raw_lower* of the characters its lookup key keeps."""
+        return [i for i, c in enumerate(raw_lower) if not self._re_cond.fullmatch(c)]
+
     def _exception_offsets(self, clean_word: str, raw_word: str, with_yo: bool):
-        """(mark, yo) offsets within *raw_word* for an exceptions-dict entry."""
+        """(mark, yo) offsets within *raw_word* for an exceptions-dict entry.
+
+        An entry indexes its key, and *raw_word* may hold characters the key
+        drops: quotes, apostrophes, soft hyphens, combining marks.
+        """
         exc_stress, exc_yo = self._exceptions[clean_word]
-        yo = []
-        if (
-            with_yo
-            and exc_yo != -1
-            and 0 <= exc_yo < len(raw_word)
-            and raw_word[exc_yo].lower() == "е"
-        ):
-            yo.append(exc_yo)
         lower = lower_preserving_length(raw_word)
+        kept = self._key_offsets(lower)
+        yo = []
+        if with_yo and 0 <= exc_yo < len(kept) and lower[kept[exc_yo]] == "е":
+            yo.append(kept[exc_yo])
         effective = dict(enumerate(lower))
         for o in yo:
             effective[o] = "ё"
-        if 0 <= exc_stress < len(raw_word) and effective[exc_stress] in self._vowels:
-            return [exc_stress], yo
+        if 0 <= exc_stress < len(kept) and effective[kept[exc_stress]] in self._vowels:
+            return [kept[exc_stress]], yo
         return [], yo
 
     def __call__(self, sentence: str) -> str:
@@ -418,10 +422,12 @@ class _SileroStressor:
         raw_lower = lower_preserving_length(raw_word)
         if clean_word in self._exceptions:
             exc_yo = self._exceptions[clean_word][1]
+            kept = self._key_offsets(raw_lower)
             plus_at = [m + k for k, m in enumerate(word_marks)]
-            if (exc_yo != -1 and exc_yo + 1 in plus_at
-                    and exc_yo < len(raw_lower) and raw_lower[exc_yo] == "е"):
-                return [exc_yo]
+            if 0 <= exc_yo < len(kept):
+                yo_at = kept[exc_yo]
+                if yo_at + 1 in plus_at and raw_lower[yo_at] == "е":
+                    return [yo_at]
             return []
         if yo_prob <= 0.5:
             return []
