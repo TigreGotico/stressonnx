@@ -271,8 +271,8 @@ class SimpleStressor:
         usable: dict = {}
         dropped = 0
         for word, ordinal in vocab.items():
-            key = self._key(word)
             raw_lower = lower_preserving_length(unicodedata.normalize("NFC", word), self._turkic)
+            key = self._re_cond.sub("", raw_lower)
             if "-" in word or _RE_SPLIT.search(word) or self._ordinal_offset(raw_lower, ordinal) is None:
                 dropped += 1
                 continue

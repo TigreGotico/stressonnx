@@ -29,7 +29,7 @@ Full accuracy numbers, not just relative quality claims, live in
 | ru | silero | 0.944 | 0.753 |
 | ru | stressrnn | 0.892 | 0.767 |
 | ru | kubataba | 0.888 | 0.816 |
-| ru | simple | 0.142 | 0.227 |
+| ru | simple | 0.868 | 0.000 |
 | uk | silero | 0.843 | not measured |
 | uk | uk-accentor | 0.795 | not measured |
 | uk | simple | 0.534 | not measured |
@@ -1069,8 +1069,8 @@ mark at all.
 | **е→ё restoration (ru)** | Yes | Yes | N/A | No |
 | **Yo-homograph (все/всё) disambiguation** | Yes | ru only | N/A | No |
 | **ONNX inference** | 4 models | 1 model (2 for ru) | None | 2 graphs, autoregressive |
-| **Download size** | ~470 MB | ~10 MB (ru ~50 MB) | ~1-5 MB | ~31 MB |
-| **Cold-start latency** | High (4 sessions) | Low | Near-zero | Low |
+| **Download size** | ~470 MB | ~10 MB (ru ~50 MB) | ~1-5 MB (ru 10 MB) | ~31 MB |
+| **Cold-start latency** | High (4 sessions) | Low | Near-zero (ru about 15 s, 3.2M entries) | Low |
 | **Per-sentence latency** | ~50-200 ms | ~2-10 ms | <1 ms | ~150 ms per 13-character window |
 | **Runtime deps** | onnxruntime, tokenizers | onnxruntime, numpy | numpy only | onnxruntime, numpy |
 | **OOV handling** | nn_accent (char-level) | n-gram generalisation | positional rule | char-level generation |

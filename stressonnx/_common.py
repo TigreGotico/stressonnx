@@ -54,6 +54,11 @@ def lower_preserving_length(text: str, turkic: bool = False) -> str:
     """
     if turkic:
         text = text.translate(_TURKIC_I)
+    lowered = text.lower()
+    # str.lower() writes a word-final capital sigma as ς, by context; the
+    # per-character form below gives σ
+    if len(lowered) == len(text) and "Σ" not in text:
+        return lowered
     return "".join(c.lower() if len(c.lower()) == 1 else c.lower()[0] for c in text)
 
 
