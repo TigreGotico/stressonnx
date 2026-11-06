@@ -23,20 +23,28 @@ _RE_RU_COND = re.compile(r"[^А-Яа-яёЁ]")
 # behavior for "-то" and extends it to the remaining standard clitics.
 _UNSTRESSED_HYPHEN_CLITICS = frozenset({"то", "нибудь", "либо", "таки", "ка"})
 
-# Belarusian hyphen parts that never carry word stress.  GrammarDB
-# RELEASE-202601 (spellchecker/slovy-2008-stress.txt) marks no stress on the
-# prefix in its 452 па- adverbs (па-белару́ску) and 39 абы- pronouns
-# (абы-хто́), nor on the particle in its 12 -та forms (такі́-та, то́-та) and
-# усё-такі; en-Wiktionary agrees: па-белару́ску [pa bʲeɫaˈrusku], усё-такі
-# [uˈsʲo takʲi].  -не́будзь is not here: it carries its own stress
-# (en-Wiktionary які́-не́будзь, [ˈnʲebut͡sʲ]; GrammarDB не+будзь).
+# Belarusian hyphen parts that never carry word stress, from GrammarDB
+# RELEASE-202601 (spellchecker/slovy-2008-stress.txt).  The prefix is
+# unstressed in all 452 па- adverbs (па-белару́ску) and 39 абы- pronouns
+# (абы-хто́).  The particles -та and -такі are unstressed only after the hosts
+# the list gives them (такі́-та, то́-та and 11 more forms of такі; усё-такі,
+# та́к-такі, даво́лі-такі) and stressed elsewhere (та-та́, сякі́-такі́,
+# про́ста-такі́); зноў-такі is listed both ways and is not masked.
+# en-Wiktionary agrees: па-белару́ску [pa bʲeɫaˈrusku], усё-такі [uˈsʲo takʲi].
+# -не́будзь carries its own stress (en-Wiktionary які́-не́будзь, [ˈnʲebut͡sʲ];
+# GrammarDB не+будзь).
 _BE_UNSTRESSED_HYPHEN_PREFIXES = frozenset({"па", "абы"})
-_BE_UNSTRESSED_HYPHEN_CLITICS = frozenset({"та", "такі"})
+_BE_HOSTED_HYPHEN_CLITICS = {
+    "та": frozenset({"то", "такі", "такая", "такое", "такія", "такога", "такой", "такому",
+                     "такую", "такою", "такім", "такіх", "такімі"}),
+    "такі": frozenset({"усё", "ўсё", "так", "даволі"}),
+}
 
-#: lang → (hyphen parts never stressed at the start of a word, at its end)
+#: lang → (hyphen parts never stressed at the start of a word, at its end,
+#: at its end after one of the given preceding parts)
 _UNSTRESSED_HYPHEN_PARTS = {
-    "ru": (frozenset(), _UNSTRESSED_HYPHEN_CLITICS),
-    "be": (_BE_UNSTRESSED_HYPHEN_PREFIXES, _BE_UNSTRESSED_HYPHEN_CLITICS),
+    "ru": (frozenset(), _UNSTRESSED_HYPHEN_CLITICS, {}),
+    "be": (_BE_UNSTRESSED_HYPHEN_PREFIXES, frozenset(), _BE_HOSTED_HYPHEN_CLITICS),
 }
 
 #: Per-script vowel supersets used for the vowel-ordinal vocabulary format
@@ -105,10 +113,10 @@ def tokenize(sentence: str, clean_re: re.Pattern, lang: str | None = None,
     Words are cut at the shared boundary set (:data:`_RE_SPLIT`) and then at
     hyphens, each hyphen part predicted independently.  For a *lang* in
     :data:`_UNSTRESSED_HYPHEN_PARTS` a first or final hyphen part listed
-    there (кто́-то, како́й-нибудь, па-белару́ску, такі́-та) is excluded from
-    prediction.  ``turkic=True`` lowercases I to ı and İ to i.
+    there (кто́-то, како́й-нибудь, па-белару́ску) is excluded from prediction,
+    and so is a final part listed with the part before it (такі́-та).  ``turkic=True`` lowercases I to ı and İ to i.
     """
-    prefixes, clitics = _UNSTRESSED_HYPHEN_PARTS.get(lang, (frozenset(), frozenset()))
+    prefixes, clitics, hosted = _UNSTRESSED_HYPHEN_PARTS.get(lang, (frozenset(), frozenset(), {}))
     raw, clean, predict = [], [], []
     for word in _RE_SPLIT.split(sentence):
         parts = word.split("-")
@@ -119,7 +127,8 @@ def tokenize(sentence: str, clean_re: re.Pattern, lang: str | None = None,
             tokens = [p + "-" for p in parts[:-1]] + [parts[-1]]
             mask = [True] * len(parts)
             mask[0] = parts[0].lower() not in prefixes
-            mask[-1] = parts[-1].lower() not in clitics
+            last = parts[-1].lower()
+            mask[-1] = last not in clitics and clean_re.sub("", parts[-2].lower()) not in hosted.get(last, ())
         keys = [clean_re.sub("", (t.translate(_TURKIC_I) if turkic else t).lower()) for t in tokens]
         raw.extend(tokens)
         clean.extend(keys)

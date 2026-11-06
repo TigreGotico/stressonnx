@@ -119,7 +119,8 @@ def test_common_word_over_a_proper_noun_only_on_request(tmp_path, build, stresso
     ])
     entries, counts = build.collect(zip_path, stressor)
     assert "але" not in entries and "яна" not in entries and "сталін" not in entries
-    assert counts["common_over_name"] == 0
+    # the default counts stay those of the silero layer's meta.json
+    assert "common_over_name" not in counts
     entries, counts = build.collect(zip_path, stressor, common_over_name=True)
     assert entries["але"] == (1, "але")
     assert entries["яна"] == (1, "яна")

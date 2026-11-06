@@ -250,7 +250,8 @@ def collect(zip_path: str, stressor: _SileroStressor, todo_vetoes: bool = True,
             conflicts += 1
     # a name and a common word of one spelling (Я+на, яна+) that disagree:
     # neither key, because a sentence-initial token cannot tell them apart
-    counts["common_over_name"] = 0
+    if common_over_name:
+        counts["common_over_name"] = 0
     for key in [k for k in options if k[:1].isupper()]:
         lower = key[:1].lower() + key[1:]
         if lower in options and set(options[lower]) != set(options[key]):
