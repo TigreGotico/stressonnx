@@ -23,9 +23,9 @@ def test_silero_ru_plus_notation():
 
 
 def test_silero_ru_not_default():
-    """ruaccent must remain the default for ru."""
+    """ruaccent-silero is the default for ru, not silero alone."""
     from stressonnx import DEFAULT_MODEL
-    assert DEFAULT_MODEL["ru"] == "ruaccent"
+    assert DEFAULT_MODEL["ru"] == "ruaccent-silero"
 
 
 def test_silero_ru_in_registry():

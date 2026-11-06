@@ -89,7 +89,7 @@ def test_registry_selects_the_omograph_model():
     assert MODEL_REGISTRY["ruaccent"].variant == "turbo3.1"
     assert MODEL_REGISTRY["ruaccent-big-poetry"].variant == "big_poetry"
     assert MODEL_REGISTRY["ruaccent-big-poetry"].family == "ruaccent"
-    assert stressonnx.DEFAULT_MODEL["ru"] == "ruaccent"
+    assert stressonnx.DEFAULT_MODEL["ru"] == "ruaccent-silero"
 
 
 def test_unknown_omograph_model_is_a_typed_error():

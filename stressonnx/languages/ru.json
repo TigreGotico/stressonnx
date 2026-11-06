@@ -16,6 +16,7 @@
   "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяё",
   "vowels": "аеёиоуыэюя",
   "accuracy": {
+    "ruaccent-silero": 0.951,
     "ruaccent": 0.947,
     "silero": 0.944,
     "stressrnn": 0.892

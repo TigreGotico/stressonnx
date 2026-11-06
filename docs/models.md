@@ -6,7 +6,7 @@
 
 | Situation | Recommendation |
 |-----------|---------------|
-| Russian general-purpose | `model="ruaccent"` (default), or `prefer="best"` |
+| Russian general-purpose | `model="ruaccent-silero"` (default), or `prefer="best"` |
 | Russian, every polysyllable marked | `model="ruaccent-silero"` (the `ruaccent` pipeline, then the `silero` mark on the words it leaves unmarked; the most accurate id on both gold sets) |
 | Russian, comparing homograph models | `model="ruaccent-big-poetry"` (the RUAccent `big_poetry` homograph model, less accurate on prose) |
 | Russian in memory-constrained environment | `model="silero"` (about 50 MB vs about 470 MB), or `prefer="smallest"`/`prefer="fast"` |

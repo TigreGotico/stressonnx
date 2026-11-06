@@ -57,7 +57,7 @@ def test_registry_entry():
 
 
 def test_never_selected_by_default_or_prefer():
-    assert DEFAULT_MODEL["ru"] == "ruaccent"
+    assert DEFAULT_MODEL["ru"] == "ruaccent-silero"
     assert "stressrnn" not in FALLBACK_PRIORITY
     for order in _PREFER_ORDERS.values():
         assert "stressrnn" not in order

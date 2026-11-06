@@ -5,7 +5,7 @@ Russian (``ru``) additionally requires: tokenizers.
 
 Model families
 --------------
-``"ruaccent"`` (default for ``ru``):
+``"ruaccent"``:
     Homograph-aware neural pipeline derived from RUAccent (Den4ikAI/ruaccent,
     MIT).  Resolves context-dependent homographs (замок castle/lock,
     мука flour/torment, белок protein/squirrel …) via four ONNX models.
