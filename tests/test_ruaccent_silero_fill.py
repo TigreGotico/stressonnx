@@ -85,11 +85,32 @@ def test_hyphen_token_keeps_one_mark(filled, plain, sentence, token, gold):
     assert ordinals_by_token(filled(sentence))[token] == [gold]
 
 
-@pytest.mark.xfail(strict=True, reason="silero and the ruaccent character model both read моему́; Wiktionary and the gold rows write по-мо́ему")
-def test_po_moemu_gold(filled):
-    # ruslan:009867_RUSLAN, 014472, 021325: gold По-мо́ему (vowel 1 of 3)
-    out = ordinals_by_token(filled("– Читал я твою юмореску в «Авроре». По-моему, говно… Мы просидели в ресторане часов до одиннадцати."))
-    assert out["По-моему"] == [1]
+# (sentence from a gold row, token, gold vowel ordinal): the hyphenated
+# adverbs по-мо́ему, по-тво́ему, по-сво́ему, по-на́шему, по-ва́шему
+# (en.wiktionary headwords, IPA [pɐ‿ˈmo(j)ɪmʊ], [pɐ‿ˈtvo(j)ɪmʊ],
+# [pɐ‿ˈsvo(j)ɪmʊ], [pɐ‿ˈnaʂɨmʊ], [pɐ‿ˈvaʂɨmʊ]); the pronoun datives
+# моему́, твоему́, своему́ keep their own stress
+PO_GOLD = [
+    ("– Читал я твою юмореску в «Авроре». По-моему, говно… Мы просидели в ресторане часов до одиннадцати.", "По-моему", 1),  # ruslan:009867_RUSLAN
+    ("Твой сосед, по-моему, совсем охуел.", "по-моему", 1),                                   # wikt-ru:5651
+    ("по-твоему, я не имею на это права?", "по-твоему", 1),                                   # wikt-ru:20442
+    ("Дикой. Да гроза-то что такое, по-твоему, а? Ну, говори.", "по-твоему", 1),              # wikt-ru:6534
+    ("Это вечная круговая порука, и всякий прав по-своему.", "по-своему", 1),                 # prose:zotov.dva_brata_ili_moskva_v_1812_godu.txt:2021
+    ("вышло по-нашему", "по-нашему", 1),                                                      # wikt-ru:20140
+    ("А что же это, по-вашему? Вот Япония это Запад!", "по-вашему", 1),                        # ruslan:006063_RUSLAN
+]
+
+
+@pytest.mark.parametrize("sentence,token,gold", PO_GOLD)
+def test_po_moemu_gold(filled, plain, sentence, token, gold):
+    assert ordinals_by_token(plain(sentence))[token] == [gold]
+    assert ordinals_by_token(filled(sentence))[token] == [gold]
+
+
+def test_pronoun_dative_keeps_its_own_stress(plain):
+    # Wiktionary: моему́ (dative of мой), по моему́ мне́нию
+    assert ordinals_by_token(plain("По моему мнению, он прав."))["моему"] == [2]
+    assert ordinals_by_token(plain("Скажи моему брату."))["моему"] == [2]
 
 
 def test_po_moemu_one_mark(filled):

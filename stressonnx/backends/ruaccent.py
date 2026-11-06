@@ -77,6 +77,12 @@ _FILL_UNIT_RE = re.compile(r"[^\W_]+(?:-[^\W_]+)*")
 # ко̀е-что́, нау̀чно-техни́ческий).
 _FIRST_PART_STRESSED = frozenset({"из-за", "из-под", "по-за", "по-над"})
 
+# Hyphenated adverbs whose second part is a pronoun form stressed otherwise
+# on its own: en.wiktionary по-мо́ему, по-тво́ему (the datives моему́,
+# твоему́).  по-сво́ему, по-на́шему, по-ва́шему need no entry: the omograph
+# model and the accent dictionary already give them.
+_PO_ADVERBS = {"моему": "м+оему", "твоему": "тв+оему"}
+
 # Characters the models never see (matches RUAccent normalize regex).  They
 # stay in the output: marks found on the normalized text map back to the input.
 _RE_RUACCENT_NORM = re.compile(
@@ -612,6 +618,14 @@ class RuAccentStressor:
     def _process_accent(self, words: list, stress_usages: list) -> list:
         for i, word in enumerate(words):
             if STRESS_TOKEN in word:
+                continue
+            if (
+                word.lower() in _PO_ADVERBS
+                and i > 1
+                and words[i - 1] == "-"
+                and words[i - 2].lower() == "по"
+            ):
+                words[i] = _match_case(word, _plus_to_diacritic(_PO_ADVERBS[word.lower()]))
                 continue
             # кто́-то, что́-либо, пришёл-таки: the post-hyphen enclitic
             # particle never carries word stress
