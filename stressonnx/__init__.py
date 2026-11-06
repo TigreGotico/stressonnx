@@ -11,7 +11,9 @@ Model families
     мука flour/torment, белок protein/squirrel …) via four ONNX models.
     Runtime deps: onnxruntime, numpy, tokenizers (no torch, no transformers).
     ``"ruaccent-big-poetry"`` is the same pipeline with the RUAccent
-    big_poetry homograph model in place of turbo3.1.
+    big_poetry homograph model in place of turbo3.1.  ``"ruaccent-silero"``
+    adds the silero mark on every word of two or more vowels the pipeline
+    leaves unmarked (и́ли, э́то, бы́ло, что́-то).
 
 ``"silero"`` (default for ``uk``, ``be``):
     Neural ONNX pipeline (embedding-bag + MLP heads) exported from
@@ -124,7 +126,8 @@ def stress(
 
     - ``lang``: BCP-47 tag (``"ru"``, ``"uk"``, ``"az-Latn"`` …).
     - ``model``: explicit model id (``"ruaccent"``,
-      ``"ruaccent-big-poetry"``, ``"silero"``, ``"simple"``) — default:
+      ``"ruaccent-big-poetry"``, ``"ruaccent-silero"``, ``"silero"``,
+      ``"simple"``) — default:
       the best model for *lang*.
     - ``prefer``: capability strategy instead of a model id — ``"best"``
       (quality), ``"fast"`` (latency), ``"smallest"`` (footprint).

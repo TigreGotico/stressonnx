@@ -255,6 +255,15 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         input_scripts=frozenset({Script.CYRILLIC}),
         variant="big_poetry",
     ),
+    "ruaccent-silero": ModelEntry(
+        langs=frozenset({"ru"}),
+        family="ruaccent",
+        hf_subdir="ru_ruaccent",
+        description="…",
+        input_scripts=frozenset({Script.CYRILLIC}),
+        variant="turbo3.1",
+        fill="silero",            # marks for the words the pipeline leaves unmarked
+    ),
     "silero": ModelEntry(
         langs=frozenset({"uk", "be", "ru"}),
         family="silero",
@@ -294,7 +303,11 @@ with `model="kubataba"`.
 more than one. The two ruaccent ids share every file except the homograph
 model, so `make_stressor` passes `variant` on as
 `RuAccentStressor(omograph=...)`. An unknown model id or omograph name
-raises `UnknownModelError`, a `ValueError`.
+raises `UnknownModelError`, a `ValueError`. `fill` names the source of a
+mark for the words the family's own pipeline leaves unmarked:
+`ruaccent-silero` passes `fill="silero"`, and `RuAccentStressor` then loads
+the `ru` silero bundle too and takes its mark on every unmarked token of
+two or more vowels (see `_silero_fill`).
 
 `be` is served by both `silero` (the default, neural) and `simple` (via
 `model="simple"`, vocabulary-only). Both are counted in `ALL_LANGS`. Only

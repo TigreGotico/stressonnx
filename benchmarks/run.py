@@ -3,7 +3,7 @@
 Usage (from a checkout, with the ``test`` extra installed)::
 
     python benchmarks/run.py --date YYYY-MM-DD [--lang ru uk be]
-        [--targets ruaccent silero simple] [--sets russtress wiktionary ...]
+        [--targets [ruaccent silero simple]] [--sets russtress wiktionary ...]
         [--external NAME=COMMAND ...] [--raw-dir DIR] [--out benchmarks/RESULTS.md]
         [--threads 2] [--no-report | --report-only] [--skipped MODEL=REASON ...]
 
@@ -43,7 +43,7 @@ from gold._cache import CACHE
 from scoring import Scored, bootstrap_ci, clean_word, is_vowel, mcnemar_exact, score
 
 DEFAULT_TARGETS = {
-    "ru": ["ruaccent", "ruaccent-big-poetry", "silero", "stressrnn", "kubataba", "simple"],
+    "ru": ["ruaccent", "ruaccent-big-poetry", "ruaccent-silero", "silero", "stressrnn", "kubataba", "simple"],
     "uk": ["silero", "simple"],
     "be": ["silero", "simple"],
 }
@@ -329,7 +329,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", required=True, help="ISO date stamped into the report")
     ap.add_argument("--lang", nargs="+", default=list(DEFAULT_TARGETS))
-    ap.add_argument("--targets", nargs="+", help="stressonnx model ids (default: all per language)")
+    ap.add_argument("--targets", nargs="*",
+                    help="stressonnx model ids (default: all per language; an empty list runs "
+                         "only --external commands and keeps the stored rows of every model)")
     ap.add_argument("--sets", nargs="+", help="evaluation set names (default: all for the language)")
     ap.add_argument("--external", action="append", default=[], metavar="NAME=COMMAND",
                     help="score a JSON-lines command (see benchmarks/external.py)")
@@ -349,13 +351,14 @@ def main():
     for lang in [] if args.report_only else args.lang:
         homographs = ruaccent_dictionaries()[0] if lang == "ru" else None
         models = {}
-        for model in args.targets or DEFAULT_TARGETS[lang]:
+        for model in DEFAULT_TARGETS[lang] if args.targets is None else args.targets:
             if model not in DEFAULT_TARGETS[lang]:
                 ap.error(f"{model!r} is not a stressonnx model for {lang}: {DEFAULT_TARGETS[lang]}")
             models[model] = lambda m=model, l=lang: stressonnx_fn(m, l)
         for name, command in externals.items():
             models[name] = lambda c=command, l=lang: external_fn(c, l)
-        merge_into = tuple(m for m in DEFAULT_TARGETS[lang] if m not in models) if args.targets else ()
+        merge_into = (tuple(m for m in DEFAULT_TARGETS[lang] if m not in models)
+                      if args.targets is not None else ())
         for evs in sets_for(lang, args.sets):
             run_set(evs, models, homographs, DICTIONARIES[lang], args.raw_dir, args.threads,
                     skipped, merge_into)

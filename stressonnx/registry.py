@@ -77,6 +77,11 @@ class ModelEntry:
         Model variant the family backend loads, for families that ship more
         than one: the omograph model of the ruaccent family.  ``None`` for
         families with a single variant.
+    fill:
+        Source of a mark for the words the family's own pipeline leaves
+        unmarked (the ruaccent family): ``"silero"`` runs the silero model
+        on the text and takes its mark on each such word.  ``None`` leaves
+        them unmarked.
     """
 
     langs: frozenset
@@ -85,6 +90,7 @@ class ModelEntry:
     description: str
     input_scripts: frozenset  # frozenset[Script]
     variant: str | None = None
+    fill: str | None = None
 
 
 @runtime_checkable
@@ -256,6 +262,20 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         ),
         input_scripts=_CYRILLIC_ONLY,
         variant="big_poetry",
+    ),
+    "ruaccent-silero": ModelEntry(
+        langs=frozenset(RUACCENT_LANGS),
+        family="ruaccent",
+        hf_subdir="ru_ruaccent",
+        description=(
+            "The ruaccent pipeline, with the silero mark on every word of "
+            "two or more vowels that ruaccent leaves unmarked (its "
+            "stress-usage model gates function words such as и́ли, э́то, "
+            "бы́ло and the one-vowel head of что́-то)."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+        variant="turbo3.1",
+        fill="silero",
     ),
     "silero": ModelEntry(
         langs=frozenset(MAIN_LANGS),

@@ -64,6 +64,13 @@ OMOGRAPH_MODELS = {
     "big_poetry": "nn_omograph_big_poetry",
 }
 
+#: Sources of a mark for a word the pipeline leaves unmarked: ``"silero"``
+#: runs the silero model on the text and takes its mark on each such word.
+FILLS = frozenset({None, "silero"})
+
+# A whitespace token of letters and hyphens: the unit the silero fill marks
+_FILL_UNIT_RE = re.compile(r"[^\W_]+(?:-[^\W_]+)*")
+
 # Characters the models never see (matches RUAccent normalize regex).  They
 # stay in the output: marks found on the normalized text map back to the input.
 _RE_RUACCENT_NORM = re.compile(
@@ -321,10 +328,19 @@ class RuAccentStressor:
         If *omograph* is not a key of :data:`OMOGRAPH_MODELS`.
     """
 
-    def __init__(self, cache_dir: str | None = None, omograph: str = "turbo3.1") -> None:
+    def __init__(
+        self,
+        cache_dir: str | None = None,
+        omograph: str = "turbo3.1",
+        fill: str | None = None,
+    ) -> None:
         if omograph not in OMOGRAPH_MODELS:
             raise UnknownModelError(omograph, OMOGRAPH_MODELS)
+        if fill not in FILLS:
+            raise ValueError(f"fill must be one of {sorted(f for f in FILLS if f)} or None, not {fill!r}")
         self._omograph_dir = OMOGRAPH_MODELS[omograph]
+        self._fill = fill
+        self._silero = None
         self._cache_dir = cache_dir
         self._loaded = False
         self._load_lock = threading.Lock()
@@ -418,6 +434,10 @@ class RuAccentStressor:
         self._accents: dict = json.load(gzip.open(data["dictionary/accents_nn.json.gz"]))
         # Single-vowel mappings from RUAccent
         self._accents.update({"о": "+о", "О": "+О"})
+        if self._fill == "silero":
+            from stressonnx.backends.silero import _SileroStressor
+            self._silero = _SileroStressor(lang="ru", cache_dir=self._cache_dir)
+            self._silero._ensure_loaded()
 
 
     # ------------------------------------------------------------------
@@ -691,8 +711,30 @@ class RuAccentStressor:
             yo += [start + o for o in sentence_yo]
             start += len(sentence)
         whole = _whole_words(base, kept, norm)
+        marks = [kept[o] for o in marks if o in whole]
+        if self._silero is not None:
+            marks += self._silero_fill(base, kept, norm, whole, marks)
         return in_form_of(text, render_marks(
-            base,
-            [kept[o] for o in marks if o in whole],
-            [kept[o] for o in yo if o in whole],
+            base, marks, [kept[o] for o in yo if o in whole],
         ))
+
+    def _silero_fill(self, base: str, kept: list, norm: str, whole: set, marks: list) -> list:
+        """silero's marks, as offsets into *base*, on the tokens *marks* leaves unmarked.
+
+        A token is a run of letters and hyphens with two or more vowels
+        (``что-то`` is one token; ``на`` and ``из-за`` are not filled), whose
+        letters the models all saw whole, and that carries no mark of
+        *marks* on any part.  A token with a mark on one part keeps it
+        alone, so ``по-мо́ему`` does not become ``по́-мо́ему``.
+        """
+        silero_marks = self._silero.mark_offsets(base)[0]
+        fill = []
+        for m in _FILL_UNIT_RE.finditer(norm):
+            if self._count_vowels(m.group()) < 2:
+                continue
+            span = range(kept[m.start()], kept[m.end() - 1] + 1)
+            letters = (o for o in range(m.start(), m.end()) if norm[o] != "-")
+            if any(o not in whole for o in letters) or any(o in span for o in marks):
+                continue
+            fill += [o for o in silero_marks if o in span]
+        return fill
