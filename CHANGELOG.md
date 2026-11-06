@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a30](https://github.com/TigreGotico/stressonnx/tree/0.0.3a30) (2026-11-06)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a29...0.0.3a30)
+
+**Merged pull requests:**
+
+- feat: Belarusian homograph rules and prior for the silero bundle [\#71](https://github.com/TigreGotico/stressonnx/pull/71) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a29](https://github.com/TigreGotico/stressonnx/tree/0.0.3a29) (2026-11-06)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a28...0.0.3a29)
