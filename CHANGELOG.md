@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a32](https://github.com/TigreGotico/stressonnx/tree/0.0.3a32) (2026-11-06)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a31...0.0.3a32)
+
+**Merged pull requests:**
+
+- fix: ruaccent stresses по-мо́ему and по-тво́ему on the pronoun part's first vowel [\#74](https://github.com/TigreGotico/stressonnx/pull/74) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a31](https://github.com/TigreGotico/stressonnx/tree/0.0.3a31) (2026-11-06)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a30...0.0.3a31)
