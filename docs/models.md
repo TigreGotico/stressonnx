@@ -7,6 +7,7 @@
 | Situation | Recommendation |
 |-----------|---------------|
 | Russian general-purpose | `model="ruaccent"` (default), or `prefer="best"` |
+| Russian, every polysyllable marked | `model="ruaccent-silero"` (the `ruaccent` pipeline, then the `silero` mark on the words it leaves unmarked; the most accurate id on both gold sets) |
 | Russian, comparing homograph models | `model="ruaccent-big-poetry"` (the RUAccent `big_poetry` homograph model, less accurate on prose) |
 | Russian in memory-constrained environment | `model="silero"` (about 50 MB vs about 470 MB), or `prefer="smallest"`/`prefer="fast"` |
 | Ukrainian / Belarusian | `model="silero"` (default) |
@@ -24,6 +25,7 @@ Full accuracy numbers, not just relative quality claims, live in
 |------|-------|----------|--------------------|
 | ru | ruaccent | 0.947 | 0.833 |
 | ru | ruaccent-big-poetry | 0.942 | 0.753 |
+| ru | ruaccent-silero | 0.951 | 0.833 |
 | ru | silero | 0.944 | 0.753 |
 | ru | stressrnn | 0.892 | 0.767 |
 | ru | kubataba | 0.888 | 0.816 |
@@ -114,6 +116,7 @@ vowel:
 | `simple` | Always stressed. The one vowel present is marked, even under an OOV `"none"` rule (see `be`/`simple` below). |
 | `silero` | Always stressed. A word with exactly one vowel gets it marked regardless of the model's own prediction. |
 | `ruaccent` | The dictionary/neural accent path only fires for words with **more than one** vowel. A bare, dictionary-absent monosyllable is often left **unmarked**. Single-vowel entries hardcoded in the accent dictionary (for example `о` → `+о`) are still marked. |
+| `ruaccent-silero` | As `ruaccent`: the fill takes the `silero` mark only on a token with two or more vowels, so `на`, `он` and `дом` stay as `ruaccent` left them. A hyphenated token counts its vowels as one and keeps one mark (`что́-то`, `и́з-за`, `чуть-чу́ть`). |
 | `stressrnn` | Always stressed, prepositions and particles included (`на́`, `а́`), and so is every hyphen part (`кто́-то́`). This is upstream behaviour. |
 | `kubataba` | Never marked. The upstream model treats a single-vowel word as inherently stressed and emits no mark for it. |
 | `uk-accentor` | Whatever the model writes: most monosyllables stay unmarked (`як`, `що`, `село`), some get a mark. This is upstream behaviour. |
@@ -244,6 +247,60 @@ run marks `оно́`).
   Face cache (respecting `HF_HOME` and `HF_HUB_OFFLINE`) unless an explicit
   `cache_dir=` is passed, in which case the layout is
   `cache_dir/ru_ruaccent/<file>`.
+
+### `ruaccent-silero`: the ruaccent pipeline with silero marks on its unmarked words
+
+`model="ruaccent-silero"` runs the `ruaccent` pipeline and then, for every
+whitespace token of letters and hyphens with two or more vowels that came
+out of it with no mark, takes the mark `silero` puts on that token. A token
+with a mark on any part keeps it alone (`по-мо́ему` does not become
+`по́-мо́ему`), and a token the models did not see whole (a dropped
+character in it) stays unmarked. The `ruaccent` marks never move: on
+russtress and Wiktionary no target that `ruaccent` gets right is lost.
+
+`silero` marks each hyphen part as a word of its own. A hyphenated token
+keeps one mark: on its last marked part, because a Russian hyphenated
+word carries its primary stress on the last part and at most a secondary
+stress before it (Wiktionary: `чу̀ть-чу́ть`, `во̀т-во́т`, `Нью̀-Йо́рк`,
+`ко̀е-что́`, `нау̀чно-техни́ческий`), or on its first part for the compound
+prepositions `из-за`, `из-под`, `по-за`, `по-над`, which are proclitics
+with a dictionary stress on the first part (Wiktionary: `и́з-за`,
+`и́з-под`). The secondary stress is not written: `научно-технический`
+comes out `научно-техни́ческий`, with one acute, which is what the gold
+sets score and what `ruaccent` writes for the words it marks itself. On
+the 326 gold targets where `silero` marks two parts of a token `ruaccent`
+left empty, this rule matches the gold vowel 271 times; the last mark alone
+164, the first mark alone 155, `silero`'s higher-confidence part 150. The
+rest are mostly `по-моему`, which both models read as `моему́`, and
+russtress rows that write `из-за́`.
+
+The words `ruaccent` leaves unmarked are common. Its stress-usage model
+labels function words NO_STRESS in most contexts (`или`, `это`, `его`,
+`было`, `только`, `через`, `перед`, `если`, `между`, `она`), and the
+one-vowel head of `что-то`, `как-то`, `кто-то` is absent from the accent
+dictionary and below the character model's two-vowel floor. Upstream
+RUAccent 1.5.8.3 leaves the same words unmarked. On the Wiktionary
+sentences 2.6% of the gold targets come back empty, on ruslan-stressed
+3.0%, on prose-accents 10.5%.
+
+Scores on the two gold sets, against the `ruaccent` rows of the same run
+(exact McNemar on the targets both models scored; the run logs and
+summaries are under `knowledge/wiki/audits/stressonnx-bench/ru-fill/` in
+the AgentWorkspaces wiki, and the scoreboard rows land with the next
+`benchmarks/RESULTS.md` run):
+
+| set | targets | ruaccent | silero | ruaccent-silero | vs ruaccent (only right / ruaccent only right / p) | vs silero |
+|-----|---------|----------|--------|-----------------|------|------|
+| russtress | 11124 | 0.947 | 0.944 | 0.951 | 46 / 0 / 3e-14 | 179 / 97 / 9e-07 |
+| wiktionary | 137221 | 0.964 | 0.984 | 0.990 | 3535 / 0 / < 1e-300 | 1386 / 611 / 6e-69 |
+
+Homograph accuracy is that of `ruaccent` (0.833 on russtress, 0.933 on
+Wiktionary), because the fill never touches a word `ruaccent` marked.
+The cost is the `silero` bundle on top of `ruaccent` (48 MB more download,
+about 30 MB more peak memory: 763 MB against 730 MB on 300 russtress rows)
+and one `silero` pass per call (11.4 against 9.5 ms per russtress row in
+the scoreboard run). `ruaccent` itself is unchanged: `model="ruaccent"`
+gives the same output as before.
 
 ### The big_poetry omograph model
 
