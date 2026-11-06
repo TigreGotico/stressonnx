@@ -80,8 +80,8 @@ LICENSE_SHA256 = "3b2890eacd851373001c4a14623458e3adaf1b1967939aa9c38a318e28d61c
 KAIKKI_URL = "https://kaikki.org/dictionary/Belarusian/kaikki.org-dictionary-Belarusian.jsonl"
 KAIKKI_SHA256 = "7331d5ea2c55baa5c8b7e84e7005cff17f48b93a8b26d9b35d20db079d3300cf"
 ACUTE = "\u0301"
-NOTICE = f"""The files dictionary.txt.gz and homographs.json.gz of this bundle are
-derived from GrammarDB, the grammar database of the Belarusian language,
+NOTICE = f"""The files dictionary.txt.gz, homographs.json.gz and vocab.gz of this bundle
+are derived from GrammarDB, the grammar database of the Belarusian language,
 {RELEASE} ({UPSTREAM_URL}/releases/tag/{RELEASE}, commit
 {RELEASE_COMMIT}), by Aleś Bułojčyk and contributors, and are licensed
 under the Creative Commons Attribution-ShareAlike 4.0 International
@@ -96,7 +96,10 @@ are derived from two further CC-BY-SA works: the stressed novel text
 zascienak_Malinauka.txt of alex73/benchmarks-stress-bel
 (https://huggingface.co/datasets/alex73/benchmarks-stress-bel, CC-BY-SA-4.0)
 and the Belarusian usage examples of the English Wiktionary
-(https://en.wiktionary.org, CC-BY-SA).  The other files of this bundle are
+(https://en.wiktionary.org, CC-BY-SA).  vocab.gz, the vocabulary of the
+simple model, holds every spelling of the database with one stress, each
+with the ordinal of its stressed vowel, plus entries derived from the
+English Wiktionary for spellings the database does not have.  The other files of this bundle are
 derived from silero_stress and stay under the MIT licence.  The full
 licence text follows.
 
@@ -118,10 +121,13 @@ def sha256(path: str) -> str:
 
 
 def forms(zip_path: str):
-    """Every ``<Form>`` text of the archive with its paradigm's ``todo`` note.
+    """Every ``<Form>`` text of the archive with its paradigm's ``todo`` note
+    and its paradigm tag.
 
     GrammarDB marks a paradigm whose data is not final with a ``todo``
     attribute (``націск о/ё рукамі``: stress on о/ё still to be set by hand).
+    The paradigm tag (a ``Variant`` may override it) starts with ``NP`` for
+    a proper noun.
     """
     with zipfile.ZipFile(zip_path) as zf:
         names = set(zf.namelist())
@@ -130,13 +136,15 @@ def forms(zip_path: str):
             raise SystemExit(f"{zip_path} lacks {missing}")
         for member in XML_MEMBERS:
             with zf.open(member) as fh:
-                todo = None
+                todo = ptag = None
                 for event, el in ET.iterparse(fh, events=("start", "end")):
                     if event == "start":
                         if el.tag == "Paradigm":
-                            todo = el.get("todo")
+                            todo, ptag = el.get("todo"), el.get("tag")
+                        elif el.tag == "Variant" and el.get("tag"):
+                            ptag = el.get("tag")
                     elif el.tag == "Form":
-                        yield el.text or "", todo
+                        yield el.text or "", todo, ptag or ""
                     elif el.tag == "Paradigm":
                         el.clear()
 
@@ -165,7 +173,8 @@ def marked_parts(marked: str, raw: list) -> list:
     return parts
 
 
-def collect(zip_path: str, stressor: _SileroStressor):
+def collect(zip_path: str, stressor: _SileroStressor, todo_vetoes: bool = True,
+            common_over_name: bool = False):
     """Map each runtime key to its single stressed-vowel ordinal, plus counts.
 
     A key is the token as the runtime cleans it, capitalized when the
@@ -173,17 +182,27 @@ def collect(zip_path: str, stressor: _SileroStressor):
     every database reading that maps onto it has the same single stress, and
     a capitalized key and its lowercase spelling must agree with each other.
     Each part of a hyphenated or multiword form is a reading of its own
-    token, so a compound can conflict with a plain form.
+    token, so a compound can conflict with a plain form.  With
+    *todo_vetoes* a form of a paradigm marked ``todo`` gives no entry and
+    vetoes its spelling; without it the form counts like any other.  With
+    *common_over_name* a capitalized spelling whose readings all come from
+    proper-noun paradigms (tag ``NP``) does not veto the common word of the
+    same spelling (Але/але, Яна/яна); the name itself still gets no entry.
     """
     vowels = set(stressor._vowels)
     options: dict = {}
+    # key → ordinal → every reading of it comes from a proper-noun paradigm
+    only_names: dict = {}
     counts = dict.fromkeys(
         ("forms", "single_stress", "multi_stress", "unstressed", "todo", "not_one_token"), 0)
 
-    def record(key, ordinal, form):
+    def record(key, ordinal, form, name):
         options.setdefault(key, {}).setdefault(ordinal, form)
+        by_ordinal = only_names.setdefault(key, {})
+        by_ordinal[ordinal] = by_ordinal.get(ordinal, True) and name
 
-    for marked, todo in forms(zip_path):
+    for marked, todo, ptag in forms(zip_path):
+        name = ptag.startswith("NP")
         counts["forms"] += 1
         n = marked.count("+")
         if n == 1:
@@ -205,7 +224,7 @@ def collect(zip_path: str, stressor: _SileroStressor):
             if not key:
                 continue
             marks = seg.count("+")
-            if todo:
+            if todo and todo_vetoes:
                 # data not final: the key gets no entry, and the form still
                 # vetoes a reading of the same spelling elsewhere
                 ordinal = None
@@ -218,10 +237,10 @@ def collect(zip_path: str, stressor: _SileroStressor):
             else:
                 ordinal = None
             lower = token.rstrip("-").lower()
-            record(cased_key(key, token), ordinal, lower)
+            record(cased_key(key, token), ordinal, lower, name)
             typo = stressor._tokenize(lower.replace("'", "\u2019")).clean[0]
             if typo != key:
-                record(cased_key(typo, token), ordinal, lower.replace("'", "\u2019"))
+                record(cased_key(typo, token), ordinal, lower.replace("'", "\u2019"), name)
     entries = {}
     conflicts = 0
     for key, by_ordinal in options.items():
@@ -231,10 +250,14 @@ def collect(zip_path: str, stressor: _SileroStressor):
             conflicts += 1
     # a name and a common word of one spelling (Я+на, яна+) that disagree:
     # neither key, because a sentence-initial token cannot tell them apart
+    counts["common_over_name"] = 0
     for key in [k for k in options if k[:1].isupper()]:
         lower = key[:1].lower() + key[1:]
         if lower in options and set(options[lower]) != set(options[key]):
             conflicts += entries.pop(key, None) is not None
+            if common_over_name and all(only_names[key].values()):
+                counts["common_over_name"] += lower in entries
+                continue
             conflicts += entries.pop(lower, None) is not None
     counts["keys"] = len(options)
     counts["unambiguous_keys"] = len(entries)

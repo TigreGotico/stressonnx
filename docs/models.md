@@ -37,7 +37,7 @@ Full accuracy numbers, not just relative quality claims, live in
 | uk | uk-accentor | 0.795 | not measured |
 | uk | simple | 0.534 | not measured |
 | be | silero | 0.908 | not measured |
-| be | simple | 0.435 | not measured |
+| be | simple | 0.867 | not measured |
 
 The rows are the russtress gold set (11124 targets; homograph accuracy on
 the 724 targets in the RUAccent omograph roster). On Russian, `ruaccent`

@@ -119,7 +119,7 @@ HF_REPO_ID = "TigreGotico/stressonnx-models"
 #: fetched from exactly this revision, so releases are reproducible and an
 #: upstream force-push cannot change what users run.  Bump deliberately when
 #: models are uploaded (see export/ADDING_A_LANGUAGE.md).
-HF_REPO_REVISION = "0292eba926e7024b516e445c408895557f2e5761"
+HF_REPO_REVISION = "cb1594ddf81928e678a3a7ee7a22415e6e3a218f"
 
 # Files for main_accentor family
 _MAIN_FILES = [

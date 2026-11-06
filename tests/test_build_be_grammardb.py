@@ -106,3 +106,24 @@ def test_wiktionary_disagreement_drops_the_key(build):
     readings = {"выявы": {0}, "хлушу": {1}, "рыкай": {0, 1}, "Сталін": {0}, "іосіф": {1}}
     assert build.wiktionary_disagrees(entries, readings) == {
         "выявы": [0], "рыкай": [0, 1], "сталін": [0]}
+
+
+def test_common_word_over_a_proper_noun_only_on_request(tmp_path, build, stressor):
+    zip_path = archive(tmp_path, build, [
+        paradigm("але+", ["але+"]),
+        paradigm("А+ла", ["А+ле", "Але+"]).replace('tag="N"', 'tag="NPAPNF2"'),
+        paradigm("Я+на", ["Я+на"]).replace('tag="N"', 'tag="NPAPNM1"'),
+        paradigm("ё+н", ["яна+"]),
+        paradigm("сталі+на", ["сталі+н"]),
+        paradigm("Ста+лін", ["Ста+лін"]),
+    ])
+    entries, counts = build.collect(zip_path, stressor)
+    assert "але" not in entries and "яна" not in entries and "сталін" not in entries
+    assert counts["common_over_name"] == 0
+    entries, counts = build.collect(zip_path, stressor, common_over_name=True)
+    assert entries["але"] == (1, "але")
+    assert entries["яна"] == (1, "яна")
+    assert "Але" not in entries and "Яна" not in entries
+    # the disagreeing spelling is a common word too: still neither key
+    assert "сталін" not in entries and "Сталін" not in entries
+    assert counts["common_over_name"] == 2

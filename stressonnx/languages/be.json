@@ -15,7 +15,7 @@
   "vowels": "аоуіэыяеёю",
   "accuracy": {
     "silero": 0.908,
-    "simple": 0.435
+    "simple": 0.867
   },
   "self_stressed": "ё"
 }

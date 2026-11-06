@@ -212,10 +212,10 @@ class _SileroStressor:
     # ------------------------------------------------------------------
 
     def _tokenize(self, sentence: str):
-        """Tokenise via the shared tokenizer; ru masks hyphen clitics."""
+        """Tokenise via the shared tokenizer; ru and be mask unstressed hyphen parts."""
         if self.lang == "ru":
-            return tokenize(sentence, _RE_RU_COND, mask_clitics=True)
-        return tokenize(sentence, self._re_cond)
+            return tokenize(sentence, _RE_RU_COND, lang="ru")
+        return tokenize(sentence, self._re_cond, lang=self.lang)
 
     # ------------------------------------------------------------------
     # Embedding pool
