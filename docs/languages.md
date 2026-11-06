@@ -73,9 +73,10 @@ type it as е, so restoring ё and placing stress are the same problem.
   все/всё included, from a short context window. **0.944** (homographs
   0.753).
 - `simple` (dictionary path, `model="simple"`): 3,167,126 entries, every
-  form of the RUAccent pronunciation dictionary with one reading. **0.868**.
-  Homographs have no entry, so `simple` leaves them unmarked (0.000 on
-  homographs). The vocabulary loads in about 15 s and holds about 510 MB of
+  form of the RUAccent pronunciation dictionary with one reading. **0.871**.
+  Homographs have no entry, so `simple` leaves them unmarked (0.000 on the
+  russtress homographs; the 0.007 on Wiktionary comes from hyphenated forms
+  such as что́-либо). The vocabulary loads in about 15 s and holds about 510 MB of
   memory, with a peak of about 920 MB during the load. There is no guessing on unknown words (rule `none`), because
   Russian stress placement genuinely cannot be predicted from word shape. An unknown word with exactly one ё is stressed
   on it (зелё́ный): ё is almost always stressed, so the mark lands where the
@@ -116,18 +117,29 @@ and homographs correctly.
 **What stressonnx does.** `silero` neural model (default), **0.908**,
 with a dictionary layer from GrammarDB (CC-BY-SA-4.0) whose measured gain
 is in [docs/models.md](models.md#belarusian-dictionary-layer).
-`model="simple"` is the vocabulary-only fallback (**0.435**, the measured
-cost of dropping the neural model, published so the trade-off is explicit).
+`model="simple"` is the vocabulary-only fallback: 1,895,356 entries, every
+spelling of [GrammarDB](https://github.com/Belarus/GrammarDB) (CC-BY-SA-4.0)
+with one stress, plus the English Wiktionary entries for spellings the
+database does not have. **0.867** (russtress), 0.881 on the Wiktionary
+example sentences, 0.853 on the hand-marked novel Zascienak Malinauka.
+Homographs (spellings GrammarDB lists with several stresses) have no entry,
+so `simple` leaves them unmarked: 0.000 on the two homograph sets. A common
+word keeps its entry when only a proper noun of the same spelling disagrees
+(стары́, not the name Ста́ры). The vocabulary loads in about 6 s and holds
+about 370 MB of memory, with a peak of about 610 MB during the load.
 Rule `none`: the accentological literature treats Belarusian surface stress
 as lexically governed, so an unknown multi-vowel word is left unmarked
 rather than guessed. An unknown word with exactly one ё is stressed on it,
 because ё occurs in a stressed syllable in the overwhelming majority of
-Belarusian words. ў is the non-syllabic u and never carries stress. The
-upstream silero_stress file indexes ў itself in 421 entries; the shipped
-vocabulary moves each of them to the vowel after ў (аўто́бус, даўно́), or
-to the vowel before it when none follows (зно́ў). The gold sets hold 67 of
-these words and agree with that rule in 64 of them. An entry that still
-points at a non-vowel is dropped at load.
+Belarusian words. ў is the non-syllabic u and never carries stress; an
+entry whose ordinal points at a non-vowel is dropped at load. The hyphen
+prefixes па- and абы- never carry stress (GrammarDB's stress list:
+па-белару́ску, абы-хто́; en-Wiktionary agrees) and are masked out of
+prediction for both models. The particles -та and -такі are masked only
+after the words the stress list gives them unstressed: the forms of такі
+and то (такі́-та, то́-та), and усё, так, даволі (усё-такі). The list
+stresses them elsewhere (та-та́, сякі́-такі́, про́ста-такі́). -не́будзь keeps
+its own stress (en-Wiktionary які́-не́будзь, [ˈnʲebut͡sʲ]).
 The apostrophe is not part of the lookup key, so сям’я and сям'я find the
 same entry.
 

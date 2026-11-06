@@ -80,8 +80,8 @@ DICTIONARIES = {
     "ru": ("RUAccent accent dictionary, unambiguous entries", lambda: ruaccent_dictionaries()[1], ()),
     "uk": ("stressonnx simple-uk vocabulary (English Wiktionary headwords)",
            lambda: simple_vocabulary("uk"), ("wiktionary",)),
-    "be": ("stressonnx simple-be vocabulary (exported from silero_stress)",
-           lambda: simple_vocabulary("be"), ()),
+    "be": ("stressonnx simple-be vocabulary (GrammarDB, plus English Wiktionary entries for spellings outside it)",
+           lambda: simple_vocabulary("be"), ("wiktionary",)),
 }
 
 

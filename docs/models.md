@@ -32,12 +32,12 @@ Full accuracy numbers, not just relative quality claims, live in
 | ru | silero | 0.944 | 0.753 |
 | ru | stressrnn | 0.892 | 0.767 |
 | ru | kubataba | 0.888 | 0.816 |
-| ru | simple | 0.868 | 0.000 |
+| ru | simple | 0.871 | 0.000 |
 | uk | silero | 0.843 | not measured |
 | uk | uk-accentor | 0.795 | not measured |
 | uk | simple | 0.534 | not measured |
 | be | silero | 0.908 | not measured |
-| be | simple | 0.435 | not measured |
+| be | simple | 0.867 | not measured |
 
 The rows are the russtress gold set (11124 targets; homograph accuracy on
 the 724 targets in the RUAccent omograph roster). On Russian, `ruaccent`
@@ -104,8 +104,8 @@ them would break words in those languages.
 Hyphenated words split into their hyphen-joined parts for tokenization
 purposes, with one exception: **Russian hyphenated enclitic particles**
 (`-то`, `-нибудь`, `-либо`, `-таки`, `-ка`) never receive stress, for example
-`кто́-то`, `како́й-нибудь`, `пришёл-таки`. This applies identically in both
-the `ruaccent` and `silero` pipelines for `ru`.
+`кто́-то`, `како́й-нибудь`, `пришёл-таки`. This applies identically in the
+`ruaccent`, `silero` and `simple` pipelines for `ru`.
 
 ---
 

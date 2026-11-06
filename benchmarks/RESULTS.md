@@ -46,7 +46,7 @@ Labels agree with the RUAccent accent dictionary, unambiguous entries on 88.9% o
 | silero | GOLD | 11124 | 0 | 0.944 | 0.940–0.948 | 0.753 (724) | 0.8 | 0.4 |
 | stressrnn | GOLD | 11124 | 0 | 0.892 | 0.886–0.897 | 0.767 (724) | 0.7 | 0.3 |
 | kubataba | GOLD | 11124 | 0 | 0.888 | 0.882–0.893 | 0.816 (724) | 372.4 | 0.3 |
-| simple | GOLD | 11124 | 0 | 0.868 | 0.862–0.875 | 0.000 (724) | 0.0 | 13.9 |
+| simple | GOLD | 11124 | 0 | 0.871 | 0.865–0.877 | 0.000 (724) | 0.0 | 8.6 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
@@ -80,7 +80,7 @@ Labels agree with the RUAccent accent dictionary, unambiguous entries on 92.0% o
 | ruaccent-big-poetry | GOLD | 137221 | 0 | 0.962 | 0.960–0.963 | 0.893 (9410) | 135.1 | 4.6 |
 | silero | GOLD | 137221 | 0 | 0.984 | 0.984–0.985 | 0.908 (9410) | 1.5 | 0.2 |
 | stressrnn | GOLD | 137221 | 0 | 0.914 | 0.912–0.915 | 0.739 (9410) | 0.6 | 0.1 |
-| simple | GOLD | 137221 | 0 | 0.907 | 0.905–0.908 | 0.000 (9410) | 0.1 | 12.0 |
+| simple | GOLD | 137221 | 0 | 0.915 | 0.913–0.916 | 0.007 (9410) | 0.1 | 8.2 |
 
 McNemar (exact, two-sided) on targets both models scored:
 

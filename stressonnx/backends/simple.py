@@ -367,7 +367,7 @@ class SimpleStressor:
         substitutes е→ё, so the second list is always empty.
         """
         self._ensure_loaded()
-        tokens = tokenize(text, self._re_cond, turkic=self._turkic)
+        tokens = tokenize(text, self._re_cond, lang=self.lang, turkic=self._turkic)
         offsets = []
         pos = 0
         for raw_word, clean_word, need in zip(*tokens):
