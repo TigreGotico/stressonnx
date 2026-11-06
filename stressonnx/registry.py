@@ -118,6 +118,11 @@ _MAIN_FILES = [
     "meta.json",
 ]
 
+#: Dictionary layer of a main_accentor bundle whose meta.json declares a
+#: ``dictionary_source``: one ``word<TAB>vowel ordinal`` line per form,
+#: consulted before the exceptions table and the model
+_DICTIONARY_FILE = "dictionary.txt.gz"
+
 # Extra files of a main_accentor bundle whose meta.json declares a
 # ``homosolver`` (ru)
 _HOMOSOLVER_FILES = [

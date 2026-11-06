@@ -32,6 +32,7 @@ from stressonnx.notation import composed, has_stress_mark, in_form_of, render_ma
 from stressonnx.registry import (
     HF_REPO_REVISION,
     MAIN_LANGS,
+    _DICTIONARY_FILE,
     _HOMOSOLVER_FILES,
     _MAIN_FILES,
     _SKIP_FILES,
@@ -63,6 +64,19 @@ def _load_exceptions(path: str) -> dict:
                 continue
             w, s, y = line.split("\t")
             d[w] = (int(s), int(y))
+    return d
+
+
+def _load_dictionary(path: str) -> dict:
+    """``word<TAB>vowel ordinal`` lines → {word: ordinal}."""
+    d = {}
+    with gzip.open(path, "rt", encoding="utf-8") as fh:
+        for line in fh:
+            line = line.rstrip("\n")
+            if not line:
+                continue
+            w, o = line.split("\t")
+            d[w] = int(o)
     return d
 
 
@@ -142,6 +156,12 @@ class _SileroStressor:
         self._ngram_dict: dict = _load_ngram_dict(data["ngram_dict.txt.gz"])
         self._unk: int = self._ngram_dict["UNK"]
         self._exceptions: dict = _load_exceptions(data["exceptions.txt.gz"])
+        # a dictionary layer (bel: GrammarDB) keyed by vowel ordinal, so a
+        # quote or apostrophe in the token does not shift the mark
+        self._dictionary: dict = {}
+        if "dictionary_source" in meta:
+            layer = _download_files(subdir, [_DICTIONARY_FILE], self._cache_dir, model_id="silero")
+            self._dictionary = _load_dictionary(layer[_DICTIONARY_FILE])
         self._sess = ort.InferenceSession(
             data["accentor.onnx"],
             providers=["CPUExecutionProvider"],
@@ -261,6 +281,29 @@ class _SileroStressor:
         first_vowel_pos = vowel_ids[0] if vowel_ids else -1
         return stress_positions, yo_positions, num_vowels, first_vowel_pos
 
+    def _dictionary_ordinal(self, clean_word: str, raw_word: str, sentence_start: bool):
+        """Stressed-vowel ordinal of the dictionary layer for *raw_word*, or None.
+
+        The layer keys a form the database writes capitalized (a name) by its
+        capitalized spelling.  A lowercase token takes the lowercase key.  A
+        capitalized token inside a sentence takes the capitalized key, never
+        the lowercase one: the capital marks a name the database may not
+        hold.  At the start of a sentence, where a common word is
+        capitalized too, it takes the lowercase key, never the capitalized
+        one: a name there stays with the model.  An all-caps token takes
+        either key.
+        """
+        if not self._dictionary:
+            return None
+        letters = [c for c in raw_word if c.isalpha()]
+        if not letters or not letters[0].isupper():
+            return self._dictionary.get(clean_word)
+        capitalized = clean_word[:1].upper() + clean_word[1:]
+        if all(c.isupper() for c in letters):
+            ordinal = self._dictionary.get(clean_word)
+            return self._dictionary.get(capitalized) if ordinal is None else ordinal
+        return self._dictionary.get(clean_word if sentence_start else capitalized)
+
     def _exception_offsets(self, clean_word: str, raw_word: str, with_yo: bool):
         """(mark, yo) offsets within *raw_word* for an exceptions-dict entry."""
         exc_stress, exc_yo = self._exceptions[clean_word]
@@ -361,6 +404,7 @@ class _SileroStressor:
 
         marks, yo_out = [], []
         pos = 0
+        sentence_start = True
         for wi, (raw_word, clean_word, need) in enumerate(
             zip(raw_tokens, clean_tokens, prediction_mask)
         ):
@@ -371,7 +415,10 @@ class _SileroStressor:
             if not need:
                 marks.extend(start + o for o in word_marks)
                 yo_out.extend(start + o for o in word_yo)
+                if any(c in ".!?\u2026" for c in raw_word):
+                    sentence_start = True
                 continue
+            at_sentence_start, sentence_start = sentence_start, False
 
             raw_lower = lower_preserving_length(raw_word)
             if has_stress_mark(raw_word):
@@ -398,6 +445,12 @@ class _SileroStressor:
                     marks.extend(
                         start + i for i, c in enumerate(raw_lower) if c == "ё"
                     )
+                continue
+
+            ordinal = self._dictionary_ordinal(clean_word, raw_word, at_sentence_start)
+            if ordinal is not None:
+                positions, _, _, _ = self._get_positions(raw_lower, [ordinal], [])
+                marks.extend(start + p for p in positions)
                 continue
 
             if clean_word in self._exceptions:
