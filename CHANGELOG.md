@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a34](https://github.com/TigreGotico/stressonnx/tree/0.0.3a34) (2026-11-06)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a33...0.0.3a34)
+
+**Merged pull requests:**
+
+- feat: full RUAccent vocabulary for the ru simple model [\#79](https://github.com/TigreGotico/stressonnx/pull/79) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a33](https://github.com/TigreGotico/stressonnx/tree/0.0.3a33) (2026-11-06)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a32...0.0.3a33)
