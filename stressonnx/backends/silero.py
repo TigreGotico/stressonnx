@@ -321,6 +321,8 @@ class _SileroStressor:
 
         The rules read the words before a homograph, so they see the clean
         word tokens in order, without the separators the tokenizer keeps.
+        The caller applies an ordinal only where the token's case allows it
+        (:meth:`_homograph_applies`).
         """
         if self._homographs is None:
             return {}
@@ -333,6 +335,21 @@ class _SileroStressor:
                 if ordinal is not None:
                     out[i] = ordinal
         return out
+
+    @staticmethod
+    def _homograph_applies(raw_word: str, sentence_start: bool) -> bool:
+        """Whether the homograph layer may stress *raw_word*.
+
+        The layer keys common words in lowercase.  A capitalized token
+        inside a sentence marks a name the layer does not know (Я́на against
+        the pronoun яна́), so it stays with the model, as in the dictionary
+        layer.  A lowercase token, a capitalized token at the start of a
+        sentence and an all-caps token take the layer.
+        """
+        letters = [c for c in raw_word if c.isalpha()]
+        if not letters or not letters[0].isupper():
+            return True
+        return sentence_start or all(c.isupper() for c in letters)
 
     def _exception_offsets(self, clean_word: str, raw_word: str, with_yo: bool):
         """(mark, yo) offsets within *raw_word* for an exceptions-dict entry."""
@@ -479,7 +496,7 @@ class _SileroStressor:
                 continue
 
             ordinal = self._dictionary_ordinal(clean_word, raw_word, at_sentence_start)
-            if ordinal is None:
+            if ordinal is None and self._homograph_applies(raw_word, at_sentence_start):
                 ordinal = homograph_ordinals.get(wi)
             if ordinal is not None:
                 positions, _, _, _ = self._get_positions(raw_lower, [ordinal], [])

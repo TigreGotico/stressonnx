@@ -613,11 +613,13 @@ database forms that have it (part of speech, case, number, finite or
 infinitive). A rule picks a reading when exactly one reading satisfies
 it. The rules are tried in the order of the table, and the first answer
 wins. A spelling with no rule answer takes its most frequent reading in
-three stressed corpora, and a spelling with neither stays with the model.
+two stressed corpora, and a spelling with neither stays with the model.
 The runtime reads the layer after the dictionary layer and before the
-exceptions table. A token is looked up in lowercase, so a name spelled
-like a homograph (Я́на against яна́) takes the reading the rules or the
-prior give the common word.
+exceptions table. A token is looked up in lowercase, and a capitalized
+token inside a sentence marks a name the layer does not know (Я́на
+against the pronoun яна́), so it stays with the model, as in the
+dictionary layer. A capitalized token at the start of a sentence and an
+all-caps token take the layer.
 
 | Rule | Fires when | Picks | Source |
 |---|---|---|---|
@@ -627,13 +629,15 @@ prior give the common word.
 | `loc` | the word before is пры; or у, ва, на, аб, па | the one locative reading, or the one locative or accusative reading | English Wiktionary, `{{+obj}}` on each entry: пры governs the locative only, у, ва, на, аб, па the locative or the accusative |
 | `acc_prep` | the word before is праз or пад | the one accusative reading | English Wiktionary, `{{+obj\|be\|acc}}` |
 | `agree` | the word before is a pronoun-adjective or numeral form of GrammarDB, and a preposition before that restricts its case | the one reading that agrees in case and number | [be.wikipedia.org/wiki/Прыметнік](https://be.wikipedia.org/wiki/Прыметнік) (agreement); the case and number set of each modifier form from the GrammarDB `SA` and `M` paradigm tags (`tags.svg`) |
-| `agree_ending` | as `agree`, for a word of four or more letters with an adjectival ending (-ага, -аму, -ай, -ую, -ыя, -ых, …) that is not in the modifier table | the one reading that agrees | MINED: the endings and their case and number sets were read off the adjective paradigms, no citation. Right on 37 of the 40 prior-corpus contexts it fires on |
+| `agree_ending` | as `agree`, for a word of four or more letters with an adjectival ending (-ага, -аму, -ай, -ую, -ыя, -ых, …) that is not in the modifier table | the one reading that agrees | MINED: the endings and their case and number sets were read off the adjective paradigms, no citation. Right on 36 of the 42 prior-corpus contexts it fires on |
 | `subject_pronoun` | the readings are one infinitive and one finite verb form, and the word before is я, ты, ён, яна, яно, мы, вы, яны, хто (finite) or a modal such as можа, трэба, хачу, буду (infinitive) | that reading | MINED: no citation. Right on 14 of 14 prior-corpus contexts |
-| prior | no rule answers | the most frequent reading of the spelling in the prior corpora, none on a tie | MINED: counts on 3,312 homograph targets of zascienak_Malinauka.txt (2,312, CC-BY-SA-4.0), the Belarusian usage examples of English Wiktionary (857, CC-BY-SA) and russtress data_be.csv (143, no licence stated). 782 spellings get a prior, 19 tie |
+| prior | no rule answers | the most frequent reading of the spelling in the prior corpora, none on a tie | MINED: counts on 3,169 homograph targets of zascienak_Malinauka.txt (2,312, CC-BY-SA-4.0) and the Belarusian usage examples of English Wiktionary (857, CC-BY-SA). 733 spellings get a prior, 15 tie |
 
-The prior corpora are three of the harness's general stress sets and not
-the two homograph sets. The build pins all three by sha256, and they share
-no sentence with `homographs-10x10` or `homographs-commonvoice`. Only the
+The prior corpora are two of the harness's general stress sets and not
+the two homograph sets. The build pins both by sha256, and they share no
+sentence with `homographs-10x10` or `homographs-commonvoice`. The
+russtress rows are not a prior source, so that set is independent of the
+layer. Only the
 reading counts leave the corpora. A tie gives no prior, so a rare reading
 is chosen only on a rule signal and the common reading is the default.
 
@@ -649,9 +653,9 @@ harness rows):
 | `agree_ending` (mined) | 83, 73 | 53, 44 |
 | `subject_pronoun` (mined) | 11, 11 | 125, 122 |
 | `num234`, `acc_prep`, `num5` | 0 | 0 |
-| prior | 1,211, 616 | 2,276, 1,880 |
-| no answer (tie or no context) | 116 | 301 |
-| not in the layer | 40 | 54 |
+| prior | 1,183, 600 | 2,400, 1,986 |
+| no answer (tie or no context) | 105 | 177 |
+| not in the layer | 79 | 54 |
 
 On the five Belarusian sets of `benchmarks/run.py` (ser9, two onnxruntime
 threads, paired bootstrap over rows, exact McNemar on the targets both
@@ -660,32 +664,33 @@ to separate the two sources of the gain:
 
 | Set (tier) | Targets | silero | with layer | silero only right / layer only right, McNemar | rules only | silero only / rules only right, McNemar |
 |---|---|---|---|---|---|---|
-| homographs-10x10 (GOLD) | 1,496 | 0.499 [0.475, 0.526] | 0.544 [0.520, 0.571] | 126 / 194, p = 2e-4 | 0.548 [0.524, 0.576] | 1 / 75, p = 2e-21 |
-| homographs-commonvoice (SILVER) | 2,877 | 0.696 [0.679, 0.711] | 0.805 [0.790, 0.819] | 183 / 495, p = 5e-34 | 0.743 [0.727, 0.758] | 13 / 148, p = 4e-30 |
-| russtress (GOLD) | 2,902 | 0.923 [0.914, 0.932] | 0.928 [0.918, 0.937] | 4 / 18, p = 0.004 | 0.923 | 0 / 0 |
-| wiktionary (GOLD) | 12,390 | 0.957 [0.953, 0.962] | 0.968 [0.964, 0.972] | 15 / 145, p = 7e-28 | 0.958 [0.954, 0.962] | 3 / 14, p = 0.013 |
-| zascienak (GOLD) | 22,965 | 0.960 [0.957, 0.963] | 0.977 [0.974, 0.979] | 25 / 400, p = 4e-88 | 0.961 [0.959, 0.964] | 8 / 35, p = 4e-5 |
+| homographs-10x10 (GOLD) | 1,496 | 0.499 [0.475, 0.526] | 0.543 [0.517, 0.570] | 136 / 202, p = 4e-4 | 0.548 [0.524, 0.576] | 1 / 75, p = 2e-21 |
+| homographs-commonvoice (SILVER) | 2,877 | 0.696 [0.679, 0.711] | 0.827 [0.811, 0.840] | 183 / 558, p = 7e-45 | 0.743 [0.727, 0.758] | 13 / 148, p = 4e-30 |
+| russtress (GOLD, independent) | 2,902 | 0.923 [0.914, 0.932] | 0.923 [0.914, 0.932] | 5 / 5, p = 1 | 0.923 | 0 / 0 |
+| wiktionary (GOLD, prior source) | 12,390 | 0.957 [0.953, 0.962] | 0.968 [0.964, 0.972] | 15 / 144, p = 1e-27 | 0.958 [0.954, 0.962] | 3 / 14, p = 0.013 |
+| zascienak (GOLD, prior source) | 22,965 | 0.960 [0.957, 0.963] | 0.976 [0.974, 0.978] | 25 / 388, p = 8e-85 | 0.961 [0.958, 0.964] | 8 / 30, p = 5e-4 |
 
-Readings entirely wrong on 10x10: 75 of 150 for silero, 57 with the layer,
+Readings entirely wrong on 10x10: 75 of 150 for silero, 58 with the layer,
 58 with the rules only. On commonvoice: 34 of 82, 26 and 25. The rules are
-the gain on the balanced gold set: the prior is right on 616 of the 1,211
+the gain on the balanced gold set: the prior is right on 600 of the 1,183
 targets it decides there, a coin by construction, and its wins and losses
 come in tens per word and cancel. The prior is the gain on the silver set
-and on the three general sets. Those three are its own sources, so their
-rows measure agreement with the counts, not an independent gain, and the
-rules-only column is the independent part of each. No gold set loses:
-the layer's losses on the general sets are 4, 15 and 25 targets against
-18, 145 and 400 wins. Per-reading tables for every model are in the
-evidence of the build. The layer costs 22 to 53 µs per homograph token on
-ser9, under 0.1 ms per row on every set, within the run-to-run noise of
-the model's own 0.2 to 5 ms per row.
+and on the two general sets that are its own sources. Those two rows
+measure agreement with the counts, not an independent gain, and the
+rules-only column is the independent part of each. On russtress, which
+is independent of the layer, the layer wins 5 targets and loses 5. No
+gold set loses: the layer's losses on the general sets are 5, 15 and 25
+targets against 5, 144 and 388 wins. Per-reading tables for every model
+are in the evidence of the build. The layer costs 11 to 35 µs per
+homograph token on ser9, under 0.06 ms per row on every set, within the
+run-to-run noise of the model's own 0.2 to 5 ms per row.
 
 `export/build_be_homographs.py` rebuilds the file from the pinned release
-archive, the pinned kaikki dump and the two pinned corpus files, checks
+archive, the pinned kaikki dump and the pinned zascienak file, checks
 every sha256, prints the forms in and the keys out, and writes the same
 bytes on every run. A spelling whose readings all carry one tag set gives
-no rule a choice and is kept only with a prior (12,213 dropped), so the
-file holds 8,373 keys.
+no rule a choice and is kept only with a prior (12,223 dropped), so the
+file holds 8,363 keys.
 
 ### Why silero is also available for Russian
 

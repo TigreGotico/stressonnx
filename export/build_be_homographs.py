@@ -10,12 +10,12 @@ the closed word classes the runtime rules read (prepositions by the case
 they govern, numerals, subject pronouns, modals, the case and number set
 of every pronoun-adjective and numeral form) and a frequency prior.
 
-The prior is the most frequent reading of a spelling in three stressed
-corpora of the benchmark harness, none of which is a homograph test set:
-``zascienak_Malinauka.txt`` of alex73/benchmarks-stress-bel (CC-BY-SA-4.0),
-the Belarusian usage examples of English Wiktionary through the kaikki.org
-dump (CC-BY-SA), and ``data_be.csv`` of MashaPo/russtress (no licence
-stated).  Only reading counts leave the corpora; no sentence is shipped.
+The prior is the most frequent reading of a spelling in two stressed
+corpora of the benchmark harness, neither of which is a homograph test set:
+``zascienak_Malinauka.txt`` of alex73/benchmarks-stress-bel (CC-BY-SA-4.0)
+and the Belarusian usage examples of English Wiktionary through the
+kaikki.org dump (CC-BY-SA).  Only reading counts leave the corpora; no
+sentence is shipped.
 A spelling whose two most frequent readings tie gets no prior.
 
 A spelling whose readings all carry the same tags cannot be told apart by
@@ -26,14 +26,13 @@ Usage::
 
     python export/build_be_homographs.py --zip RELEASE-202601.zip \\
         --kaikki kaikki.org-dictionary-Belarusian.jsonl[.gz] \\
-        --zascienak zascienak_Malinauka.txt --russtress data_be.csv --out out/bel
+        --zascienak zascienak_Malinauka.txt --out out/bel
 
 Then upload ``out/bel/homographs.json.gz``, ``out/bel/meta.json`` and
 ``out/bel/LICENSE.grammardb`` to ``TigreGotico/stressonnx-models/bel/`` and
 bump ``HF_REPO_REVISION``.
 """
 import argparse
-import csv
 import gzip
 import hashlib
 import json
@@ -51,9 +50,8 @@ from build_be_grammardb_vocab import (  # noqa: E402
     LICENSE_URL, RELEASE, RELEASE_COMMIT, RELEASE_ZIP_SHA256, KAIKKI_SHA256, KAIKKI_URL,
     NOTICE, UPSTREAM, UPSTREAM_URL, XML_MEMBERS, fetch_license, sha256,
 )
-from gold.russtress import REVISION as RUSSTRESS_REVISION, gold_target  # noqa: E402
 from gold.belarusian_homographs import BASE as ALEX73_BASE  # noqa: E402
-from scoring import STRESS, Row, Target, clean_word, marked_sentence_row, strip_stress  # noqa: E402
+from scoring import STRESS, clean_word, marked_sentence_row, strip_stress  # noqa: E402
 from stressonnx.backends._homograph_rules import MINED, RULES, HomographRules  # noqa: E402
 from stressonnx.download import _download_files  # noqa: E402
 from stressonnx.registry import _MAIN_FILES  # noqa: E402
@@ -75,13 +73,6 @@ PRIOR_SOURCES = {
         "license": "CC-BY-SA",
         "tier": "GOLD",
         "sha256": KAIKKI_SHA256,
-    },
-    "russtress": {
-        "name": "MashaPo/russtress, data_be.csv",
-        "url": f"https://raw.githubusercontent.com/MashaPo/russtress/{RUSSTRESS_REVISION}/data/data_be.csv",
-        "license": "none stated",
-        "tier": "GOLD",
-        "sha256": "3ac6c66f9716cf942c09af633c3aacb252c62629d2f062b3567c21d20c3e50c9",
     },
 }
 
@@ -251,14 +242,6 @@ def wiktionary_rows(path: str):
                         yield row
 
 
-def russtress_rows(path: str):
-    with open(path, encoding="utf-8", newline="") as fh:
-        for n, rec in enumerate(csv.DictReader(fh)):
-            target = gold_target(rec["string"], int(rec["position"]))
-            if target is not None:
-                yield Row(f"be:{n}", rec["string"], (Target(*target),))
-
-
 def contexts(rows, homographs: dict):
     """``(words, index, gold ordinal)`` for every target that is a homograph."""
     for row in rows:
@@ -309,7 +292,6 @@ def main():
     ap.add_argument("--zip", required=True, help=f"path to {RELEASE}.zip")
     ap.add_argument("--kaikki", required=True, help="the pinned kaikki Belarusian dump (.jsonl or .jsonl.gz)")
     ap.add_argument("--zascienak", required=True, help="zascienak_Malinauka.txt of alex73/benchmarks-stress-bel")
-    ap.add_argument("--russtress", required=True, help="data_be.csv of MashaPo/russtress")
     ap.add_argument("--out", required=True, help="output directory for the bel bundle files")
     ap.add_argument("--cache-dir", default=None, help="stressonnx model cache holding the current bel bundle")
     args = ap.parse_args()
@@ -318,7 +300,6 @@ def main():
         raise SystemExit(f"{args.zip} is not {RELEASE}.zip (sha256 differs)")
     _hashed(args.kaikki, KAIKKI_SHA256, "the pinned kaikki dump")
     _hashed(args.zascienak, PRIOR_SOURCES["zascienak"]["sha256"], "the pinned zascienak file")
-    _hashed(args.russtress, PRIOR_SOURCES["russtress"]["sha256"], "the pinned russtress file")
 
     homographs, agree, apostrophe, counts = collect(args.zip)
     print(f"GrammarDB: {counts['forms']} forms in, {counts['multi_stress_keys']} multi-stress spellings", flush=True)
@@ -333,8 +314,7 @@ def main():
     source_contexts = Counter()
     rule_fired, rule_right = Counter(), Counter()
     sources = (("zascienak", zascienak_rows(args.zascienak)),
-               ("wiktionary", wiktionary_rows(args.kaikki)),
-               ("russtress", russtress_rows(args.russtress)))
+               ("wiktionary", wiktionary_rows(args.kaikki)))
     for name, rows in sources:
         for tokens, idx, gold in contexts(rows, homographs):
             if gold not in homographs[tokens[idx]]:

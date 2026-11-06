@@ -72,10 +72,26 @@ def test_prior_picks_the_frequent_reading_without_a_rule(silero_be, text, expect
 
 
 def test_tied_prior_leaves_the_word_with_the_model(silero_be):
-    """вучыцца without a subject pronoun or a modal: the corpora tie 3 to 3."""
+    """далі (да́лі, distances, against далі́, they gave) ties 2 to 2 in the corpora."""
     silero_be._ensure_loaded()
-    assert silero_be._homographs.resolve(["добра", "вучыцца"], 1) == (None, None)
-    assert silero_be("добра вучыцца") == "до́бра вучы́цца"
+    entry = silero_be._homographs.words["далі"]
+    assert entry["prior"] is None
+    assert silero_be._homographs.resolve(["яны", "далі"], 1) == (None, None)
+
+
+# GrammarDB lists the name Ма+я (a proper-noun paradigm, NP) and the
+# possessive мая+ (pronoun-adjective paradigm, SA), whose reading the prior
+# corpora count 13 to 1.  The layer keys the common word, so a capitalized
+# token inside a sentence is a name and stays with the model (Ма́я), while
+# a sentence start, an all-caps token and a lowercase token take the layer.
+@pytest.mark.parametrize("text,expected", [
+    ("Сястра Мая спіць.", "Ма́я"),
+    ("Мая сястра спіць.", "Мая́"),
+    ("МАЯ сястра спіць.", "МАЯ́"),
+    ("мая сястра спіць.", "мая́"),
+])
+def test_capitalized_name_inside_a_sentence_stays_with_the_model(silero_be, text, expected):
+    assert expected in tokens(silero_be(text)), silero_be(text)
 
 
 def test_dictionary_layer_still_wins_before_the_rules(silero_be):

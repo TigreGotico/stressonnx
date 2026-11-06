@@ -127,13 +127,15 @@ def test_layer_bytes_are_reproducible(tmp_path, build):
 
 
 def test_pinned_input_refused_on_hash_mismatch(tmp_path, build):
-    path = tmp_path / "data.csv"
-    path.write_text("string,position\n", encoding="utf-8")
-    with pytest.raises(SystemExit, match="not the pinned russtress file"):
-        build._hashed(str(path), build.PRIOR_SOURCES["russtress"]["sha256"], "the pinned russtress file")
+    path = tmp_path / "zascienak_Malinauka.txt"
+    path.write_text("Яна+ вучы+цца.\n", encoding="utf-8")
+    with pytest.raises(SystemExit, match="not the pinned zascienak file"):
+        build._hashed(str(path), build.PRIOR_SOURCES["zascienak"]["sha256"], "the pinned zascienak file")
 
 
 def test_prior_sources_exclude_the_homograph_test_sets(build):
     urls = {src["url"] for src in build.PRIOR_SOURCES.values()}
     assert not any(name in url for url in urls for name in ("10x10", "common_voice"))
-    assert all(src["license"] and src["tier"] == "GOLD" for src in build.PRIOR_SOURCES.values())
+    assert set(build.PRIOR_SOURCES) == {"zascienak", "wiktionary"}
+    assert all(src["license"].startswith("CC-BY-SA") and src["tier"] == "GOLD"
+               for src in build.PRIOR_SOURCES.values())
