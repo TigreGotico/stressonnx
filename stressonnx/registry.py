@@ -119,7 +119,7 @@ HF_REPO_ID = "TigreGotico/stressonnx-models"
 #: fetched from exactly this revision, so releases are reproducible and an
 #: upstream force-push cannot change what users run.  Bump deliberately when
 #: models are uploaded (see export/ADDING_A_LANGUAGE.md).
-HF_REPO_REVISION = "2d8f8e5da72addcef059da14c129e5a04816ee34"
+HF_REPO_REVISION = "0292eba926e7024b516e445c408895557f2e5761"
 
 # Files for main_accentor family
 _MAIN_FILES = [
@@ -411,12 +411,7 @@ for _lang in SIMPLE_LANGS:
         DEFAULT_MODEL[_lang] = "simple"
 
 
-# OOV stress-position rule per simple lang.
-# "last"  → last vowel
-# "first" → first vowel
-# "none"  → skip (return unchanged)
-# "antepenult" → antepenultimate vowel, first for words with fewer than 3 vowels
-# Per-language OOV stress rule, from the language data files — see
-# SimpleStressor._accentuate_oov for the rule implementations and
-# benchmarks/RESULTS.md for measured accuracy.
+# Per-language OOV stress rule, from the language data files.  The keys of
+# stressonnx.backends.simple.OOV_RULES name the rules, and each rule function
+# documents its source; benchmarks/RESULTS.md has the measured accuracy.
 _OOV_RULES = {tag: spec["rule"] for tag, spec in LANGUAGES.items()}

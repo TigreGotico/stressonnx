@@ -63,6 +63,13 @@ def test_turkic_lowercase_round_trip():
     assert lower_preserving_length("İIıi") == "iiıi"
 
 
+def test_lowering_is_per_character_for_a_final_sigma():
+    # str.lower() gives ς for a word-final Σ (Unicode Final_Sigma); the
+    # simple lowercase mapping of U+03A3 is σ, whatever comes after it
+    assert lower_preserving_length("ΟΔΟΣ") == "οδοσ"
+    assert lower_preserving_length("ΟΔΟΣ ΜΑΣ") == "οδοσ μασ"
+
+
 def test_az_dotted_capital_i_reaches_the_vocabulary():
     # audit finding 11: the vocabulary key is i̇brahimov with ordinal 2,
     # so the second i is stressed: İbrahímov
@@ -147,7 +154,6 @@ def test_ru_yo_marks_the_stressed_syllable():
     assert simple("ёлкаёлка", "ru") == "ёлкаёлка"
 
 
-@pytest.mark.xfail(strict=True, reason="waits on a ru_simple vocabulary built from the full RUAccent dictionary")
 def test_ru_vocabulary_holds_everyday_words():
     # RUAccent accents.json.gz: январ+я, +это, м+ама
     assert simple("января это мама", "ru") == "января́ э́то ма́ма"

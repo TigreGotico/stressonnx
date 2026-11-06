@@ -45,26 +45,26 @@ Labels agree with the RUAccent accent dictionary, unambiguous entries on 88.9% o
 | ruaccent-big-poetry | GOLD | 11124 | 0 | 0.942 | 0.937–0.946 | 0.753 (724) | 26.3 | 4.2 |
 | silero | GOLD | 11124 | 0 | 0.944 | 0.940–0.948 | 0.753 (724) | 0.8 | 0.4 |
 | stressrnn | GOLD | 11124 | 0 | 0.892 | 0.886–0.897 | 0.767 (724) | 0.7 | 0.3 |
-| simple | GOLD | 11124 | 0 | 0.142 | 0.135–0.149 | 0.227 (724) | 0.1 | 0.3 |
 | kubataba | GOLD | 11124 | 0 | 0.888 | 0.882–0.893 | 0.816 (724) | 372.4 | 0.3 |
+| simple | GOLD | 11124 | 0 | 0.868 | 0.862–0.875 | 0.000 (724) | 0.0 | 13.9 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
 - ruaccent vs ruaccent-big-poetry: 11124 common targets, ruaccent only right 114, ruaccent-big-poetry only right 56, p = 1e-05.
 - ruaccent vs silero: 11124 common targets, ruaccent only right 173, silero only right 139, p = 0.062.
 - ruaccent vs stressrnn: 11124 common targets, ruaccent only right 749, stressrnn only right 133, p = 8e-105.
-- ruaccent vs simple: 11124 common targets, ruaccent only right 8995, simple only right 37, p < 1e-300.
 - ruaccent vs kubataba: 11124 common targets, ruaccent only right 830, kubataba only right 171, p = 2e-104.
+- ruaccent vs simple: 11124 common targets, ruaccent only right 916, simple only right 41, p = 4e-216.
 - ruaccent-big-poetry vs silero: 11124 common targets, ruaccent-big-poetry only right 138, silero only right 162, p = 0.184.
 - ruaccent-big-poetry vs stressrnn: 11124 common targets, ruaccent-big-poetry only right 748, stressrnn only right 190, p = 7e-79.
-- ruaccent-big-poetry vs simple: 11124 common targets, ruaccent-big-poetry only right 8944, simple only right 44, p < 1e-300.
 - ruaccent-big-poetry vs kubataba: 11124 common targets, ruaccent-big-poetry only right 834, kubataba only right 233, p = 8e-80.
+- ruaccent-big-poetry vs simple: 11124 common targets, ruaccent-big-poetry only right 858, simple only right 41, p = 7e-200.
 - silero vs stressrnn: 11124 common targets, silero only right 743, stressrnn only right 161, p = 6e-90.
-- silero vs simple: 11124 common targets, silero only right 8967, simple only right 43, p < 1e-300.
 - silero vs kubataba: 11124 common targets, silero only right 824, kubataba only right 199, p = 7e-91.
-- stressrnn vs simple: 11124 common targets, stressrnn only right 8510, simple only right 168, p < 1e-300.
+- silero vs simple: 11124 common targets, silero only right 864, simple only right 23, p = 4e-222.
 - stressrnn vs kubataba: 11124 common targets, stressrnn only right 497, kubataba only right 454, p = 0.173.
-- simple vs kubataba: 11124 common targets, simple only right 157, kubataba only right 8456, p < 1e-300.
+- stressrnn vs simple: 11124 common targets, stressrnn only right 715, simple only right 456, p = 4e-14.
+- kubataba vs simple: 11124 common targets, kubataba only right 842, simple only right 626, p = 2e-08.
 
 ### ru / wiktionary — GOLD
 
@@ -80,20 +80,20 @@ Labels agree with the RUAccent accent dictionary, unambiguous entries on 92.0% o
 | ruaccent-big-poetry | GOLD | 137221 | 0 | 0.962 | 0.960–0.963 | 0.893 (9410) | 135.1 | 4.6 |
 | silero | GOLD | 137221 | 0 | 0.984 | 0.984–0.985 | 0.908 (9410) | 1.5 | 0.2 |
 | stressrnn | GOLD | 137221 | 0 | 0.914 | 0.912–0.915 | 0.739 (9410) | 0.6 | 0.1 |
-| simple | GOLD | 137221 | 0 | 0.180 | 0.177–0.182 | 0.264 (9410) | 0.2 | 0.1 |
+| simple | GOLD | 137221 | 0 | 0.907 | 0.905–0.908 | 0.000 (9410) | 0.1 | 12.0 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
 - ruaccent vs ruaccent-big-poetry: 137221 common targets, ruaccent only right 631, ruaccent-big-poetry only right 320, p = 4e-24.
 - ruaccent vs silero: 137221 common targets, ruaccent only right 1258, silero only right 4063, p < 1e-300.
 - ruaccent vs stressrnn: 137221 common targets, ruaccent only right 10258, stressrnn only right 3394, p < 1e-300.
-- ruaccent vs simple: 137221 common targets, ruaccent only right 108806, simple only right 1204, p < 1e-300.
+- ruaccent vs simple: 137221 common targets, ruaccent only right 10804, simple only right 3003, p < 1e-300.
 - ruaccent-big-poetry vs silero: 137221 common targets, ruaccent-big-poetry only right 1263, silero only right 4379, p < 1e-300.
 - ruaccent-big-poetry vs stressrnn: 137221 common targets, ruaccent-big-poetry only right 10134, stressrnn only right 3581, p < 1e-300.
-- ruaccent-big-poetry vs simple: 137221 common targets, ruaccent-big-poetry only right 108628, simple only right 1337, p < 1e-300.
+- ruaccent-big-poetry vs simple: 137221 common targets, ruaccent-big-poetry only right 10493, simple only right 3003, p < 1e-300.
 - silero vs stressrnn: 137221 common targets, silero only right 10486, stressrnn only right 817, p < 1e-300.
-- silero vs simple: 137221 common targets, silero only right 110750, simple only right 343, p < 1e-300.
-- stressrnn vs simple: 137221 common targets, stressrnn only right 103150, simple only right 2412, p < 1e-300.
+- silero vs simple: 137221 common targets, silero only right 10838, simple only right 232, p < 1e-300.
+- stressrnn vs simple: 137221 common targets, stressrnn only right 7921, simple only right 6984, p = 2e-14.
 
 ### ru / homograph-eval — SILVER
 
@@ -109,26 +109,26 @@ Every target is a homograph, so a one-stress dictionary disagrees by design; thi
 | ruaccent-big-poetry | SILVER | 1727 | 0 | 0.852 | 0.834–0.867 | 0.858 (1660) | 274.9 | 2.9 |
 | silero | SILVER | 1727 | 0 | 0.816 | 0.797–0.834 | 0.814 (1660) | 4.9 | 0.4 |
 | stressrnn | SILVER | 1727 | 0 | 0.521 | 0.499–0.543 | 0.509 (1660) | 0.6 | 0.2 |
-| simple | SILVER | 1727 | 0 | 0.347 | 0.324–0.369 | 0.351 (1660) | 0.1 | 0.1 |
 | kubataba | SILVER | 1727 | 0 | 0.583 | 0.561–0.606 | 0.575 (1660) | 928.6 | 0.3 |
+| simple | SILVER | 1727 | 0 | 0.027 | 0.019–0.034 | 0.000 (1660) | 0.1 | 12.3 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
 - ruaccent vs ruaccent-big-poetry: 1727 common targets, ruaccent only right 164, ruaccent-big-poetry only right 101, p = 1e-04.
 - ruaccent vs silero: 1727 common targets, ruaccent only right 230, silero only right 105, p = 7e-12.
 - ruaccent vs stressrnn: 1727 common targets, ruaccent only right 729, stressrnn only right 94, p = 2e-122.
-- ruaccent vs simple: 1727 common targets, ruaccent only right 981, simple only right 47, p = 4e-228.
 - ruaccent vs kubataba: 1727 common targets, ruaccent only right 635, kubataba only right 108, p = 1e-91.
+- ruaccent vs simple: 1727 common targets, ruaccent only right 1488, simple only right 0, p < 1e-300.
 - ruaccent-big-poetry vs silero: 1727 common targets, ruaccent-big-poetry only right 230, silero only right 168, p = 0.002.
 - ruaccent-big-poetry vs stressrnn: 1727 common targets, ruaccent-big-poetry only right 694, stressrnn only right 122, p = 7e-98.
-- ruaccent-big-poetry vs simple: 1727 common targets, ruaccent-big-poetry only right 945, simple only right 74, p = 3e-193.
 - ruaccent-big-poetry vs kubataba: 1727 common targets, ruaccent-big-poetry only right 587, kubataba only right 123, p = 3e-73.
+- ruaccent-big-poetry vs simple: 1727 common targets, ruaccent-big-poetry only right 1425, simple only right 0, p < 1e-300.
 - silero vs stressrnn: 1727 common targets, silero only right 689, stressrnn only right 179, p = 3e-71.
-- silero vs simple: 1727 common targets, silero only right 890, simple only right 81, p = 6e-173.
 - silero vs kubataba: 1727 common targets, silero only right 588, kubataba only right 186, p = 2e-49.
-- stressrnn vs simple: 1727 common targets, stressrnn only right 610, simple only right 311, p = 4e-23.
+- silero vs simple: 1727 common targets, silero only right 1363, simple only right 0, p < 1e-300.
 - stressrnn vs kubataba: 1727 common targets, stressrnn only right 135, kubataba only right 243, p = 3e-08.
-- simple vs kubataba: 1727 common targets, simple only right 248, kubataba only right 655, p = 5e-43.
+- stressrnn vs simple: 1727 common targets, stressrnn only right 861, simple only right 8, p = 4e-243.
+- kubataba vs simple: 1727 common targets, kubataba only right 970, simple only right 9, p = 9e-274.
 
 ### ru / prose-accents — SILVER
 
@@ -144,26 +144,26 @@ Labels agree with the RUAccent accent dictionary, unambiguous entries on 90.9% o
 | ruaccent-big-poetry | SILVER | 16839 | 0 | 0.862 | 0.854–0.870 | 0.826 (1298) | 199.8 | 3.2 |
 | silero | SILVER | 16839 | 0 | 0.959 | 0.956–0.962 | 0.816 (1298) | 5.3 | 0.3 |
 | stressrnn | SILVER | 16839 | 0 | 0.921 | 0.916–0.926 | 0.836 (1298) | 2.0 | 0.2 |
-| simple | SILVER | 16839 | 0 | 0.214 | 0.208–0.221 | 0.272 (1298) | 0.2 | 0.2 |
 | kubataba | SILVER | 16839 | 0 | 0.968 | 0.965–0.971 | 0.946 (1298) | 2082.6 | 0.3 |
+| simple | SILVER | 16839 | 0 | 0.877 | 0.872–0.882 | 0.000 (1298) | 0.2 | 14.3 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
 - ruaccent vs ruaccent-big-poetry: 16839 common targets, ruaccent only right 76, ruaccent-big-poetry only right 72, p = 0.805.
 - ruaccent vs silero: 16839 common targets, ruaccent only right 181, silero only right 1806, p < 1e-300.
 - ruaccent vs stressrnn: 16839 common targets, ruaccent only right 844, stressrnn only right 1826, p = 3e-82.
-- ruaccent vs simple: 16839 common targets, ruaccent only right 11411, simple only right 496, p < 1e-300.
 - ruaccent vs kubataba: 16839 common targets, ruaccent only right 267, kubataba only right 2033, p < 1e-300.
+- ruaccent vs simple: 16839 common targets, ruaccent only right 1357, simple only right 1603, p = 7e-06.
 - ruaccent-big-poetry vs silero: 16839 common targets, ruaccent-big-poetry only right 194, silero only right 1823, p < 1e-300.
 - ruaccent-big-poetry vs stressrnn: 16839 common targets, ruaccent-big-poetry only right 843, stressrnn only right 1829, p = 8e-83.
-- ruaccent-big-poetry vs simple: 16839 common targets, ruaccent-big-poetry only right 11425, simple only right 514, p < 1e-300.
 - ruaccent-big-poetry vs kubataba: 16839 common targets, ruaccent-big-poetry only right 273, kubataba only right 2043, p < 1e-300.
+- ruaccent-big-poetry vs simple: 16839 common targets, ruaccent-big-poetry only right 1353, simple only right 1603, p = 5e-06.
 - silero vs stressrnn: 16839 common targets, silero only right 949, stressrnn only right 306, p = 7e-77.
-- silero vs simple: 16839 common targets, silero only right 12628, simple only right 88, p < 1e-300.
 - silero vs kubataba: 16839 common targets, silero only right 301, kubataba only right 442, p = 3e-07.
-- stressrnn vs simple: 16839 common targets, stressrnn only right 12130, simple only right 233, p < 1e-300.
+- silero vs simple: 16839 common targets, silero only right 1412, simple only right 33, p < 1e-300.
 - stressrnn vs kubataba: 16839 common targets, stressrnn only right 214, kubataba only right 998, p = 3e-121.
-- simple vs kubataba: 16839 common targets, simple only right 76, kubataba only right 12757, p < 1e-300.
+- stressrnn vs simple: 16839 common targets, stressrnn only right 1408, simple only right 672, p = 1e-59.
+- kubataba vs simple: 16839 common targets, kubataba only right 1749, simple only right 229, p = 2e-289.
 
 ### ru / ruslan-stressed — SILVER
 
@@ -180,20 +180,20 @@ Labels agree with the RUAccent accent dictionary, unambiguous entries on 90.8% o
 | ruaccent-big-poetry | SILVER | 176255 | 0 | 0.947 | 0.946–0.948 | 0.908 (10255) | 147.1 | 5.7 |
 | silero | SILVER | 176255 | 0 | 0.974 | 0.973–0.975 | 0.914 (10255) | 2.0 | 0.3 |
 | stressrnn | SILVER | 176255 | 0 | 0.917 | 0.916–0.919 | 0.807 (10255) | 1.0 | 0.1 |
-| simple | SILVER | 176255 | 0 | 0.152 | 0.150–0.153 | 0.252 (10255) | 0.2 | 0.1 |
+| simple | SILVER | 176255 | 0 | 0.895 | 0.893–0.896 | 0.000 (10255) | 0.2 | 12.7 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
 - ruaccent vs ruaccent-big-poetry: 176255 common targets, ruaccent only right 528, ruaccent-big-poetry only right 327, p = 6e-12.
 - ruaccent vs silero: 176255 common targets, ruaccent only right 1694, silero only right 6224, p < 1e-300.
 - ruaccent vs stressrnn: 176255 common targets, ruaccent only right 11047, stressrnn only right 5587, p < 1e-300.
-- ruaccent vs simple: 176255 common targets, ruaccent only right 141511, simple only right 1083, p < 1e-300.
+- ruaccent vs simple: 176255 common targets, ruaccent only right 13739, simple only right 4295, p < 1e-300.
 - ruaccent-big-poetry vs silero: 176255 common targets, ruaccent-big-poetry only right 1691, silero only right 6422, p < 1e-300.
 - ruaccent-big-poetry vs stressrnn: 176255 common targets, ruaccent-big-poetry only right 10994, stressrnn only right 5735, p < 1e-300.
-- ruaccent-big-poetry vs simple: 176255 common targets, ruaccent-big-poetry only right 141456, simple only right 1229, p < 1e-300.
+- ruaccent-big-poetry vs simple: 176255 common targets, ruaccent-big-poetry only right 13538, simple only right 4295, p < 1e-300.
 - silero vs stressrnn: 176255 common targets, silero only right 11608, stressrnn only right 1618, p < 1e-300.
-- silero vs simple: 176255 common targets, silero only right 145436, simple only right 478, p < 1e-300.
-- stressrnn vs simple: 176255 common targets, stressrnn only right 137135, simple only right 2167, p < 1e-300.
+- silero vs simple: 176255 common targets, silero only right 14525, simple only right 551, p < 1e-300.
+- stressrnn vs simple: 176255 common targets, stressrnn only right 11347, simple only right 7363, p = 8e-188.
 
 ## uk
 
@@ -357,7 +357,7 @@ available for them, so no accuracy row is reported (the parity test in
 Accuracy of each language's out-of-vocabulary rule measured against its own
 curated vocabulary (multi-vowel words only; `python
 benchmarks/oov_rules_eval.py`).  Rules are grounded in the descriptive
-literature cited in `SimpleStressor._accentuate_oov`.
+literature cited in the rule functions of `stressonnx/backends/simple.py`.
 
 | lang | rule | words | accuracy | note |
 |------|------|-------|----------|------|
@@ -394,7 +394,7 @@ and are enabled.
 |------|-------|--------|------|------|
 | bg | 46,914 | English Wiktionary (kaikki.org, CC BY-SA) | none | Bulgarian stress is free/lexical (Scatton 1984) — dictionary lookup only, no positional guessing |
 | uk / simple | 49,809 | English Wiktionary (kaikki.org, CC BY-SA) | none | rule-free dictionary fallback below the silero neural model |
-| ru / simple | 108,972 | RUAccent pronunciation dictionary (MIT), unambiguous entries | none | rule-free dictionary fallback below ruaccent/silero |
+| ru / simple | 3,167,126 | RUAccent pronunciation dictionary (MIT), forms with one reading | none | rule-free dictionary fallback below ruaccent/silero |
 | sl | 4,421 | English Wiktionary tonal-mark headwords (kaikki.org, CC BY-SA) | none | Slovene stress is free/lexical (Herrity 2000) |
 | mk | 1,667 | English Wiktionary (kaikki.org, CC BY-SA) | antepenultimate (Friedman 2001) | the vocabulary is deliberately *exceptions-only* — Wiktionary marks stress on Macedonian words precisely when they violate the antepenultimate default, so the 0.29 rule-vs-own-vocab score measures the rule on the words it is not meant for; regular words follow the rule |
 | lv | 107 | English Wiktionary (kaikki.org, CC BY-SA) | first (Nau 1998) | exceptions-only vocabulary, same caveat as mk |

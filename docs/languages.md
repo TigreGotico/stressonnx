@@ -72,10 +72,12 @@ type it as е, so restoring ё and placing stress are the same problem.
   ё, and a BERT homograph resolver picks the stress of dictionary homographs,
   все/всё included, from a short context window. **0.944** (homographs
   0.753).
-- `simple` (dictionary path, `model="simple"`): 108,972 unambiguous entries
-  from the RUAccent pronunciation dictionary, with no guessing on unknown
-  words (rule `none`), because Russian stress placement genuinely cannot be
-  predicted from word shape. An unknown word with exactly one ё is stressed
+- `simple` (dictionary path, `model="simple"`): 3,167,126 entries, every
+  form of the RUAccent pronunciation dictionary with one reading. **0.868**.
+  Homographs have no entry, so `simple` leaves them unmarked (0.000 on
+  homographs). The vocabulary loads in about 15 s and holds about 510 MB of
+  memory, with a peak of about 920 MB during the load. There is no guessing on unknown words (rule `none`), because
+  Russian stress placement genuinely cannot be predicted from word shape. An unknown word with exactly one ё is stressed
   on it (зелё́ный): ё is almost always stressed, so the mark lands where the
   other Russian backends put it. The East Slavic accentological literature is
   unanimous that surface stress is unpredictable without paradigm/accent-class
