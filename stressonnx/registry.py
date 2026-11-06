@@ -379,12 +379,7 @@ for _lang in SIMPLE_LANGS:
         DEFAULT_MODEL[_lang] = "simple"
 
 
-# OOV stress-position rule per simple lang.
-# "last"  → last vowel
-# "first" → first vowel
-# "none"  → skip (return unchanged)
-# "antepenult" → antepenultimate vowel, first for words with fewer than 3 vowels
-# Per-language OOV stress rule, from the language data files — see
-# SimpleStressor._accentuate_oov for the rule implementations and
-# benchmarks/RESULTS.md for measured accuracy.
+# Per-language OOV stress rule, from the language data files.  The keys of
+# stressonnx.backends.simple.OOV_RULES name the rules, and each rule function
+# documents its source; benchmarks/RESULTS.md has the measured accuracy.
 _OOV_RULES = {tag: spec["rule"] for tag, spec in LANGUAGES.items()}
