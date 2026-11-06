@@ -243,6 +243,10 @@ The script:
   inside the ONNX graph), `ngram_dict.txt.gz`, `exceptions.txt.gz`, and
   `meta.json`
   (containing `family`, `has_yo`, `alpha`, `vowels`, and embedding stats).
+  A bundle whose `meta.json` declares a `dictionary_source` also ships
+  `dictionary.txt.gz` (`word<TAB>vowel ordinal`), a dictionary layer the
+  runtime reads before the exceptions table; `build_uk_word_stress_vocab.py`
+  and `build_be_grammardb_vocab.py` build the two that exist.
 - Verifies the ONNX classifier's output matches the original PyTorch output
   (the largest difference is below 3e-5 of the largest logit).
 
