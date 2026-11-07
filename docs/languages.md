@@ -242,6 +242,8 @@ needs morphological segmentation, so they are documented rather than
 enabled. Tatar is the exception: four suffix variants (-ча/-чә adverbial,
 -сең 2sg, -ме interrogative; Comrie 1997b) pass a 0.7-or-higher
 vocabulary-evidence bar and are enabled in the `tt` rule (0.896 → 0.904).
+The Kazakh alphabet includes ё and ъ, which occur in Russian loanwords;
+ё is a vowel, so самолё́т is stressed on it.
 
 Azerbaijani Latin text is lowercased the Turkic way for the lookup: İ to i
 and I to ı, so İbrahimov finds its vocabulary entry.
@@ -286,6 +288,8 @@ versus 0.178 for naive final stress.
 be located at all (neither StressTyp nor WALS carries an entry; Baskakov
 1975 and Anderson's grammar were not accessible). The Turkic-default `last`
 rule is an explicitly labeled extrapolation, not a sourced rule.
+The vocabulary writes the Khakas letter Ӌ as Ҷ, a common substitute.
+Input Ӌ is looked up as Ҷ, and the output keeps Ӌ.
 
 ---
 

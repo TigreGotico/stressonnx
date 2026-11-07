@@ -218,6 +218,9 @@ class SimpleStressor:
         self._turkic = spec.get("casing") == "turkic"
         self._syllabic: str = spec.get("syllabic", "")
         self._self_stressed: str = spec.get("self_stressed", "")
+        fold = spec.get("fold", {})
+        # a letter written in place of another one-for-one: looked up as that letter
+        self._fold = str.maketrans({**fold, **{k.upper(): v.upper() for k, v in fold.items()}})
         alpha = spec["alpha"]
         self._alpha = set(alpha)
         self._re_cond = re.compile(
@@ -271,7 +274,8 @@ class SimpleStressor:
         usable: dict = {}
         dropped = 0
         for word, ordinal in vocab.items():
-            raw_lower = lower_preserving_length(unicodedata.normalize("NFC", word), self._turkic)
+            raw_lower = lower_preserving_length(unicodedata.normalize("NFC", word).translate(self._fold),
+                                                self._turkic)
             key = self._re_cond.sub("", raw_lower)
             if "-" in word or _RE_SPLIT.search(word) or self._ordinal_offset(raw_lower, ordinal) is None:
                 dropped += 1
@@ -367,7 +371,7 @@ class SimpleStressor:
         substitutes е→ё, so the second list is always empty.
         """
         self._ensure_loaded()
-        tokens = tokenize(text, self._re_cond, lang=self.lang, turkic=self._turkic)
+        tokens = tokenize(text.translate(self._fold), self._re_cond, lang=self.lang, turkic=self._turkic)
         offsets = []
         pos = 0
         for raw_word, clean_word, need in zip(*tokens):

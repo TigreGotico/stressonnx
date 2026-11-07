@@ -6,10 +6,14 @@
     "simple": "kjh"
   },
   "sources": [
-    "UNSOURCED: Turkic-default extrapolation; no primary description located"
+    "UNSOURCED: Turkic-default extrapolation; no primary description located",
+    "Ӌ (U+04CB) is the Khakas letter; the vocabulary writes it as Ҷ (U+04B6), a common substitute, so input Ӌ is looked up as Ҷ (Wikipedia, Khakas alphabet)"
   ],
   "tag": "kjh",
   "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяёіғңҷӧӱ",
   "vowels": "аеиоуыэюяёіӧӱ",
-  "rule_accuracy": 0.28
+  "rule_accuracy": 0.28,
+  "fold": {
+    "ӌ": "ҷ"
+  }
 }
