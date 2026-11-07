@@ -6,10 +6,11 @@
     "simple": "uzb_cyr"
   },
   "sources": [
-    "Boeschoten 1998: final stress"
+    "Boeschoten 1998: final stress",
+    "Uzbek Cyrillic alphabet, 35 letters (Wikipedia, Uzbek alphabet): А Б В Г Д Е Ё Ж З И Й К Л М Н О П Р С Т У Ф Х Ц Ч Ш Ъ Ь Э Ю Я Ў Қ Ғ Ҳ; Ё Ю Я correspond to Latin yo yu ya"
   ],
   "tag": "uz-Cyrl",
-  "alpha": "абдеэфгҳижклмнопқрстувхйзўғшчнгъ",
-  "vowels": "аеиоуў",
+  "alpha": "абвгдеёжзийклмнопрстуфхцчшъьэюяўқғҳ",
+  "vowels": "аеёиоуэюяў",
   "rule_accuracy": 1.0
 }

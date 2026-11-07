@@ -1,0 +1,51 @@
+name: Tokenizers Compat
+
+# The ruaccent backend supports the tokenizers 0.x and 1.x Python bindings,
+# which differ in API.  build-tests installs whichever the resolver picks;
+# this job pins each major version in turn.
+
+on:
+  pull_request:
+    branches: [dev, master]
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ruaccent:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tokenizers: ["tokenizers<1", "tokenizers>=1.0.0rc1"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Cache models and packages
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cache/huggingface
+            ~/.cache/pip
+          key: tokenizers-compat-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+      - name: Install with test extra
+        run: |
+          python -m pip install uv
+          uv pip install --system .[test]
+          uv pip install --system --prerelease=allow "${{ matrix.tokenizers }}"
+          python -c "import tokenizers; print('tokenizers', tokenizers.__version__)"
+      - name: Run ruaccent tests
+        run: >
+          python -m pytest -v
+          tests/test_tokenizers_compat.py
+          tests/test_ruaccent_long_input.py
+          tests/test_decomposed_input.py
+          tests/test_stress_ru.py
+          tests/test_ruaccent_keeps_text.py
+          tests/test_ruaccent_input_marks.py

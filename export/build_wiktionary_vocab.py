@@ -21,6 +21,9 @@ import json
 import os
 import unicodedata
 
+from stressonnx._common import SCRIPT_VOWELS
+from stressonnx.notation import is_stress_base
+
 #: Combining marks that Wiktionary uses to indicate the stressed vowel.
 #: Acute/grave cover the Slavic Cyrillic conventions; the tonal marks
 #: (circumflex, double grave, inverted breve) appear on Slovene headwords,
@@ -62,15 +65,18 @@ def stressed_index(plain: str, marked: str, vowels: str):
     """Index in *plain* of the vowel the *marked* form stresses, or None.
 
     Walks the NFD-decomposed marked form against the plain word; the first
-    stress mark encountered names the preceding character.  Returns None
-    when the forms do not align, the mark does not sit on a vowel of the
-    language, or more than one stress mark is present (ambiguous).
+    stress mark encountered names the preceding character.  A mark after a
+    letter that cannot carry stress (the acute of Macedonian ѓ and ќ) is
+    part of that letter.  Returns None when the forms do not align, the
+    mark does not sit on a vowel of the language, or more than one stress
+    mark is present (ambiguous).
     """
     decomposed = unicodedata.normalize("NFD", marked)
     idx = None
     pi = 0
+    base = ""
     for ch in decomposed:
-        if ch in STRESS_MARKS:
+        if ch in STRESS_MARKS and is_stress_base(base):
             if pi == 0 or pi > len(plain):
                 return None
             if idx is not None:
@@ -78,7 +84,8 @@ def stressed_index(plain: str, marked: str, vowels: str):
             idx = pi - 1
             continue
         if unicodedata.combining(ch):
-            continue  # diacritic that is part of the orthography (č, ī …)
+            continue  # diacritic that is part of the orthography (č, ī, ѓ …)
+        base = ch
         if pi >= len(plain):
             return None
         # compare base characters so precomposed letters (ī, č) still match
@@ -126,7 +133,6 @@ def build(lang: str, jsonl_path: str):
             if idx is not None:
                 # store the vowel ORDINAL over the script superset (v2
                 # vocabulary format), not the character index
-                from stressonnx._common import SCRIPT_VOWELS
                 sup = SCRIPT_VOWELS[
                     "latin" if plain[0].isascii() or lang in ("slv", "lav") else "cyrillic"
                 ]

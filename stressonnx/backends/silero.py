@@ -1,4 +1,4 @@
-"""Main-accentor family (ukr / bel / ru) — silero neural pipeline.
+"""Main-accentor family (uk / be / ru) — silero neural pipeline.
 
 Neural ONNX pipeline exported from silero_stress.  Embedding-bag + MLP
 heads. Pipeline:
@@ -6,22 +6,51 @@ heads. Pipeline:
 2. Compute fastText-style n-gram embeddings for each clean token by
    mean-pooling the rows selected from the embedding matrix.
 3. Run the ONNX MLP heads → stress_logits [N, K] (+ yo_logits for ``ru``).
-4. Decode: exceptions dict → skip sets → argmax position → insert '+'.
+4. Decode: exceptions dict → argmax position → insert '+'.
+
+For ``ru`` the homograph resolver (:mod:`._silero_homosolver`) runs first and
+fixes the stress (and ё) of every dictionary homograph from its context; the
+accentor then leaves those words stressed as resolved.  A ru bundle without
+the resolver logs a warning and leaves the homographs of its skip lists
+unstressed.
+
+A bundle with a dictionary layer (``be``) reads it before the exceptions
+table and the model; the spellings the dictionary source lists with several
+stresses go to the homograph rules (:mod:`._homograph_rules`) when the
+bundle carries them, and to the model otherwise.
 """
 import threading
-import unicodedata
 import gzip
 import json
+import os
 import re
 
 import numpy as np
 import onnxruntime as ort
 
 from stressonnx._common import _RE_RU_COND, _RU_VOWELS, _softmax, lower_preserving_length, tokenize
-from stressonnx.download import _download_files
-from stressonnx.errors import ModelDownloadError, ModelLoadError, UnsupportedLanguageError
-from stressonnx.notation import STRESS_TOKEN, render_marks
-from stressonnx.registry import MAIN_LANGS, _MAIN_FILES, hf_dir
+from stressonnx.backends._homograph_rules import HomographRules
+from stressonnx.backends._silero_homosolver import HomoSolver
+from stressonnx.download import LOG, _download_files
+from stressonnx.errors import ModelDownloadError, ModelLoadError
+from stressonnx.langs import resolve_lang
+from stressonnx.notation import composed, has_stress_mark, in_form_of, render_marks
+from stressonnx.registry import (
+    HF_REPO_REVISION,
+    MAIN_LANGS,
+    _DICTIONARY_FILE,
+    _HOMOGRAPH_FILE,
+    _HOMOSOLVER_FILES,
+    _MAIN_FILES,
+    _SKIP_FILES,
+    hf_dir,
+)
+
+#: Bundles already reported as lacking the homograph resolver
+_WARNED_NO_HOMOSOLVER: set = set()
+
+#: Characters that end a clause: the homograph rules read no word across them
+_CLAUSE_END = frozenset('.,;:!?»«()"—–')
 
 
 def _load_ngram_dict(path: str) -> dict:
@@ -48,29 +77,58 @@ def _load_exceptions(path: str) -> dict:
     return d
 
 
+def _load_dictionary(path: str) -> dict:
+    """``word<TAB>vowel ordinal`` lines → {word: ordinal}."""
+    d = {}
+    with gzip.open(path, "rt", encoding="utf-8") as fh:
+        for line in fh:
+            line = line.rstrip("\n")
+            if not line:
+                continue
+            w, o = line.split("\t")
+            d[w] = int(o)
+    return d
+
+
 def _load_set(path: str) -> set:
     with gzip.open(path, "rt", encoding="utf-8") as fh:
         return {x for x in fh.read().split("\n") if x}
 
 
+def _warn_no_homosolver(subdir: str, cache_dir: str | None) -> None:
+    where = os.path.join(cache_dir, subdir) if cache_dir else f"{subdir}@{HF_REPO_REVISION[:12]}"
+    if where in _WARNED_NO_HOMOSOLVER:
+        return
+    _WARNED_NO_HOMOSOLVER.add(where)
+    if cache_dir:
+        fix = (f"delete {where} so that model revision {HF_REPO_REVISION[:12]} "
+               "is fetched, or point cache_dir at a copy of that revision")
+    else:
+        fix = "upgrade stressonnx to a release whose pinned model revision has them"
+    LOG.warning(
+        "silero bundle %s has no homograph resolver (missing: %s); dictionary "
+        "homographs stay unstressed. To fix, %s.",
+        where, ", ".join(_HOMOSOLVER_FILES), fix,
+    )
+
+
 class _SileroStressor:
-    """Internal: lazy-load neural (silero) accentor for ``ukr``, ``bel``, or ``ru``.
+    """Internal: lazy-load neural (silero) accentor for ``uk``, ``be``, or ``ru``.
 
     Use :class:`Stressor` (the public wrapper) instead of this class directly.
 
     Parameters
     ----------
     lang:
-        Language tag: ``"ukr"``, ``"bel"``, or ``"ru"``.
+        Language tag: ``"uk"``, ``"be"``, or ``"ru"``.
     cache_dir:
         Override the model storage directory (default: the standard
         Hugging Face cache).
     """
 
-    def __init__(self, lang: str, cache_dir: str | None = None) -> None:
-        if lang not in MAIN_LANGS:
-            raise UnsupportedLanguageError(lang, MAIN_LANGS)
-        self.lang = lang
+    def __init__(self, lang: str, cache_dir: str | None = None, model_id: str = "silero") -> None:
+        self._model_id = model_id
+        self.lang = resolve_lang(lang, MAIN_LANGS)
         self._cache_dir = cache_dir
         self._loaded = False
         self._load_lock = threading.Lock()
@@ -95,11 +153,12 @@ class _SileroStressor:
             except (ModelDownloadError, ModelLoadError):
                 raise
             except Exception as exc:
-                raise ModelLoadError('silero', exc) from exc
+                raise ModelLoadError(self._model_id, exc) from exc
             self._loaded = True
 
     def _load(self) -> None:
-        data = _download_files(hf_dir(self.lang, "silero"), _MAIN_FILES, self._cache_dir, model_id="silero")
+        subdir = hf_dir(self.lang, "silero")
+        data = _download_files(subdir, _MAIN_FILES, self._cache_dir, model_id=self._model_id)
 
         with open(data["meta.json"]) as fh:
             meta = json.load(fh)
@@ -108,8 +167,16 @@ class _SileroStressor:
         self._ngram_dict: dict = _load_ngram_dict(data["ngram_dict.txt.gz"])
         self._unk: int = self._ngram_dict["UNK"]
         self._exceptions: dict = _load_exceptions(data["exceptions.txt.gz"])
-        self._skip_stress: set = _load_set(data["skip_stress_words.txt.gz"])
-        self._skip_yo: set = _load_set(data["skip_yo_words.txt.gz"])
+        # a dictionary layer (bel: GrammarDB) keyed by vowel ordinal, so a
+        # quote or apostrophe in the token does not shift the mark
+        self._dictionary: dict = {}
+        if "dictionary_source" in meta:
+            layer = _download_files(subdir, [_DICTIONARY_FILE], self._cache_dir, model_id=self._model_id)
+            self._dictionary = _load_dictionary(layer[_DICTIONARY_FILE])
+        self._homographs: HomographRules | None = None
+        if "homograph_source" in meta:
+            layer = _download_files(subdir, [_HOMOGRAPH_FILE], self._cache_dir, model_id=self._model_id)
+            self._homographs = HomographRules.load(layer[_HOMOGRAPH_FILE])
         self._sess = ort.InferenceSession(
             data["accentor.onnx"],
             providers=["CPUExecutionProvider"],
@@ -117,6 +184,20 @@ class _SileroStressor:
 
         # Per-language settings from meta.json (set by export script)
         self._has_yo: bool = meta.get("has_yo", self.lang == "ru")
+
+        # ru resolves homographs; a bundle from before the resolver leaves
+        # them unstressed through its skip lists instead of guessing
+        self._homosolver: HomoSolver | None = None
+        self._skip_stress: set = set()
+        self._skip_yo: set = set()
+        if "homosolver" in meta:
+            homo_files = _download_files(subdir, _HOMOSOLVER_FILES, self._cache_dir, model_id=self._model_id)
+            self._homosolver = HomoSolver(homo_files, meta["homosolver"])
+        elif self._has_yo:
+            _warn_no_homosolver(subdir, self._cache_dir)
+            skip = _download_files(subdir, _SKIP_FILES, self._cache_dir, model_id=self._model_id)
+            self._skip_stress = _load_set(skip["skip_stress_words.txt.gz"])
+            self._skip_yo = _load_set(skip["skip_yo_words.txt.gz"])
         alpha = meta.get("alpha")
         if alpha:
             escaped = re.escape("".join(sorted(set(alpha))))
@@ -131,10 +212,10 @@ class _SileroStressor:
     # ------------------------------------------------------------------
 
     def _tokenize(self, sentence: str):
-        """Tokenise via the shared tokenizer; ru masks hyphen clitics."""
+        """Tokenise via the shared tokenizer; ru and be mask unstressed hyphen parts."""
         if self.lang == "ru":
-            return tokenize(sentence, _RE_RU_COND, mask_clitics=True)
-        return tokenize(sentence, self._re_cond)
+            return tokenize(sentence, _RE_RU_COND, lang="ru")
+        return tokenize(sentence, self._re_cond, lang=self.lang)
 
     # ------------------------------------------------------------------
     # Embedding pool
@@ -215,57 +296,210 @@ class _SileroStressor:
         first_vowel_pos = vowel_ids[0] if vowel_ids else -1
         return stress_positions, yo_positions, num_vowels, first_vowel_pos
 
+    def _dictionary_ordinal(self, clean_word: str, raw_word: str, sentence_start: bool):
+        """Stressed-vowel ordinal of the dictionary layer for *raw_word*, or None.
+
+        The layer keys a form the database writes capitalized (a name) by its
+        capitalized spelling.  A lowercase token takes the lowercase key.  A
+        capitalized token inside a sentence takes the capitalized key, never
+        the lowercase one: the capital marks a name the database may not
+        hold.  At the start of a sentence, where a common word is
+        capitalized too, it takes the lowercase key, never the capitalized
+        one: a name there stays with the model.  An all-caps token takes
+        either key.
+        """
+        if not self._dictionary:
+            return None
+        letters = [c for c in raw_word if c.isalpha()]
+        if not letters or not letters[0].isupper():
+            return self._dictionary.get(clean_word)
+        capitalized = clean_word[:1].upper() + clean_word[1:]
+        if all(c.isupper() for c in letters):
+            ordinal = self._dictionary.get(clean_word)
+            return self._dictionary.get(capitalized) if ordinal is None else ordinal
+        return self._dictionary.get(clean_word if sentence_start else capitalized)
+
+    def _homograph_ordinals(self, raw_tokens: list, clean_tokens: list) -> dict:
+        """token index → stressed-vowel ordinal the homograph rules pick.
+
+        The rules read the words before a homograph, so they see the clean
+        word tokens in order, with an empty word where a separator ends a
+        clause and nothing for the other separators.  The caller applies an ordinal only where the token's case allows it
+        (:meth:`_homograph_applies`).
+        """
+        if self._homographs is None:
+            return {}
+        # a separator that ends a clause leaves an empty word, so a rule
+        # never reads across it; the prior still answers
+        words, indices = [], []
+        for i, (raw, clean_word) in enumerate(zip(raw_tokens, clean_tokens)):
+            if clean_word:
+                words.append(clean_word)
+                indices.append(i)
+            elif any(c in _CLAUSE_END for c in raw):
+                words.append("")
+                indices.append(i)
+        out = {}
+        for k, i in enumerate(indices):
+            if words[k] and words[k] in self._homographs:
+                ordinal, _ = self._homographs.resolve(words, k)
+                if ordinal is not None:
+                    out[i] = ordinal
+        return out
+
+    @staticmethod
+    def _homograph_applies(raw_word: str, sentence_start: bool) -> bool:
+        """Whether the homograph layer may stress *raw_word*.
+
+        The layer keys common words in lowercase.  A capitalized token
+        inside a sentence marks a name the layer does not know (Я́на against
+        the pronoun яна́), so it stays with the model, as in the dictionary
+        layer.  A lowercase token, a capitalized token at the start of a
+        sentence and an all-caps token take the layer.
+        """
+        letters = [c for c in raw_word if c.isalpha()]
+        if not letters or not letters[0].isupper():
+            return True
+        return sentence_start or all(c.isupper() for c in letters)
+
+    def _key_offsets(self, raw_lower: str) -> list:
+        """Offsets in *raw_lower* of the characters its lookup key keeps."""
+        return [i for i, c in enumerate(raw_lower) if not self._re_cond.fullmatch(c)]
+
     def _exception_offsets(self, clean_word: str, raw_word: str, with_yo: bool):
-        """(mark, yo) offsets within *raw_word* for an exceptions-dict entry."""
+        """(mark, yo) offsets within *raw_word* for an exceptions-dict entry.
+
+        An entry indexes its key, and *raw_word* may hold characters the key
+        drops: quotes, apostrophes, soft hyphens, combining marks.
+        """
         exc_stress, exc_yo = self._exceptions[clean_word]
-        yo = []
-        if (
-            with_yo
-            and exc_yo != -1
-            and 0 <= exc_yo < len(raw_word)
-            and raw_word[exc_yo].lower() == "е"
-        ):
-            yo.append(exc_yo)
         lower = lower_preserving_length(raw_word)
+        kept = self._key_offsets(lower)
+        yo = []
+        if with_yo and 0 <= exc_yo < len(kept) and lower[kept[exc_yo]] == "е":
+            yo.append(kept[exc_yo])
         effective = dict(enumerate(lower))
         for o in yo:
             effective[o] = "ё"
-        if 0 <= exc_stress < len(raw_word) and effective[exc_stress] in self._vowels:
-            return [exc_stress], yo
+        if 0 <= exc_stress < len(kept) and effective[kept[exc_stress]] in self._vowels:
+            return [kept[exc_stress]], yo
         return [], yo
 
     def __call__(self, sentence: str) -> str:
         marks, yo = self.mark_offsets(sentence)
-        return render_marks(sentence, marks, yo)
+        return in_form_of(sentence, render_marks(sentence, marks, yo))
 
     def mark_offsets(self, text: str):
+        """Offsets into *text* of stressed vowels and е→ё substitutions.
+
+        The work happens on the NFC form of *text*; each offset points at
+        the base character in *text* itself.
+        """
+        nfc, origin = composed(text)
+        marks, yo = self._composed_mark_offsets(nfc)
+        return [origin[o] for o in marks], [origin[o] for o in yo]
+
+    def _homograph_offsets(self, text: str):
+        """(stress, ё) offsets the homosolver fixes in *text* (``ru`` only)."""
+        marks, yo = set(), set()
+        if self._homosolver is None:
+            return marks, yo
+        for start, variant in self._homosolver.resolve(text):
+            plain = variant.replace("+", "")
+            marks.add(start + variant.index("+"))
+            yo.update(start + i for i, c in enumerate(plain) if c == "ё")
+        return marks, yo
+
+    def _resolved_yo(self, raw_word, clean_word, word_marks, yo_pred, yo_prob):
+        """ё offsets (in *raw_word*) the accentor adds to a resolved homograph.
+
+        Port of the upstream accentor on a word that already carries ``+``
+        marks and no ё: an exceptions entry restores ё when its ё index sits
+        just before a mark, otherwise the yo head restores ё on a marked
+        vowel.  Positions are computed on the ``+``-marked spelling, as
+        upstream does.
+        """
+        raw_lower = lower_preserving_length(raw_word)
+        if clean_word in self._exceptions:
+            exc_yo = self._exceptions[clean_word][1]
+            kept = self._key_offsets(raw_lower)
+            plus_at = [m + k for k, m in enumerate(word_marks)]
+            if 0 <= exc_yo < len(kept):
+                yo_at = kept[exc_yo]
+                if yo_at + 1 in plus_at and raw_lower[yo_at] == "е":
+                    return [yo_at]
+            return []
+        if yo_prob <= 0.5:
+            return []
+        plus_word, cut = "", 0
+        for m in word_marks:
+            plus_word += raw_lower[cut:m] + "+"
+            cut = m
+        plus_word += raw_lower[cut:]
+        stressed_vowel_ids = [
+            sum(c in self._vowels for c in part) for part in plus_word.split("+")
+        ]
+        stress_positions, yo_positions, _, _ = self._get_positions(
+            plus_word, stressed_vowel_ids, [yo_pred]
+        )
+        return [
+            p - plus_word[:p].count("+")
+            for p in yo_positions
+            if p in stress_positions and plus_word[p] == "е"
+        ]
+
+    def _composed_mark_offsets(self, text: str):
         """Offsets (into *text*) of stressed vowels and е→ё substitutions.
 
         With yo enabled (``ru``) this is a port of silero_stress's
-        ``Accentor.__call__`` (default flags): ё in the input is stressed
-        directly (ё is inherently stressed in Russian orthography), the
+        ``SileroStress.__call__`` (default flags): the homosolver stresses
+        dictionary homographs from context, ё in the input is stressed
+        directly (ё is inherently stressed in Russian orthography), and the
         model's е→ё prediction is applied only where it agrees with the
-        predicted stress position, and skip/yo dictionaries are keyed on the
-        е-spelling.  For ``uk``/``be`` every ё branch is inert and the same
-        loop reduces to the plain decode.
+        stress position.  Skip lists apply only to a ru bundle without the
+        homosolver.  For ``uk``/``be`` every ё and homograph branch is
+        inert and the same loop reduces to the plain decode.
         """
         self._ensure_loaded()
         with_yo = self._has_yo
+        homo_marks, homo_yo = self._homograph_offsets(text)
         raw_tokens, clean_tokens, prediction_mask = self._tokenize(text)
         stress_preds, stress_probs, yo_preds, yo_probs = self._predict(clean_tokens)
+        homograph_ordinals = self._homograph_ordinals(raw_tokens, clean_tokens)
 
         marks, yo_out = [], []
         pos = 0
+        sentence_start = True
         for wi, (raw_word, clean_word, need) in enumerate(
             zip(raw_tokens, clean_tokens, prediction_mask)
         ):
             start = pos
             pos += len(raw_word)
+            word_marks = sorted(o - start for o in homo_marks if start <= o < pos)
+            word_yo = sorted(o - start for o in homo_yo if start <= o < pos)
             if not need:
+                marks.extend(start + o for o in word_marks)
+                yo_out.extend(start + o for o in word_yo)
+                if any(c in ".!?\u2026" for c in raw_word):
+                    sentence_start = True
                 continue
+            at_sentence_start, sentence_start = sentence_start, False
 
             raw_lower = lower_preserving_length(raw_word)
-            if STRESS_TOKEN in unicodedata.normalize("NFD", raw_word):
+            if has_stress_mark(raw_word):
+                continue
+
+            if word_marks:
+                # a resolved homograph keeps the homosolver's stress
+                marks.extend(start + o for o in word_marks)
+                if word_yo or "ё" in raw_lower:
+                    yo_out.extend(start + o for o in word_yo)
+                    continue
+                yo_out.extend(
+                    start + o
+                    for o in self._resolved_yo(raw_word, clean_word, word_marks,
+                                               int(yo_preds[wi]), yo_probs[wi])
+                )
                 continue
 
             base_word = clean_word.replace("ё", "е") if with_yo else clean_word
@@ -276,6 +510,14 @@ class _SileroStressor:
                     marks.extend(
                         start + i for i, c in enumerate(raw_lower) if c == "ё"
                     )
+                continue
+
+            ordinal = self._dictionary_ordinal(clean_word, raw_word, at_sentence_start)
+            if ordinal is None and self._homograph_applies(raw_word, at_sentence_start):
+                ordinal = homograph_ordinals.get(wi)
+            if ordinal is not None:
+                positions, _, _, _ = self._get_positions(raw_lower, [ordinal], [])
+                marks.extend(start + p for p in positions)
                 continue
 
             if clean_word in self._exceptions:

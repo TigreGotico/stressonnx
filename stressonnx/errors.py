@@ -10,15 +10,31 @@ class UnsupportedLanguageError(StressonnxError, ValueError):
     """Raised when a language tag is not supported (by the library or a model).
 
     An unsupported tag is an invalid argument value, so this is also a
-    :class:`ValueError`.
+    :class:`ValueError`.  ``model`` names the model that rejected the tag,
+    or is ``None`` when no stressonnx model serves it.
     """
 
-    def __init__(self, lang: str, supported) -> None:
+    def __init__(self, lang: str, supported, model: str | None = None) -> None:
         self.lang = lang
         self.supported = sorted(supported)
-        super().__init__(
-            f"Unsupported language {lang!r}.  Supported: {self.supported}."
-        )
+        self.model = model
+        prefix = (f"Unsupported language {lang!r}" if model is None
+                  else f"Model {model!r} does not support language {lang!r}")
+        super().__init__(f"{prefix}.  Supported: {self.supported}.")
+
+
+class UnknownModelError(StressonnxError, ValueError):
+    """Raised when a model id, or a model variant of a backend, is unknown.
+
+    An unknown name is an invalid argument value, so this is also a
+    :class:`ValueError`.  ``model`` holds the rejected name and
+    ``supported`` the names that exist.
+    """
+
+    def __init__(self, model: str, supported) -> None:
+        self.model = model
+        self.supported = sorted(supported)
+        super().__init__(f"Unknown model {model!r}.  Available models: {self.supported}.")
 
 
 class ModelDownloadError(StressonnxError):
@@ -54,6 +70,8 @@ class ModelLoadError(StressonnxError):
         self.model_id = model_id
         super().__init__(
             f"Model files for {model_id!r} are present but could not be "
-            f"loaded ({cause}).  The cache may be corrupt — delete the "
-            f"affected files and retry, or select another model via model=."
+            f"loaded ({cause}).  The files may be corrupt, or an installed "
+            f"dependency may be incompatible with them.  Check the cause, "
+            f"delete corrupt files and retry, or select another model via "
+            f"model=."
         )

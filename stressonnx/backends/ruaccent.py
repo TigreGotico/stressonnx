@@ -1,18 +1,19 @@
 """RuAccent family (ru) — homograph-aware neural pipeline.
 
 Attribution: RUAccent by Den4ikAI (https://github.com/Den4ikAI/ruaccent),
-licensed Apache-2.0 per upstream setup.py classifiers.
-Models: HuggingFace ruaccent/accentuator (turbo3.1 omograph model).
-Mirrored to TigreGotico/stressonnx-models under ru_ruaccent/.
+MIT (https://github.com/Den4ikAI/ruaccent/blob/main/LICENSE and the
+model card of https://huggingface.co/ruaccent/accentuator).
+Models: HuggingFace ruaccent/accentuator (turbo3.1 or big_poetry omograph
+model).  Mirrored to TigreGotico/stressonnx-models under ru_ruaccent/.
 Runtime: onnxruntime + numpy + tokenizers (no torch, no transformers).
 
 Pipeline:
 1. Predict per-word stress usage (STRESS / NO_STRESS) via a BERT-family
    token-classifier ONNX model.
 2. Resolve yo-homographs (е→ё disambiguation) via a DistilBERT ONNX model.
-3. Resolve omographs (context-sensitive stress variants) via a RoBERTa NLI
-   ONNX model; each omograph candidate is scored against the sentence
-   context.
+3. Resolve omographs (context-sensitive stress variants) via an NLI ONNX
+   model (RoBERTa turbo3.1 or BERT big_poetry); each omograph candidate is
+   scored against the sentence context.
 4. Accent non-omograph words: look up in the accent dictionary or run the
    character-level RoFormer ONNX accent model.
 Runtime deps: onnxruntime, numpy, tokenizers (no torch, no transformers).
@@ -20,7 +21,11 @@ Runtime deps: onnxruntime, numpy, tokenizers (no torch, no transformers).
 import threading
 import gzip
 import json
+import os
 import re
+import tempfile
+import unicodedata
+from importlib.metadata import version
 
 import numpy as np
 import onnxruntime as ort
@@ -28,17 +33,18 @@ import onnxruntime as ort
 from stressonnx._common import _RU_VOWELS, _UNSTRESSED_HYPHEN_CLITICS, _softmax
 from stressonnx.download import _download_files
 from stressonnx.registry import MODEL_REGISTRY
-from stressonnx.errors import ModelDownloadError, ModelLoadError
-from stressonnx.notation import STRESS_TOKEN, _plus_to_diacritic
+from stressonnx.errors import ModelDownloadError, ModelLoadError, UnknownModelError
+from stressonnx.notation import (
+    STRESS_TOKEN, _plus_to_diacritic, composed, in_form_of, is_stress_base,
+    render_marks,
+)
 
-# Files to download for the ru_ruaccent variant
+# Files to download for the ru_ruaccent bundle, besides the omograph and
+# stress-usage models, whose file name depends on the precision
 _RUACCENT_FILES = [
-    "nn_omograph/model.onnx",
-    "nn_omograph/tokenizer.json",
     "nn_accent/model.onnx",
     "nn_accent/vocab.txt",
     "nn_accent/config.json",
-    "nn_stress_usage/model.onnx",
     "nn_stress_usage/tokenizer.json",
     "nn_stress_usage/config.json",
     "nn_yo_homograph/model.onnx",
@@ -51,11 +57,58 @@ _RUACCENT_FILES = [
     "meta.json",
 ]
 
-# Characters to strip from text before processing (matches RUAccent normalize regex)
+#: Omograph models: RUAccent name → directory under ru_ruaccent/ holding its
+#: model.onnx and tokenizer.json.
+OMOGRAPH_MODELS = {
+    "turbo3.1": "nn_omograph",
+    "big_poetry": "nn_omograph_big_poetry",
+}
+
+#: Weight precision → file name of the stress-usage and omograph models.
+#: ``int8`` holds the fp32 graph with its MatMul weights and embeddings
+#: dynamically quantized by onnxruntime (``quantize_dynamic``, QInt8).
+PRECISIONS = {
+    "fp32": "model.onnx",
+    "int8": "model.int8.onnx",
+}
+
+#: Sources of a mark for a word the pipeline leaves unmarked: ``"silero"``
+#: runs the silero model on the text and takes its mark on each such word.
+FILLS = frozenset({None, "silero"})
+
+# A whitespace token of letters and hyphens: the unit the silero fill marks
+_FILL_UNIT_RE = re.compile(r"[^\W_]+(?:-[^\W_]+)*")
+
+# Compound prepositions are proclitics whose dictionary stress sits on the
+# first part (Wiktionary: и́з-за, и́з-под); every other hyphenated word
+# carries its primary stress on the last part (чу̀ть-чу́ть, Нью̀-Йо́рк,
+# ко̀е-что́, нау̀чно-техни́ческий).
+_FIRST_PART_STRESSED = frozenset({"из-за", "из-под", "по-за", "по-над"})
+
+# Hyphenated adverbs whose second part is a pronoun form stressed otherwise
+# on its own: en.wiktionary по-мо́ему, по-тво́ему (the datives моему́,
+# твоему́).  по-сво́ему, по-на́шему, по-ва́шему need no entry: the omograph
+# model and the accent dictionary already give them.
+_PO_ADVERBS = {"моему": "м+оему", "твоему": "тв+оему"}
+
+# Characters the models never see (matches RUAccent normalize regex).  They
+# stay in the output: marks found on the normalized text map back to the input.
 _RE_RUACCENT_NORM = re.compile(
     r"[^a-zA-Z0-9\sа-яА-ЯёЁ—.,!?:;\"“”‘’"
     r"(){}\[\]«»„“\"\-]"
 )
+
+# Whitespace to Python's split that the tokenizer deletes.  The models read a
+# space there, so the word list and the model labels stay the same length.
+_DELETED_WHITESPACE = str.maketrans(dict.fromkeys("\x0b\x0c\x1c\x1d\x1e\x1f\x85", " "))
+
+# Position limit of the BERT-family models.
+_MAX_TOKENS = 512
+
+# Words on each side of a homograph that the omograph model sees.  The
+# window keeps its full size (2 * this + 1 words) near the ends of a
+# sentence, so a sentence of up to that many words is scored whole.
+_OMOGRAPH_CONTEXT_WORDS = 64
 
 # Punctuation characters used by delete_spaces_before_punc
 _PUNC_CHARS = '!"#%&\'()*,./:;<=>?@[\\]^_`{|}-'
@@ -67,6 +120,42 @@ _RU_SPLIT_RE = re.compile(r"[\w\u0301]+|[^\w\s\u0301]+")
 
 def _ruaccent_norm(text: str) -> str:
     return _RE_RUACCENT_NORM.sub("", text)
+
+
+def _whole_words(text: str, kept: list, norm: str) -> set:
+    """Offsets in *norm* that lie in a word the models saw as *text* spells it.
+
+    *norm* is *text* without the characters outside the allow-list, and
+    ``kept[i]`` is the offset in *text* of ``norm[i]``.  A word loses this
+    status when a letter, digit or combining mark was dropped from it or at
+    its edge (``Київ`` reaches the models as ``Кив``), or when a dropped
+    visible character or a ZERO WIDTH SPACE joined two words into one.
+    Other dropped format characters (soft hyphen, ZWJ, ZWNJ, WORD JOINER)
+    sit inside the word they were in, so the edge check looks past them.
+    """
+    dropped = set(range(len(text))).difference(kept)
+
+    def in_word(i: int) -> bool:
+        # UAX #29 rule WB4 ignores format characters inside a word; of the
+        # Cf characters only U+200B is a word boundary
+        return unicodedata.category(text[i]) == "Cf" and text[i] != "\u200b"
+
+    whole = set()
+    for m in re.finditer(r"\w+", norm):
+        first, last = kept[m.start()], kept[m.end() - 1]
+        while first - 1 in dropped and in_word(first - 1):
+            first -= 1
+        while last + 1 in dropped and in_word(last + 1):
+            last += 1
+        if any(
+            not in_word(i) for i in dropped.intersection(range(first, last))
+        ) or any(
+            text[i].isalnum() or unicodedata.combining(text[i])
+            for i in dropped.intersection((first - 1, last + 1))
+        ):
+            continue
+        whole.update(range(m.start(), m.end()))
+    return whole
 
 
 def _delete_spaces_before_punc(text: str) -> str:
@@ -83,6 +172,15 @@ def _fix_capital(source: str, target: str) -> str:
     return "".join(
         t.upper() if s.isupper() else t.lower()
         for s, t in zip(source, target)
+    )
+
+
+def _match_case(source: str, stressed: str) -> str:
+    """*stressed*, a lowercase marked form of *source*, in the case of *source*."""
+    letters = iter(source)
+    return "".join(
+        ch if ch == STRESS_TOKEN or not next(letters, "").isupper() else ch.upper()
+        for ch in stressed
     )
 
 
@@ -142,6 +240,89 @@ def _ruaccent_split_by_sentences(text: str) -> list:
         return [text]
 
 
+class _Tokenizer:
+    """A ``tokenizer.json`` with truncation off, on tokenizers 0.x and 1.x.
+
+    tokenizers 1.x has no ``Encoding.word_ids`` and refuses vocab keys that
+    hold NUL, so this class reads the file itself.  :meth:`word_ids` and
+    :meth:`pretokens` need a WordPiece model behind a BERT pre-tokenizer
+    with a template post-processor, as the BERT tokenizers of this
+    pipeline have.
+    """
+
+    def __init__(self, path: str) -> None:
+        from tokenizers import Tokenizer
+
+        with open(path, encoding="utf-8") as fh:
+            spec = json.load(fh)
+        model = spec["model"]
+        self._tokenizers_1x = int(version("tokenizers").split(".")[0]) >= 1
+        if self._tokenizers_1x:
+            # NUL keys never match: the BertNormalizer (clean_text) deletes
+            # NUL from the input before the vocab lookup
+            model["vocab"] = {k: i for k, i in model["vocab"].items() if "\0" not in k}
+            with tempfile.TemporaryDirectory() as tmp:
+                sanitized = os.path.join(tmp, "tokenizer.json")
+                with open(sanitized, "w", encoding="utf-8") as fh:
+                    json.dump(spec, fh)
+                self._tok = Tokenizer.from_file(sanitized)
+            self._tok.truncation = None
+        else:
+            self._tok = Tokenizer.from_file(path)
+            self._tok.no_truncation()
+
+        if model["type"] == "WordPiece":
+            prefix = model["continuing_subword_prefix"]
+            self._continuation = frozenset(
+                i for k, i in model["vocab"].items() if k.startswith(prefix)
+            )
+            template = [next(iter(item)) for item in spec["post_processor"]["single"]]
+            self._lead = template.index("Sequence")
+            self._trail = len(template) - self._lead - 1
+            # the BERT pre-tokenizer cuts the text at whitespace and makes
+            # each punctuation character a word of its own; an added token
+            # ([SEP], [UNK]) written in the text is one word wherever it is
+            added = sorted((t["content"] for t in spec["added_tokens"]), key=len, reverse=True)
+            self._pretoken_re = re.compile(
+                "|".join([*map(re.escape, added), r"\w+", r"[^\w\s]"])
+            )
+
+    def _encoding(self, text: str, pair: str | None = None):
+        if self._tokenizers_1x:
+            return self._tok.encode(text if pair is None else (text, pair))
+        return self._tok.encode(text, pair=pair)
+
+    def encode(self, text: str, pair: str | None = None) -> tuple[list, list]:
+        """Token ids and attention mask of *text*, or of the pair (*text*, *pair*)."""
+        enc = self._encoding(text, pair)
+        return enc.ids, enc.attention_mask
+
+    def type_ids(self, text: str, pair: str) -> list:
+        """Segment id of each token of the pair (*text*, *pair*)."""
+        return self._encoding(text, pair).type_ids
+
+    def word_ids(self, ids: list) -> list:
+        """Word index of each token of one sequence, ``None`` for added specials.
+
+        A WordPiece token starts a new word unless it carries the
+        continuation prefix (``##``).
+        """
+        word_ids: list = [None] * len(ids)
+        word = -1
+        for i in range(self._lead, len(ids) - self._trail):
+            if ids[i] not in self._continuation:
+                word += 1
+            word_ids[i] = word
+        return word_ids
+
+    def pretokens(self, text: str) -> list:
+        """``(start, end)`` of each word the pre-tokenizer cuts *text* into.
+
+        Word *k* of :meth:`word_ids` is ``text[start:end]`` of item *k*.
+        """
+        return [m.span() for m in self._pretoken_re.finditer(text)]
+
+
 class RuAccentStressor:
     """Homograph-aware Russian stress accentor backed by RUAccent ONNX models.
 
@@ -151,9 +332,9 @@ class RuAccentStressor:
       per word in context.
     * **yo_homograph** (DistilBERT token classifier) — resolves е→ё substitutions
       for yo-homographs.
-    * **omograph** (RoBERTa NLI classifier, turbo3.1 variant) — picks the correct
-      stressed variant of context-dependent homographs (замок castle/lock,
-      мука flour/torment, белок protein/squirrel …).
+    * **omograph** (NLI classifier: RoBERTa turbo3.1 or ruBERT big_poetry) —
+      picks the correct stressed variant of context-dependent homographs
+      (замок castle/lock, мука flour/torment, белок protein/squirrel …).
     * **accent** (RoFormer char-level token classifier) — accentuates words not
       found in the accent dictionary.
 
@@ -163,8 +344,7 @@ class RuAccentStressor:
     Attribution
     -----------
     Derived from RUAccent by Den4ikAI
-    (https://github.com/Den4ikAI/ruaccent), licensed Apache-2.0 per upstream
-    setup.py and PyPI classifiers.  Models sourced from
+    (https://github.com/Den4ikAI/ruaccent), MIT.  Models sourced from
     ``ruaccent/accentuator`` on HuggingFace and mirrored to
     ``TigreGotico/stressonnx-models`` under ``ru_ruaccent/``.
 
@@ -173,9 +353,39 @@ class RuAccentStressor:
     cache_dir:
         Override the model storage directory (default: the standard
         Hugging Face cache).
+    omograph:
+        Omograph model, a key of :data:`OMOGRAPH_MODELS`.  Only this model
+        is downloaded and loaded.
+    precision:
+        Weights of the stress-usage and omograph models, a key of
+        :data:`PRECISIONS`.  The other two models are small and ship in
+        fp32 only.
+
+    Raises
+    ------
+    UnknownModelError
+        If *omograph* is not a key of :data:`OMOGRAPH_MODELS`, or
+        *precision* not a key of :data:`PRECISIONS`.
     """
 
-    def __init__(self, cache_dir: str | None = None) -> None:
+    def __init__(
+        self,
+        cache_dir: str | None = None,
+        omograph: str = "turbo3.1",
+        fill: str | None = None,
+        precision: str = "fp32",
+    ) -> None:
+        if omograph not in OMOGRAPH_MODELS:
+            raise UnknownModelError(omograph, OMOGRAPH_MODELS)
+        if precision not in PRECISIONS:
+            raise UnknownModelError(precision, PRECISIONS)
+        self._model_file = PRECISIONS[precision]
+        if fill not in FILLS:
+            raise ValueError(f"fill must be one of {sorted(f for f in FILLS if f)} or None, not {fill!r}")
+        self._omograph_dir = OMOGRAPH_MODELS[omograph]
+        self._fill = fill
+        self._model_id = ("ruaccent-silero" if fill else "ruaccent") + ("-int8" if precision == "int8" else "")
+        self._silero = None
         self._cache_dir = cache_dir
         self._loaded = False
         self._load_lock = threading.Lock()
@@ -203,15 +413,25 @@ class RuAccentStressor:
             except (ModelDownloadError, ModelLoadError):
                 raise
             except Exception as exc:
-                raise ModelLoadError('ruaccent', exc) from exc
+                raise ModelLoadError(self._model_id, exc) from exc
             self._loaded = True
 
     def _load(self) -> None:
+        # silero loads first: a failure here costs no ruaccent session, and
+        # the pipeline retries a failed load after each cooldown
+        if self._fill == "silero":
+            from stressonnx.backends.silero import _SileroStressor
+            self._silero = _SileroStressor(lang="ru", cache_dir=self._cache_dir, model_id=self._model_id)
+            self._silero._ensure_loaded()
 
-        data = _download_files(MODEL_REGISTRY['ruaccent'].hf_subdir, _RUACCENT_FILES, self._cache_dir, model_id="ruaccent")
+        omograph_files = [f"{self._omograph_dir}/{self._model_file}", f"{self._omograph_dir}/tokenizer.json"]
+        stress_usage_file = f"nn_stress_usage/{self._model_file}"
+        data = _download_files(MODEL_REGISTRY['ruaccent'].hf_subdir,
+                               _RUACCENT_FILES + omograph_files + [stress_usage_file],
+                               self._cache_dir, model_id=self._model_id)
 
         try:
-            from tokenizers import Tokenizer as _Tokenizer  # type: ignore
+            import tokenizers  # noqa: F401
         except ImportError as exc:  # pragma: no cover
             raise ImportError(
                 "stressonnx 'ru' (RuAccentStressor) requires the 'tokenizers' "
@@ -220,15 +440,20 @@ class RuAccentStressor:
 
         # ONNX sessions
         self._omograph_sess = ort.InferenceSession(
-            data["nn_omograph/model.onnx"],
+            data[omograph_files[0]],
             providers=["CPUExecutionProvider"],
+        )
+        # the BERT omograph model reads the segment of each token, the
+        # RoBERTa one has no segments
+        self._omograph_has_tti = any(
+            i.name == "token_type_ids" for i in self._omograph_sess.get_inputs()
         )
         self._accent_sess = ort.InferenceSession(
             data["nn_accent/model.onnx"],
             providers=["CPUExecutionProvider"],
         )
         self._stress_usage_sess = ort.InferenceSession(
-            data["nn_stress_usage/model.onnx"],
+            data[stress_usage_file],
             providers=["CPUExecutionProvider"],
         )
         self._yo_hom_sess = ort.InferenceSession(
@@ -237,9 +462,9 @@ class RuAccentStressor:
         )
 
         # Tokenizers (no transformers)
-        self._omograph_tok = _Tokenizer.from_file(data["nn_omograph/tokenizer.json"])
-        self._stress_usage_tok = _Tokenizer.from_file(data["nn_stress_usage/tokenizer.json"])
-        self._yo_hom_tok = _Tokenizer.from_file(data["nn_yo_homograph/tokenizer.json"])
+        self._omograph_tok = _Tokenizer(data[omograph_files[1]])
+        self._stress_usage_tok = _Tokenizer(data["nn_stress_usage/tokenizer.json"])
+        self._yo_hom_tok = _Tokenizer(data["nn_yo_homograph/tokenizer.json"])
 
         # Char vocab for accent model
         with open(data["nn_accent/vocab.txt"], encoding="utf-8") as fh:
@@ -262,7 +487,6 @@ class RuAccentStressor:
         # Single-vowel mappings from RUAccent
         self._accents.update({"о": "+о", "О": "+О"})
 
-
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
@@ -275,25 +499,54 @@ class RuAccentStressor:
         id2label: dict,
         has_tti: bool = True,
     ) -> list:
-        """Run a token-classification model and aggregate subword → word labels."""
-        enc = tok.encode(text)
-        input_ids = np.array([enc.ids], dtype=np.int64)
-        attn = np.array([enc.attention_mask], dtype=np.int64)
+        """Run a token-classification model and give one label per word of *text*.
+
+        The words are those of :func:`_ruaccent_split_by_words`, so the
+        list is index-aligned with the pipeline's word list.  A word's
+        label is the argmax of the mean probabilities of its tokens.  A
+        punctuation run is one word, although the BERT pre-tokenizer cuts
+        it into one word per character.  A word with no token gets
+        ``None``.
+
+        A text past the model's position limit is split in half at a space
+        and each half is labelled on its own, so no word loses its label to
+        truncation.
+        """
+        ids, attention_mask = tok.encode(text)
+        if len(ids) > _MAX_TOKENS:
+            words = text.split(" ")
+            half = len(words) // 2
+            if half:
+                return [
+                    label
+                    for part in (words[:half], words[half:])
+                    for label in self._predict_word_labels(
+                        " ".join(part), sess, tok, id2label, has_tti
+                    )
+                ]
+            # one run without spaces: keep its head and the closing [SEP]
+            ids = ids[:_MAX_TOKENS - 1] + ids[-1:]
+            attention_mask = attention_mask[:_MAX_TOKENS - 1] + attention_mask[-1:]
+        input_ids = np.array([ids], dtype=np.int64)
+        attn = np.array([attention_mask], dtype=np.int64)
         feed: dict = {"input_ids": input_ids, "attention_mask": attn}
         if has_tti:
             feed["token_type_ids"] = np.zeros_like(input_ids)
         logits = sess.run(None, feed)[0][0]
         probs = _softmax(logits)
 
+        spans = [m.span() for m in _RU_SPLIT_RE.finditer(text)]
+        word_of = {o: w for w, (start, end) in enumerate(spans) for o in range(start, end)}
+        pretokens = tok.pretokens(text)
         word_probs: dict = {}
-        for i, wid in enumerate(enc.word_ids):
-            if wid is None:
-                continue
-            word_probs.setdefault(wid, []).append(probs[i])
+        for i, wid in enumerate(tok.word_ids(ids)):
+            if wid is not None and wid < len(pretokens):
+                word_probs.setdefault(word_of[pretokens[wid][0]], []).append(probs[i])
 
         return [
-            id2label[str(int(np.stack(word_probs[wid]).mean(0).argmax()))]
-            for wid in sorted(word_probs)
+            id2label[str(int(np.stack(word_probs[w]).mean(0).argmax()))]
+            if w in word_probs else None
+            for w in range(len(spans))
         ]
 
     def _put_accent(self, word: str) -> str:
@@ -311,22 +564,20 @@ class RuAccentStressor:
             },
         )[0][0]
         probs = _softmax(logits)
-        result = list(word)
-        for i, (label_id, score) in enumerate(
-            zip(logits.argmax(axis=-1), probs.max(axis=-1))
-        ):
-            # position 0 is BOS and position len(word)+1 is EOS — a stress
-            # label there must not wrap around onto a real character
-            if not 0 < i <= len(result):
-                continue
-            label = self._accent_id2label[str(int(label_id))]
-            if (
-                label not in ("NO", "STRESS_SECONDARY")
-                and score >= 0.55
-                and lower[i - 1] in _RU_VOWELS
-            ):
-                result[i - 1] = result[i - 1] + STRESS_TOKEN
-        return "".join(result)
+        # The model labels each character on its own, so several vowels of
+        # one word can carry STRESS_PRIMARY (да́рья́).  A word has one primary
+        # stress: keep the vowel the model is most sure of.  Positions 0 and
+        # len(lower) + 1 are BOS and EOS.
+        candidates = [
+            i for i in range(1, len(lower) + 1)
+            if self._accent_id2label[str(int(logits[i].argmax()))] == "STRESS_PRIMARY"
+            and probs[i].max() >= 0.55
+            and lower[i - 1] in _RU_VOWELS
+        ]
+        if not candidates:
+            return word
+        at = max(candidates, key=lambda i: probs[i].max())
+        return word[:at] + STRESS_TOKEN + word[at:]
 
     @staticmethod
     def _has_punct(text: str) -> bool:
@@ -347,7 +598,7 @@ class RuAccentStressor:
         for i, word in enumerate(words):
             lw = word.lower()
             words[i] = _fix_capital(word, self._yo_words.get(lw, word))
-            if yo_preds and i < len(yo_preds) and yo_preds[i] == "YO":
+            if yo_preds and yo_preds[i] == "YO":
                 words[i] = _fix_capital(word, self._yo_homographs.get(lw, word))
         return words
 
@@ -357,33 +608,67 @@ class RuAccentStressor:
         Each omograph is scored against the *original* (pre-modification) context
         to avoid leaking prior stress decisions into subsequent classifications.
         """
-        # Snapshot original words so every omograph sees the same context
+        # Snapshot original words so every omograph sees the same context.
+        # Lookup and context are lowercase: the dictionary keys are, and the
+        # model reads a capitalized context word differently.
         original = list(splitted_text)
+        context = [w.lower() for w in original]
         found = [
             (i, self._omographs[w])
-            for i, w in enumerate(splitted_text)
+            for i, w in enumerate(context)
             if w in self._omographs
         ]
         for pos, variants in found:
             probs = []
             for hyp in variants:
-                tmp = list(original)
-                tmp[pos] = " <w>" + tmp[pos] + "</w> "
-                txt = _delete_spaces_before_punc(" ".join(tmp))
-                enc = self._omograph_tok.encode(txt, pair=hyp)
-                input_ids = np.array([enc.ids], dtype=np.int64)
-                attn = np.array([enc.attention_mask], dtype=np.int64)
                 logits = self._omograph_sess.run(
-                    None, {"input_ids": input_ids, "attention_mask": attn}
+                    None, self._omograph_feed(context, pos, hyp)
                 )[0][0]
                 e = np.exp(logits - logits.max())
                 probs.append(float(e[1] / e.sum()))
-            splitted_text[pos] = _plus_to_diacritic(variants[int(np.argmax(probs))])
+            splitted_text[pos] = _match_case(
+                original[pos], _plus_to_diacritic(variants[int(np.argmax(probs))])
+            )
         return splitted_text
+
+    def _omograph_feed(self, words: list, pos: int, hyp: str) -> dict:
+        """Model inputs for the homograph at *pos* in its context, with hypothesis *hyp*.
+
+        The context is a window of words around the homograph, halved until
+        the pair fits the model's position limit.
+        """
+        span = _OMOGRAPH_CONTEXT_WORDS
+        while True:
+            size = 2 * span + 1
+            lo = max(0, min(pos - span, len(words) - size))
+            tmp = words[lo:lo + size]
+            tmp[pos - lo] = " <w>" + tmp[pos - lo] + "</w> "
+            txt = _delete_spaces_before_punc(" ".join(tmp))
+            ids, attention_mask = self._omograph_tok.encode(txt, pair=hyp)
+            if len(ids) <= _MAX_TOKENS or span == 0:
+                break
+            span //= 2
+        feed = {
+            "input_ids": np.array([ids], dtype=np.int64),
+            "attention_mask": np.array([attention_mask], dtype=np.int64),
+        }
+        if self._omograph_has_tti:
+            feed["token_type_ids"] = np.array(
+                [self._omograph_tok.type_ids(txt, hyp)], dtype=np.int64
+            )
+        return feed
 
     def _process_accent(self, words: list, stress_usages: list) -> list:
         for i, word in enumerate(words):
             if STRESS_TOKEN in word:
+                continue
+            if (
+                word.lower() in _PO_ADVERBS
+                and i > 1
+                and words[i - 1] == "-"
+                and words[i - 2].lower() == "по"
+            ):
+                words[i] = _match_case(word, _plus_to_diacritic(_PO_ADVERBS[word.lower()]))
                 continue
             # кто́-то, что́-либо, пришёл-таки: the post-hyphen enclitic
             # particle never carries word stress
@@ -393,7 +678,7 @@ class RuAccentStressor:
                 and words[i - 1] == "-"
             ):
                 continue
-            if i < len(stress_usages) and stress_usages[i] == "STRESS":
+            if stress_usages[i] == "STRESS":
                 lower = word.lower()
                 stressed = self._accents.get(lower, lower)
                 if (
@@ -420,29 +705,108 @@ class RuAccentStressor:
                     words[i] = "".join(result_chars)
         return words
 
-    def _process_sentence(self, sentence: str) -> str:
+    def _process_sentence(self, sentence: str) -> tuple[list, list]:
+        """Offsets into *sentence* of stressed vowels and е→ё substitutions."""
         words, remaining = _ruaccent_split_by_words(sentence)
         if not words:
-            return "".join(remaining)
+            return [], []
         stress_usages = self._predict_word_labels(
             sentence, self._stress_usage_sess, self._stress_usage_tok,
             self._stress_id2label, has_tti=True,
         )
+        # The usage model leaves a word written with ё unmarked but marks
+        # the same word written with е, whose ё the yo step then restores.
+        # ё carries the stress, so a word written with ё is always marked.
+        stress_usages = [
+            "STRESS" if "ё" in word.lower() else label
+            for word, label in zip(words, stress_usages)
+        ]
+        original = list(words)
         words = self._process_yo(words, sentence)
         words = self._process_omographs(words)
         words = self._process_accent(words, stress_usages)
-        result = "".join(l + r for l, r in zip(remaining, words)) + remaining[-1]
-        return _delete_spaces_before_punc(result)
+
+        marks, yo = [], []
+        pos = 0
+        for gap, word, result in zip(remaining, original, words):
+            pos += len(gap)
+            # every step keeps the letters of a word and may only turn е
+            # into ё; a word that comes back otherwise contributes nothing
+            if len(result.replace(STRESS_TOKEN, "")) == len(word):
+                i = pos
+                for ch in result:
+                    if ch == STRESS_TOKEN:
+                        marks.append(i - 1)
+                        continue
+                    if ch in "ёЁ" and sentence[i] in "еЕ":
+                        yo.append(i)
+                    i += 1
+            pos += len(word)
+        return marks, yo
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
     def __call__(self, text: str) -> str:
+        """Stress *text*; every character except input stress marks comes back.
+
+        The models read *text* the way upstream RUAccent feeds them: composed
+        (so NFD й and ё survive), without the characters outside the
+        allow-list.  Marks found there map back onto the full text.  Stress
+        marks already in the input are dropped and derived again.  A U+0301
+        on a consonant is part of that letter and comes back unchanged.
+        """
         self._ensure_loaded()
-        text = _ruaccent_norm(text)
-        sentences = _ruaccent_split_by_sentences(text)
-        if not sentences:
-            return text
-        outputs = [self._process_sentence(s) for s in sentences]
-        return "".join(outputs)
+        base, letter = [], ""
+        for ch in composed(text)[0]:
+            if ch == STRESS_TOKEN and is_stress_base(letter):
+                continue
+            if not unicodedata.combining(ch):
+                letter = ch
+            base.append(ch)
+        base = "".join(base)
+        kept = [i for i, c in enumerate(base) if _ruaccent_norm(c)]
+        norm = "".join(base[i] for i in kept).translate(_DELETED_WHITESPACE)
+        marks, yo = [], []
+        start = 0
+        for sentence in _ruaccent_split_by_sentences(norm):
+            sentence_marks, sentence_yo = self._process_sentence(sentence)
+            marks += [start + o for o in sentence_marks]
+            yo += [start + o for o in sentence_yo]
+            start += len(sentence)
+        whole = _whole_words(base, kept, norm)
+        marks = [kept[o] for o in marks if o in whole]
+        if self._silero is not None:
+            marks += self._silero_fill(base, kept, norm, whole, marks)
+        return in_form_of(text, render_marks(
+            base, marks, [kept[o] for o in yo if o in whole],
+        ))
+
+    def _silero_fill(self, base: str, kept: list, norm: str, whole: set, marks: list) -> list:
+        """silero's marks, as offsets into *base*, on the tokens *marks* leaves unmarked.
+
+        A token is a run of letters and hyphens with two or more vowels
+        (``что-то`` and ``из-за`` are one token each; ``на`` is not filled),
+        whose letters the models all saw whole, and that carries no mark of
+        *marks* on any part.  A token with a mark on one part keeps it
+        alone, so ``по-мо́ему`` does not become ``по́-мо́ему``.  silero marks
+        each hyphen part on its own; the token keeps one mark, on its last
+        marked part, or on its first for a compound preposition
+        (``чуть-чу́ть``, ``Нью-Йо́рк``, ``и́з-за``).  A secondary stress
+        (``нау̀чно-техни́ческий``) is not written.
+        """
+        silero_marks = self._silero.mark_offsets(base)[0]
+        fill = []
+        for m in _FILL_UNIT_RE.finditer(norm):
+            if self._count_vowels(m.group()) < 2:
+                continue
+            span = range(kept[m.start()], kept[m.end() - 1] + 1)
+            letters = (o for o in range(m.start(), m.end()) if norm[o] != "-")
+            if any(o not in whole for o in letters) or any(o in span for o in marks):
+                continue
+            unit = [o for o in silero_marks if o in span]
+            if len(unit) > 1:
+                unit = [min(unit) if m.group().lower() in _FIRST_PART_STRESSED else max(unit)]
+            fill += unit
+        return fill
