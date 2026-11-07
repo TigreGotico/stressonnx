@@ -43,8 +43,9 @@ from gold._cache import CACHE
 from scoring import Scored, bootstrap_ci, clean_word, is_vowel, mcnemar_exact, score
 
 DEFAULT_TARGETS = {
-    "ru": ["ruaccent", "ruaccent-big-poetry", "ruaccent-silero", "silero", "stressrnn", "kubataba", "simple"],
-    "uk": ["silero", "simple"],
+    "ru": ["ruaccent", "ruaccent-int8", "ruaccent-big-poetry", "ruaccent-silero", "ruaccent-silero-int8",
+           "silero", "stressrnn", "kubataba", "simple"],
+    "uk": ["silero", "uk-accentor", "simple"],
     "be": ["silero", "simple"],
 }
 BEGIN = "<!-- run.py:begin -->"
