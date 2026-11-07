@@ -497,7 +497,7 @@ literature cited in the rule functions of `stressonnx/backends/simple.py`.
 | tg | final, word-final izafet -и unstressed | 8530 | 0.736 | Perry 2005 |
 | myv | first | 4931 | 0.538 | stress is a tendency, not a rule (Oxford Guide to the Uralic Languages) |
 | kbd | final, unless word-final э → penult | 5648 | 0.404 | paraphrase-level sources only; low confidence |
-| kjh | last | 12032 | 0.280 | no primary source on Khakas stress could be located; Turkic-default kept |
+| kjh | last | 12018 | 0.280 | no primary source on Khakas stress could be located; Turkic-default kept |
 | sah | last heavy nucleus (long vowel/diphthong), else final | 85746 | 0.994 | Yakut long vowels/diphthongs attract stress (Krueger 1962 + weight sensitivity); the old naive final rule scored 0.178 |
 | be (`simple`) | none | 1891586 | — | Belarusian stress is lexical, not positional — no rule is defensible; vocabulary only |
 

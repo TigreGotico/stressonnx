@@ -6,10 +6,11 @@
     "simple": "kaz"
   },
   "sources": [
-    "Kirchner 1998 via Schiering & van der Hulst 2010: Turkic final stress"
+    "Kirchner 1998 via Schiering & van der Hulst 2010: Turkic final stress",
+    "The Kazakh Cyrillic alphabet has 42 letters, Ё and Ъ among them, for Russian loanwords (Wikipedia, Kazakh alphabets)"
   ],
   "tag": "kk",
-  "alpha": "абвгдежзийклмнопрстуфхцчшщыьэюяіғқңүұһәө",
-  "vowels": "аеиоуыэюяіүұәө",
+  "alpha": "абвгдежзийклмнопрстуфхцчшщыьэюяіғқңүұһәөёъ",
+  "vowels": "аеиоуыэюяіүұәөё",
   "rule_accuracy": 0.987
 }
