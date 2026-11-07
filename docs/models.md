@@ -46,8 +46,9 @@ and `silero` differ by 0.003 in plain accuracy (exact McNemar p = 0.047);
 example sentences (137221 targets) `silero` scores 0.984 against
 `ruaccent`'s 0.976 (p = 1e-75), and `ruaccent` keeps the higher homograph
 accuracy (0.926 against 0.908). Its larger download gives homograph
-resolution from a wider context. The default, `ruaccent-silero`, leads
-both gold sets (0.951 and 0.990). `stressrnn` is below `ruaccent` and
+resolution from a wider context. The default, `ruaccent-silero`, has the
+highest score on both gold sets (0.951 and 0.990); its int8 variant ties
+with it (McNemar p = 0.307 and 0.786). `stressrnn` is below `ruaccent` and
 `silero` (McNemar p = 7e-106 against `ruaccent`, p = 6e-90 against
 `silero`), and the russtress file is the
 corpus the StressRNN BiLSTM was trained on, so its number is optimistic.
@@ -339,8 +340,10 @@ rows are in `benchmarks/RESULTS.md`):
 | russtress | 11124 | 0.947 | 0.944 | 0.951 | 46 / 0 / 3e-14 | 179 / 97 / 9e-07 |
 | wiktionary | 137221 | 0.976 | 0.984 | 0.990 | 1893 / 0 / < 1e-300 | 1399 / 615 / 6e-70 |
 
-Homograph accuracy is that of `ruaccent` (0.833 on russtress, 0.933 on
-Wiktionary), because the fill never touches a word `ruaccent` marked.
+On russtress the homograph accuracy is that of `ruaccent` (0.833),
+because the fill never touches a word `ruaccent` marked. On Wiktionary it
+rises from 0.926 to 0.933: the fill marks homograph targets that `ruaccent`
+left unmarked.
 The cost is the `silero` bundle on top of `ruaccent` (48 MB more download,
 about 30 MB more peak memory: 763 MB against 730 MB on 300 russtress rows)
 and one `silero` pass per call (11.4 against 9.5 ms per russtress row in
@@ -370,7 +373,7 @@ the last column is the exact McNemar test between the two.
 | russtress ru, all words | 11,124 | 0.947 | 0.942 | 1e-05 |
 | russtress ru, homographs | 724 | 0.833 | 0.753 | (subset of the row above) |
 | HomographResolutionEval, homograph word (silver) | 1,727 | 0.888 | 0.852 | 1e-04 |
-| prose-accents (silver) | 16,839 | 0.863 | 0.862 | 0.805 |
+| prose-accents (silver) | 16,839 | 0.944 | 0.944 | 0.742 |
 
 It loads about 450 MB more memory (1.2 GB against 0.7 GB peak RSS). Use it
 to compare homograph models, or for text where it measures better. The
@@ -1155,7 +1158,7 @@ and prose-accents. The two large sets (Wiktionary, ruslan-stressed) do not
 run it, because its cost grows with the square of the sentence length and
 those sets would take about 10 and 14 hours; their tables say so. On the
 11124 russtress targets `kubataba` scores 0.888, `silero` 0.944 and
-`ruaccent` 0.947 (McNemar p = 7e-91 and p = 2e-104). On prose-accents it
+`ruaccent` 0.947 (McNemar p = 7e-91 and p = 3e-105). On prose-accents it
 scores 0.968, above every other model, but that set is cut from the corpus
 it was trained on, so the number is agreement with its own training labels.
 On HomographResolutionEval it scores 0.583.

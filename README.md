@@ -122,7 +122,7 @@ stress("Сәлем Қазақстан", "kk")               # 'Сәле́м Қа
 
 # Pick a specific model, or a capability instead of a model id
 stress("красивый город", "ru", model="silero")    # 'краси́вый го́род'
-stress("старинный замок", "ru", model="simple")   # 'старинный за́мок'  (dictionary only: a word outside it stays unmarked)
+stress("старинный замок", "ru", model="simple")   # 'стари́нный замок'  (dictionary only: a homograph such as за́мок/замо́к stays unmarked)
 stress("красивый город", "ru", prefer="fast")     # 'краси́вый го́род'  (silero)
 
 # An isolated engine with its own cache and failure policy
@@ -194,8 +194,9 @@ from context by `ruaccent` and by the homograph resolver of `silero`.
 
 - **First call per language downloads models** into the standard Hugging Face
   cache (`~/.cache/huggingface`, relocatable via `HF_HOME`). Sizes: `ru`
-  ruaccent about 500 MB, silero tens of MB, kubataba about 31 MB, `simple`
-  languages about 1 MB.
+  ruaccent about 500 MB, silero tens of MB, kubataba about 31 MB. The
+  `simple` vocabularies are 10 MB for `ru`, 6 MB for `be` and under 1 MB
+  for the other languages.
 - **Warm up ahead of serving.** Call `warm_up(lang)` once at startup so no
   synthesis request ever blocks on a model download. It loads the same
   cached instance later `stress()` calls use.
@@ -207,7 +208,7 @@ from context by `ruaccent` and by the homograph resolver of `silero`.
 from stressonnx import stress, UnsupportedLanguageError, ModelDownloadError
 
 try:
-    out = stress(text, lang, fallback=True)   # opt-in: walk ruaccent→silero→simple
+    out = stress(text, lang, fallback=True)   # opt-in: walk ruaccent-silero→ruaccent→silero→simple
 except UnsupportedLanguageError as e:         # also catchable as ValueError
     out = text                                # e.supported lists valid tags
 except ModelDownloadError as e:               # names the exact missing HF path
