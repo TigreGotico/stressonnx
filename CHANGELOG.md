@@ -1,11 +1,12 @@
 # Changelog
 
-## [0.0.3a37](https://github.com/TigreGotico/stressonnx/tree/0.0.3a37) (2026-11-06)
+## [0.0.3a38](https://github.com/TigreGotico/stressonnx/tree/0.0.3a38) (2026-11-07)
 
-[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a36...0.0.3a37)
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a36...0.0.3a38)
 
 **Merged pull requests:**
 
+- docs: regenerate the benchmark scoreboard at 3b72dff [\#87](https://github.com/TigreGotico/stressonnx/pull/87) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 - feat: full GrammarDB vocabulary for the be simple model [\#85](https://github.com/TigreGotico/stressonnx/pull/85) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 
 ## [0.0.3a36](https://github.com/TigreGotico/stressonnx/tree/0.0.3a36) (2026-11-06)
