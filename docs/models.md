@@ -36,23 +36,25 @@ Full accuracy numbers, not just relative quality claims, live in
 | uk | silero | 0.843 | not measured |
 | uk | uk-accentor | 0.795 | not measured |
 | uk | simple | 0.534 | not measured |
-| be | silero | 0.908 | not measured |
+| be | silero | 0.924 | not measured |
 | be | simple | 0.867 | not measured |
 
 The rows are the russtress gold set (11124 targets; homograph accuracy on
 the 724 targets in the RUAccent omograph roster). On Russian, `ruaccent`
-and `silero` differ by 0.003 in plain accuracy, which the exact McNemar
-test does not separate (p = 0.062); `ruaccent` is more accurate on the
-homograph targets. On the Wiktionary example sentences (137221 targets)
-`silero` leads, 0.984 against 0.964 (p < 1e-300), and `ruaccent` keeps the
-higher homograph accuracy (0.926 against 0.908). Its larger download gives
-homograph resolution from a wider context. `stressrnn` is below both (McNemar p = 8e-105 against
-`ruaccent`, p = 6e-90 against `silero`), and the russtress file is the
+and `silero` differ by 0.003 in plain accuracy (exact McNemar p = 0.047);
+`ruaccent` is more accurate on the homograph targets. On the Wiktionary
+example sentences (137221 targets) `silero` scores 0.984 against
+`ruaccent`'s 0.976 (p = 1e-75), and `ruaccent` keeps the higher homograph
+accuracy (0.926 against 0.908). Its larger download gives homograph
+resolution from a wider context. The default, `ruaccent-silero`, leads
+both gold sets (0.951 and 0.990). `stressrnn` is below `ruaccent` and
+`silero` (McNemar p = 7e-106 against `ruaccent`, p = 6e-90 against
+`silero`), and the russtress file is the
 corpus the StressRNN BiLSTM was trained on, so its number is optimistic.
 For Belarusian, `silero` (neural, the default) is substantially more
 accurate than `model="simple"` (vocabulary lookup). For Ukrainian,
-`uk-accentor` scores 0.795 (95% CI 0.787 to 0.801) against `silero`'s 0.843
-(0.837 to 0.850) on the same 12 252 russtress targets, McNemar p = 4e-64,
+`uk-accentor` scores 0.795 (95% CI 0.788 to 0.802) against `silero`'s 0.843
+(0.837 to 0.850) on the same 12 252 russtress targets, McNemar p = 7e-63,
 with `benchmarks/run.py` scoring (a hit marks exactly the gold vowel and no
 other; `uk-accentor` writes two marks on some words). The russtress rows
 carry labels from the same lineage as its training data (see the
@@ -278,7 +280,7 @@ Measured on a laptop with two onnxruntime threads per session:
 | ruaccent-silero ms/row, Wiktionary sentences | 32.7 | 16.2 |
 | ruaccent accuracy, russtress (11124 targets) | 0.9471 | 0.9463 |
 | ruaccent homograph accuracy, russtress (724) | 0.833 | 0.825 |
-| ruaccent accuracy, Wiktionary (137221 targets) | 0.9642 | 0.9640 |
+| ruaccent accuracy, Wiktionary (137221 targets) | 0.9762 | 0.9760 |
 | ruaccent-silero accuracy, russtress | 0.9513 | 0.9507 |
 | ruaccent-silero accuracy, Wiktionary | 0.9900 | 0.9900 |
 | ruaccent-silero accuracy, ruslan-stressed (SILVER, 176255) | 0.9780 | 0.9781 |
@@ -330,14 +332,12 @@ sentences 2.6% of the gold targets come back empty, on ruslan-stressed
 
 Scores on the two gold sets, against the `ruaccent` rows of the same run
 (exact McNemar on the targets both models scored; the run logs and
-summaries are under `knowledge/wiki/audits/stressonnx-bench/ru-fill/` in
-the AgentWorkspaces wiki, and the scoreboard rows land with the next
-`benchmarks/RESULTS.md` run):
+rows are in `benchmarks/RESULTS.md`):
 
 | set | targets | ruaccent | silero | ruaccent-silero | vs ruaccent (only right / ruaccent only right / p) | vs silero |
 |-----|---------|----------|--------|-----------------|------|------|
 | russtress | 11124 | 0.947 | 0.944 | 0.951 | 46 / 0 / 3e-14 | 179 / 97 / 9e-07 |
-| wiktionary | 137221 | 0.964 | 0.984 | 0.990 | 3535 / 0 / < 1e-300 | 1386 / 611 / 6e-69 |
+| wiktionary | 137221 | 0.976 | 0.984 | 0.990 | 1893 / 0 / < 1e-300 | 1399 / 615 / 6e-70 |
 
 Homograph accuracy is that of `ruaccent` (0.833 on russtress, 0.933 on
 Wiktionary), because the fill never touches a word `ruaccent` marked.
@@ -523,8 +523,9 @@ Belarusian specifics:
 - Stress is not marked in standard orthography.
 - Fewer neural training resources than Russian, so the silero neural model
   is the best available quality without a full BERT pipeline. See the
-  benchmark table above: silero (0.908 accuracy) is dramatically better
-  here than the `simple` vocabulary fallback (0.435).
+  benchmark table above: silero (0.924 accuracy) is better here than the
+  `simple` vocabulary fallback (0.867), and `simple` leaves every
+  homograph unmarked.
 
 ### Belarusian dictionary layer
 
@@ -1089,8 +1090,8 @@ assignment. The OOV last-vowel rule holds for standard forms.
 
 **Belarusian, `simple` path (`be`, `model="simple"`)**
 The same language as the default `silero` path but using vocabulary-only
-lookup without neural inference, a lower-accuracy fallback (0.435 vs.
-`silero`'s 0.908, see the benchmark table above) meant for offline
+lookup without neural inference, a lower-accuracy fallback (0.867 vs.
+`silero`'s 0.924, see the benchmark table above) meant for offline
 environments where ONNX inference is unavailable, or as an explicit
 fallback target. Its OOV rule is `"none"`, but that rule only applies to
 **multi-vowel** OOV words: a **single-vowel** OOV word is always stressed
