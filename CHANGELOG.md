@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a39](https://github.com/TigreGotico/stressonnx/tree/0.0.3a39) (2026-11-07)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a38...0.0.3a39)
+
+**Merged pull requests:**
+
+- fix: kk ё and ъ in the alphabet, kjh Ӌ looked up as Ҷ [\#89](https://github.com/TigreGotico/stressonnx/pull/89) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a38](https://github.com/TigreGotico/stressonnx/tree/0.0.3a38) (2026-11-07)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a36...0.0.3a38)
