@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a40](https://github.com/TigreGotico/stressonnx/tree/0.0.3a40) (2026-11-09)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a39...0.0.3a40)
+
+**Merged pull requests:**
+
+- fix\(ru,uk\): leave the по- prefix of hyphenated adverbs unstressed [\#91](https://github.com/TigreGotico/stressonnx/pull/91) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a39](https://github.com/TigreGotico/stressonnx/tree/0.0.3a39) (2026-11-07)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a38...0.0.3a39)
