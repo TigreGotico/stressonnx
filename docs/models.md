@@ -108,7 +108,10 @@ Hyphenated words split into their hyphen-joined parts for tokenization
 purposes, with one exception: **Russian hyphenated enclitic particles**
 (`-то`, `-нибудь`, `-либо`, `-таки`, `-ка`) never receive stress, for example
 `кто́-то`, `како́й-нибудь`, `пришёл-таки`. This applies identically in the
-`ruaccent`, `silero` and `simple` pipelines for `ru`.
+`ruaccent`, `silero` and `simple` pipelines for `ru`. The prefix of a
+hyphenated `по-` adverb never receives stress either (`по-ру́сски`, and in
+Ukrainian `по-украї́нськи`), and `по-мо́ему`, `по-тво́ему` stress the pronoun
+on its first vowel, where the dative alone is `моему́`.
 
 ---
 
