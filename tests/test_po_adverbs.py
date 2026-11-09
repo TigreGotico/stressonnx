@@ -18,6 +18,15 @@ def test_po_prefix_is_masked_in_ru_and_uk():
 
 @pytest.mark.parametrize("model", ["silero", "simple"])
 def test_po_moemu_stresses_the_pronoun_on_its_first_vowel(model):
-    assert stress("по-моему, По-твоему, ПО-МОЕМУ", "ru", model=model) == "по-мо́ему, По-тво́ему, ПО-МО́ЕМУ"
+    assert stress("по-моему, По-твоему, ПО-МОЕМУ, по-своему", "ru", model=model) == (
+        "по-мо́ему, По-тво́ему, ПО-МО́ЕМУ, по-сво́ему"
+    )
     # the dative on its own keeps its stress
     assert stress("моему брату", "ru", model=model) == "моему́ бра́ту"
+
+
+@pytest.mark.parametrize("model", ["silero", "simple"])
+def test_uk_po_moiemu_stresses_the_pronoun_on_its_first_vowel(model):
+    # СУМ: ПО-МО́ЄМУ, ПО-ТВО́ЄМУ, ПО-СВО́ЄМУ
+    assert stress("по-моєму, По-твоєму, ПО-СВОЄМУ", "uk", model=model) == "по-мо́єму, По-тво́єму, ПО-СВО́ЄМУ"
+    assert stress("моєму", "uk", model=model) == "моє́му"

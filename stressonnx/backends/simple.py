@@ -12,7 +12,7 @@ import threading
 import unicodedata
 from typing import Callable, Optional
 
-from stressonnx._common import _RE_SPLIT, _RU_PO_ADVERBS, SCRIPT_VOWELS, lower_preserving_length, tokenize
+from stressonnx._common import _PO_ADVERBS, _RE_SPLIT, SCRIPT_VOWELS, lower_preserving_length, tokenize
 from stressonnx.download import LOG, _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.langs import resolve_lang
@@ -382,8 +382,9 @@ class SimpleStressor:
             if has_stress_mark(raw_word):
                 continue
             raw_lower = lower_preserving_length(raw_word, self._turkic)
-            if self.lang == "ru" and i > 0 and tokens.raw[i - 1].lower() == "по-" and clean_word in _RU_PO_ADVERBS:
-                idx = self._ordinal_offset(raw_lower, _RU_PO_ADVERBS[clean_word])
+            po_ordinal = _PO_ADVERBS.get(self.lang, {}).get(clean_word) if i > 0 and tokens.raw[i - 1].lower() == "по-" else None
+            if po_ordinal is not None:
+                idx = self._ordinal_offset(raw_lower, po_ordinal)
             else:
                 idx = self._word_offset(clean_word, raw_lower)
             if idx is not None:

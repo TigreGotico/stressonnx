@@ -86,9 +86,9 @@ type it as е, so restoring ё and placing stress are the same problem.
 
 **For linguists.** The hyphenated enclitic particles -то, -нибудь, -либо,
 -таки, -ка are masked from stress assignment (Русская грамматика, АН СССР
-1980), and so is the prefix по- of hyphenated adverbs: the en-Wiktionary
-example sentences mark 181 such adverbs (по-ру́сски, по-пре́жнему), none of
-them on по. Monosyllable treatment differs by backend (documented in
+1980), and so is the prefix по- of hyphenated adverbs: en-Wiktionary marks
+stress on 181 Russian по- tokens (по-ру́сски, по-пре́жнему), none of them on
+по. Monosyllable treatment differs by backend (documented in
 [models.md](models.md)). `ruaccent` re-derives stress from scratch on
 pre-marked input rather than trusting it.
 

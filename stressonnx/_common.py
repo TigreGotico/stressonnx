@@ -24,15 +24,17 @@ _RE_RU_COND = re.compile(r"[^А-Яа-яёЁ]")
 _UNSTRESSED_HYPHEN_CLITICS = frozenset({"то", "нибудь", "либо", "таки", "ка"})
 
 # The prefix of Russian and Ukrainian hyphenated adverbs (по-ру́сски,
-# по-пре́жнему, по-украї́нськи) carries no stress: the en-Wiktionary example
-# sentences mark 181 such Russian and 5 such Ukrainian adverbs, none of
-# them on по.
+# по-пре́жнему, по-украї́нськи) carries no stress: en-Wiktionary marks stress on
+# 181 Russian and 5 Ukrainian по- tokens, none of them on по.
 _PO_PREFIX = frozenset({"по"})
 
-# The pronoun part of по-мо́ему and по-тво́ему: stressed on its first vowel,
-# where the dative on its own is моему́, твоему́ (en-Wiktionary).  Vowel
-# ordinal by word, used after a по- part.
-_RU_PO_ADVERBS = {"моему": 0, "твоему": 0}
+# The possessive pronoun after по-: stressed on its first vowel (по-мо́ему,
+# по-сво́ему; uk по-мо́єму, по-сво́єму per СУМ), where the dative on its own is
+# моему́, моє́му.  lang → word → vowel ordinal, used after a по- part.
+_PO_ADVERBS = {
+    "ru": {"моему": 0, "твоему": 0, "своему": 0},
+    "uk": {"моєму": 0, "твоєму": 0, "своєму": 0},
+}
 
 # Belarusian hyphen parts that never carry word stress, from GrammarDB
 # RELEASE-202601 (spellchecker/slovy-2008-stress.txt).  The prefix is
