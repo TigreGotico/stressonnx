@@ -105,10 +105,15 @@ Apostrophes are deliberately not boundaries. `'` is part of the `az-Latn` /
 them would break words in those languages.
 
 Hyphenated words split into their hyphen-joined parts for tokenization
-purposes, with one exception: **Russian hyphenated enclitic particles**
-(`-то`, `-нибудь`, `-либо`, `-таки`, `-ка`) never receive stress, for example
-`кто́-то`, `како́й-нибудь`, `пришёл-таки`. This applies identically in the
-`ruaccent`, `silero` and `simple` pipelines for `ru`.
+purposes. Some parts never receive stress. **Russian hyphenated enclitic
+particles** (`-то`, `-нибудь`, `-либо`, `-таки`, `-ка`) are one group, for
+example `кто́-то`, `како́й-нибудь`, `пришёл-таки`. This applies identically in
+the `ruaccent`, `silero` and `simple` pipelines for `ru`. The prefix of a
+hyphenated `по-` adverb is another (`по-ру́сски`, and in Ukrainian
+`по-украї́нськи`). After `по-`, the possessive pronoun takes stress on its
+first vowel: `по-мо́ему`, `по-тво́ему`, `по-сво́ему`, and in Ukrainian
+`по-мо́єму`, `по-тво́єму`, `по-сво́єму`. The dative alone stays `моему́`,
+`моє́му`.
 
 ---
 

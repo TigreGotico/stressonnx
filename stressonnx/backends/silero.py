@@ -28,7 +28,7 @@ import re
 import numpy as np
 import onnxruntime as ort
 
-from stressonnx._common import _RE_RU_COND, _RU_VOWELS, _softmax, lower_preserving_length, tokenize
+from stressonnx._common import _PO_ADVERBS, _RE_RU_COND, _RU_VOWELS, _softmax, lower_preserving_length, tokenize
 from stressonnx.backends._homograph_rules import HomographRules
 from stressonnx.backends._silero_homosolver import HomoSolver
 from stressonnx.download import LOG, _download_files
@@ -212,7 +212,7 @@ class _SileroStressor:
     # ------------------------------------------------------------------
 
     def _tokenize(self, sentence: str):
-        """Tokenise via the shared tokenizer; ru and be mask unstressed hyphen parts."""
+        """Tokenise via the shared tokenizer; ru, uk and be mask unstressed hyphen parts."""
         if self.lang == "ru":
             return tokenize(sentence, _RE_RU_COND, lang="ru")
         return tokenize(sentence, self._re_cond, lang=self.lang)
@@ -512,7 +512,11 @@ class _SileroStressor:
                     )
                 continue
 
-            ordinal = self._dictionary_ordinal(clean_word, raw_word, at_sentence_start)
+            ordinal = None
+            if wi > 0 and raw_tokens[wi - 1].lower() == "по-":
+                ordinal = _PO_ADVERBS.get(self.lang, {}).get(clean_word)
+            if ordinal is None:
+                ordinal = self._dictionary_ordinal(clean_word, raw_word, at_sentence_start)
             if ordinal is None and self._homograph_applies(raw_word, at_sentence_start):
                 ordinal = homograph_ordinals.get(wi)
             if ordinal is not None:
