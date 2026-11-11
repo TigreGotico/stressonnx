@@ -244,7 +244,8 @@ class _Tokenizer:
     """A ``tokenizer.json`` with truncation off, on tokenizers 0.x and 1.x.
 
     tokenizers 1.x has no ``Encoding.word_ids`` and refuses vocab keys that
-    hold NUL, so this class reads the file itself.  :meth:`word_ids` and
+    hold NUL, so this class reads the file itself.  On 1.x only the
+    ``CompiledTokenizer`` that ``Tokenizer.compile()`` builds can encode.  :meth:`word_ids` and
     :meth:`pretokens` need a WordPiece model behind a BERT pre-tokenizer
     with a template post-processor, as the BERT tokenizers of this
     pipeline have.
@@ -265,8 +266,9 @@ class _Tokenizer:
                 sanitized = os.path.join(tmp, "tokenizer.json")
                 with open(sanitized, "w", encoding="utf-8") as fh:
                     json.dump(spec, fh)
-                self._tok = Tokenizer.from_file(sanitized)
-            self._tok.truncation = None
+                tok = Tokenizer.from_file(sanitized)
+            tok.truncation = None
+            self._tok = tok.compile()
         else:
             self._tok = Tokenizer.from_file(path)
             self._tok.no_truncation()

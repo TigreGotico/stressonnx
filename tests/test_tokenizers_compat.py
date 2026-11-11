@@ -1,11 +1,14 @@
-"""The ruaccent tokenizers encode the same on tokenizers 0.x and 1.x.
+"""The ruaccent and uk-accentor tokenizers encode the same on tokenizers 0.x and 1.x.
 
 The expected ids and word ids are what tokenizers 0.23 returns from
 ``Tokenizer.from_file(...).encode(text)`` with its native
-``Encoding.word_ids``, the API that 1.x removed.
+``Encoding.word_ids``, the API that 1.x removed.  The expected stressed
+sentences take each mark from an English Wiktionary usage example
+(kaikki.org dump, the ``wiktionary`` gold set of ``benchmarks/``).
 """
 import pytest
 
+from stressonnx import stress
 from stressonnx.backends.ruaccent import RuAccentStressor
 
 
@@ -88,3 +91,13 @@ def test_pretokens_match_the_tokenizer(stressor, text, n):
         ids, _ = tok.encode(text)
         assert max(w for w in tok.word_ids(ids) if w is not None) + 1 == n
         assert len(tok.pretokens(text)) == n
+
+
+def test_ru_sentence_through_the_real_tokenizers():
+    # Wiktionary: «не купи́л ничего́», «карто́фельную муку́», «в э́том магази́не»
+    assert stress("я купил муку в магазине", "ru") == "я купи́л муку́ в магази́не"
+
+
+def test_uk_accentor_sentence_through_the_real_tokenizer():
+    # Wiktionary: «Приві́т усі́м!», «як спра́ви?»
+    assert stress("Привіт, як справи?", "uk", model="uk-accentor") == "Приві́т, як спра́ви?"
