@@ -7,13 +7,15 @@
     "silero": "bel"
   },
   "sources": [
-    "East Slavic accentology: free lexical stress"
+    "East Slavic accentology: free lexical stress",
+    "ў is the non-syllabic u: it does not form syllables (Wikipedia, Short U); ё occurs in a stressed syllable in the overwhelming majority of Russian and Belarusian words (Wikipedia, Yo)"
   ],
   "tag": "be",
-  "alpha": "ЁІЎАБВГДЕЖЗЙКЛМНОПРСТУФХЦЧШЫЬЭЮЯабвгдежзйклмнопрстуфхцчшыьэюяёіў’",
+  "alpha": "ЁІЎАБВГДЕЖЗЙКЛМНОПРСТУФХЦЧШЫЬЭЮЯабвгдежзйклмнопрстуфхцчшыьэюяёіў",
   "vowels": "аоуіэыяеёю",
   "accuracy": {
-    "silero": 0.873,
-    "simple": 0.433
-  }
+    "silero": 0.924,
+    "simple": 0.867
+  },
+  "self_stressed": "ё"
 }

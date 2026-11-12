@@ -5,15 +5,30 @@ Russian (``ru``) additionally requires: tokenizers.
 
 Model families
 --------------
-``"ruaccent"`` (default for ``ru``):
+``"ruaccent"``:
     Homograph-aware neural pipeline derived from RUAccent (Den4ikAI/ruaccent,
-    Apache-2.0).  Resolves context-dependent homographs (замок castle/lock,
+    MIT).  Resolves context-dependent homographs (замок castle/lock,
     мука flour/torment, белок protein/squirrel …) via four ONNX models.
     Runtime deps: onnxruntime, numpy, tokenizers (no torch, no transformers).
+    ``"ruaccent-big-poetry"`` is the same pipeline with the RUAccent
+    big_poetry homograph model in place of turbo3.1.  ``"ruaccent-silero"``
+    adds the silero mark on every word of two or more vowels the pipeline
+    leaves unmarked (и́ли, э́то, бы́ло, что́-то).  ``"ruaccent-int8"`` and
+    ``"ruaccent-silero-int8"`` load int8 weights for the two large models:
+    smaller and faster, with a small loss on homographs.
 
 ``"silero"`` (default for ``uk``, ``be``):
     Neural ONNX pipeline (embedding-bag + MLP heads) exported from
     silero_stress (MIT).
+
+``"stressrnn"`` (``ru``, selectable only):
+    Character BiLSTM with a Zaliznyak exception dictionary, ported from
+    StressRNN (dbklim/StressRNN, Apache-2.0).  Never a default and never
+    picked by ``prefer=``; pass ``model="stressrnn"``.
+``"uk-accentor"`` (``uk``, selectable only):
+    Seq2seq Transformer ported from ukrainian-accentor-transformer
+    (Theodotus1243, MIT).  Never a default and never picked by
+    ``prefer=``; pass ``model="uk-accentor"``.
 
 ``"simple"`` (default for the other rule/vocabulary languages):
     Vocabulary + rules; no ONNX inference.  Languages: ``az-Cyrl``,
@@ -55,6 +70,7 @@ import time as _time
 from stressonnx.errors import (
     StressonnxError,
     UnsupportedLanguageError,
+    UnknownModelError,
     ModelDownloadError,
     ModelLoadError,
 )
@@ -64,6 +80,8 @@ from stressonnx.registry import (
     RUACCENT_LANGS,
     MAIN_LANGS,
     SIMPLE_LANGS,
+    STRESSRNN_LANGS,
+    UK_ACCENTOR_LANGS,
     ALL_LANGS,
     LANG_SCRIPT,
     ModelEntry,
@@ -73,7 +91,14 @@ from stressonnx.registry import (
     lang_to_script,
 )
 from stressonnx.notation import STRESS_TOKEN, _apply_notation, to_plus_notation
-from stressonnx.backends import _SileroStressor, SimpleStressor, RuAccentStressor
+from stressonnx.backends import (
+    KubatabaStressor,
+    _SileroStressor,
+    SimpleStressor,
+    RuAccentStressor,
+    StressRnnStressor,
+    UkAccentorStressor,
+)
 from stressonnx.stressor import make_stressor
 from stressonnx.pipeline import (
     DEFAULT_PIPELINE,
@@ -108,8 +133,10 @@ def stress(
     private cache.  Parameters:
 
     - ``lang``: BCP-47 tag (``"ru"``, ``"uk"``, ``"az-Latn"`` …).
-    - ``model``: explicit model id (``"ruaccent"``, ``"silero"``,
-      ``"simple"``) — default: the best model for *lang*.
+    - ``model``: explicit model id (``"ruaccent"``,
+      ``"ruaccent-int8"``, ``"ruaccent-big-poetry"``, ``"ruaccent-silero"``,
+      ``"ruaccent-silero-int8"``, ``"silero"``, ``"simple"``) — default:
+      the best model for *lang*.
     - ``prefer``: capability strategy instead of a model id — ``"best"``
       (quality), ``"fast"`` (latency), ``"smallest"`` (footprint).
     - ``notation``: ``"diacritic"`` (combining acute after the vowel) or
@@ -147,7 +174,7 @@ def warm_up(lang: str, model: str | None = None) -> None:
     """Download and load the model for *lang* ahead of the first request.
 
     Call once at service startup so no synthesis request ever blocks on a
-    model download (the ``ru`` default is ≈500 MB cold).
+    model download (the ``ru`` default is ≈550 MB cold).
     """
     DEFAULT_PIPELINE.warm_up(lang, model)
 
@@ -163,18 +190,24 @@ __all__ = [
     "to_plus_notation",
     "StressonnxError",
     "UnsupportedLanguageError",
+    "UnknownModelError",
     "ModelDownloadError",
     "ModelLoadError",
     "FALLBACK_PRIORITY",
     "_SileroStressor",
     "SimpleStressor",
     "RuAccentStressor",
+    "StressRnnStressor",
+    "KubatabaStressor",
+    "UkAccentorStressor",
     "make_stressor",
     "MODEL_REGISTRY",
     "DEFAULT_MODEL",
     "RUACCENT_LANGS",
     "MAIN_LANGS",
     "SIMPLE_LANGS",
+    "STRESSRNN_LANGS",
+    "UK_ACCENTOR_LANGS",
     "ALL_LANGS",
     "STRESS_TOKEN",
     "ModelEntry",

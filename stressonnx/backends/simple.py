@@ -12,10 +12,11 @@ import threading
 import unicodedata
 from typing import Callable, Optional
 
-from stressonnx._common import SCRIPT_VOWELS, lower_preserving_length, tokenize
+from stressonnx._common import _PO_ADVERBS, _RE_SPLIT, SCRIPT_VOWELS, lower_preserving_length, tokenize
 from stressonnx.download import LOG, _download_files
-from stressonnx.errors import ModelDownloadError, ModelLoadError, UnsupportedLanguageError
-from stressonnx.notation import STRESS_TOKEN, render_marks
+from stressonnx.errors import ModelDownloadError, ModelLoadError
+from stressonnx.langs import resolve_lang
+from stressonnx.notation import composed, has_stress_mark, in_form_of, render_marks
 from stressonnx.registry import LANGUAGES, SIMPLE_LANGS, _OOV_RULES, _SIMPLE_FILES
 
 
@@ -56,6 +57,9 @@ def _load_vocab(path: str) -> dict:
 # ---------------------------------------------------------------------------
 
 OovRule = Callable[[str, list], Optional[int]]
+
+#: Apostrophes that spell a word-initial syllabic р in Macedonian (’рж).
+_APOSTROPHES = "’ʼ'"
 
 
 def _rule_last(word: str, vowels: list) -> Optional[int]:
@@ -204,15 +208,21 @@ class SimpleStressor:
     """
 
     def __init__(self, lang: str, cache_dir: str | None = None) -> None:
-        if lang not in SIMPLE_LANGS:
-            raise UnsupportedLanguageError(lang, SIMPLE_LANGS)
+        lang = resolve_lang(lang, SIMPLE_LANGS)
         self.lang = lang
         spec = LANGUAGES[lang]
         self._hf_lang = spec["hf"]["simple"]
         self._ordinal_vowels = SCRIPT_VOWELS[spec["script"]]
         self._vowels: str = spec["vowels"]
         self._oov_rule: str = _OOV_RULES[lang]
+        self._turkic = spec.get("casing") == "turkic"
+        self._syllabic: str = spec.get("syllabic", "")
+        self._self_stressed: str = spec.get("self_stressed", "")
+        fold = spec.get("fold", {})
+        # a letter written in place of another one-for-one: looked up as that letter
+        self._fold = str.maketrans({**fold, **{k.upper(): v.upper() for k, v in fold.items()}})
         alpha = spec["alpha"]
+        self._alpha = set(alpha)
         self._re_cond = re.compile(
             f"[^{re.escape(''.join(sorted(set(alpha + alpha.upper()))))}]"
         )
@@ -237,24 +247,78 @@ class SimpleStressor:
             try:
                 data = _download_files(self._hf_lang, _SIMPLE_FILES,
                                        self._cache_dir, model_id="simple")
-                self._vocab: dict = _load_vocab(data["vocab.gz"])
+                self._vocab: dict = self._usable(_load_vocab(data["vocab.gz"]))
             except (ModelDownloadError, ModelLoadError):
                 raise
             except Exception as exc:
                 raise ModelLoadError("simple", exc) from exc
             self._loaded = True
 
+    def _key(self, word: str) -> str:
+        """Lookup key of *word*: NFC, lowercased, alphabet letters only."""
+        word = unicodedata.normalize("NFC", word)
+        return self._re_cond.sub("", lower_preserving_length(word, self._turkic))
+
+    def _usable(self, vocab: dict) -> dict:
+        """*vocab* keyed the way the runtime looks words up, without the
+        entries the runtime cannot render.
+
+        Keys are brought to the lookup form (NFC, apostrophes and other
+        non-alphabet characters removed), so an NFD key or a key spelled
+        with an apostrophe matches the same input as its plain twin; a key
+        that already has that form wins over one that only normalises to
+        it.  A key the tokenizer would split (a hyphen or another word
+        boundary inside it) can never be looked up and is dropped, as is an
+        ordinal that lands on a letter outside the language's vowels.
+        """
+        usable: dict = {}
+        dropped = 0
+        for word, ordinal in vocab.items():
+            raw_lower = lower_preserving_length(unicodedata.normalize("NFC", word).translate(self._fold),
+                                                self._turkic)
+            key = self._re_cond.sub("", raw_lower)
+            if "-" in word or _RE_SPLIT.search(word) or self._ordinal_offset(raw_lower, ordinal) is None:
+                dropped += 1
+                continue
+            if key == word:
+                usable[key] = ordinal
+            else:
+                usable.setdefault(key, ordinal)
+        if dropped:
+            LOG.debug("%s: %d vocabulary entries are unreachable or stress a non-vowel; dropped",
+                      self.lang, dropped)
+        return usable
+
     # ------------------------------------------------------------------
     # Span-native core
     # ------------------------------------------------------------------
 
+    def _is_consonant(self, ch: str) -> bool:
+        return ch in self._alpha and ch not in self._vowels and ch not in self._syllabic
+
+    def _nucleus_offsets(self, raw_lower: str) -> list:
+        """Offsets of the syllable nuclei of *raw_lower*: its vowels, and a
+        syllabic consonant (Macedonian р) before a consonant, after a
+        consonant, the word start or the apostrophe that spells a
+        word-initial syllabic р (’рж)."""
+        ids = [i for i, c in enumerate(raw_lower) if c in self._vowels]
+        if self._syllabic:
+            for i, c in enumerate(raw_lower):
+                if c not in self._syllabic or i == len(raw_lower) - 1:
+                    continue
+                left = i == 0 or raw_lower[i - 1] in _APOSTROPHES or self._is_consonant(raw_lower[i - 1])
+                if left and self._is_consonant(raw_lower[i + 1]):
+                    ids.append(i)
+            ids.sort()
+        return ids
+
     def _rule_offset(self, raw_lower: str) -> Optional[int]:
         """Char offset the positional rule stresses in *raw_lower*, or None.
 
-        Single-vowel words are always stressed on their sole vowel;
+        Single-nucleus words are always stressed on their sole nucleus;
         otherwise the language's rule from :data:`OOV_RULES` decides.
         """
-        vowel_ids = [i for i, c in enumerate(raw_lower) if c in self._vowels]
+        vowel_ids = self._nucleus_offsets(raw_lower)
         if not vowel_ids:
             return None
         if len(vowel_ids) == 1:
@@ -262,47 +326,71 @@ class SimpleStressor:
         n = OOV_RULES[self._oov_rule](raw_lower, vowel_ids)
         return None if n is None else vowel_ids[n]
 
-    def _word_ordinal(self, clean_word: str, raw_lower: str) -> Optional[int]:
-        """Superset-vowel ordinal to stress in one token, or None."""
+    def _ordinal_offset(self, raw_lower: str, ordinal: int) -> Optional[int]:
+        """Char offset in *raw_lower* of the superset vowel number *ordinal*,
+        or None when there is no such vowel or it is not a vowel of the
+        language."""
+        seen = -1
+        for i, c in enumerate(raw_lower):
+            if c in self._ordinal_vowels:
+                seen += 1
+                if seen == ordinal:
+                    return i if c in self._vowels else None
+        return None
+
+    def _word_offset(self, clean_word: str, raw_lower: str) -> Optional[int]:
+        """Char offset of the stressed nucleus of one token, or None.
+
+        The vocabulary answers in superset-vowel ordinals, the rule in
+        char offsets; both end as an offset into *raw_lower*.  Out of the
+        vocabulary, a word with exactly one letter that is stressed by
+        itself (Russian and Belarusian ё) is stressed on it before the
+        positional rule is consulted.
+        """
         if clean_word in self._vocab:
-            return self._vocab[clean_word]
-        idx = self._rule_offset(raw_lower)
-        if idx is None:
-            return None
-        # language-vowel position → superset ordinal, so vocabulary and rule
-        # answers share one currency
-        return sum(1 for c in raw_lower[:idx] if c in self._ordinal_vowels)
+            return self._ordinal_offset(raw_lower, self._vocab[clean_word])
+        marked = [i for i, c in enumerate(raw_lower) if c in self._self_stressed]
+        if len(marked) == 1:
+            return marked[0]
+        return self._rule_offset(raw_lower)
 
     def mark_offsets(self, text: str):
+        """Offsets into *text* of stressed vowels and е→ё substitutions.
+
+        The work happens on the NFC form of *text*; each offset points at
+        the base character in *text* itself.
+        """
+        nfc, origin = composed(text)
+        marks, yo = self._composed_mark_offsets(nfc)
+        return [origin[o] for o in marks], [origin[o] for o in yo]
+
+    def _composed_mark_offsets(self, text: str):
         """Offsets (into *text*) of every stressed vowel — the primitive.
 
         Returns ``(mark_offsets, yo_offsets)``; the simple family never
         substitutes е→ё, so the second list is always empty.
         """
         self._ensure_loaded()
-        tokens = tokenize(text, self._re_cond)
+        tokens = tokenize(text.translate(self._fold), self._re_cond, lang=self.lang, turkic=self._turkic)
         offsets = []
         pos = 0
-        for raw_word, clean_word, need in zip(*tokens):
+        for i, (raw_word, clean_word, need) in enumerate(zip(*tokens)):
             start = pos
             pos += len(raw_word)
             if not need:
                 continue
-            if STRESS_TOKEN in unicodedata.normalize("NFD", raw_word):
+            if has_stress_mark(raw_word):
                 continue
-            raw_lower = lower_preserving_length(raw_word)
-            ordinal = self._word_ordinal(clean_word, raw_lower)
-            if ordinal is None:
-                continue
-            seen = -1
-            for i, c in enumerate(raw_lower):
-                if c in self._ordinal_vowels:
-                    seen += 1
-                    if seen == ordinal:
-                        offsets.append(start + i)
-                        break
+            raw_lower = lower_preserving_length(raw_word, self._turkic)
+            po_ordinal = _PO_ADVERBS.get(self.lang, {}).get(clean_word) if i > 0 and tokens.raw[i - 1].lower() == "по-" else None
+            if po_ordinal is not None:
+                idx = self._ordinal_offset(raw_lower, po_ordinal)
+            else:
+                idx = self._word_offset(clean_word, raw_lower)
+            if idx is not None:
+                offsets.append(start + idx)
         return offsets, []
 
     def __call__(self, sentence: str) -> str:
         marks, yo = self.mark_offsets(sentence)
-        return render_marks(sentence, marks, yo)
+        return in_form_of(sentence, render_marks(sentence, marks, yo))

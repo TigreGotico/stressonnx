@@ -1,0 +1,148 @@
+"""Belarusian silero: forms of the GrammarDB dictionary layer win over the model.
+
+The expected values are the stressed forms of GrammarDB RELEASE-202601
+(CC-BY-SA-4.0), read from the release's own ``spellchecker/slovy-2008-stress.txt``
+and ``<Form>`` texts, for spellings the neural model alone stresses
+differently.  ``STRESSONNX_TEST_CACHE_DIR`` points the stressor at a local
+model tree (``<dir>/bel/<file>``) so a bundle can be tested before it is
+published; unset, the bundle comes from the pinned Hugging Face revision.
+"""
+import hashlib
+import json
+import os
+import unicodedata
+
+import pytest
+
+from stressonnx import make_stressor
+from stressonnx.download import _download_files
+from stressonnx.registry import hf_dir
+
+CACHE_DIR = os.environ.get("STRESSONNX_TEST_CACHE_DIR")
+
+
+@pytest.fixture(scope="module")
+def silero_be():
+    return make_stressor(model="silero", lang="be", cache_dir=CACHE_DIR)
+
+
+def test_layer_was_built_against_the_bundled_pipeline():
+    """The layer holds only the forms this accentor and exceptions table get wrong."""
+    files = _download_files(hf_dir("be", "silero"),
+                            ["accentor.onnx", "exceptions.txt.gz", "meta.json"], CACHE_DIR)
+    with open(files["meta.json"], encoding="utf-8") as fh:
+        source = json.load(fh)["dictionary_source"]
+    assert source["license"] == "CC-BY-SA-4.0"
+    for name, key in (("accentor.onnx", "accentor_onnx_sha256"),
+                      ("exceptions.txt.gz", "exceptions_sha256")):
+        with open(files[name], "rb") as fh:
+            assert source[key] == hashlib.sha256(fh.read()).hexdigest()
+
+
+@pytest.mark.parametrize("text,expected", [
+    ("эканаміста", "эканамі́ста"),
+    ("хлушу", "хлушу́"),
+    ("аднаўляецца", "аднаўля́ецца"),
+    ("пастаўшчыкоў", "пастаўшчыко́ў"),
+    ("белуджаў", "белу́джаў"),
+])
+def test_dictionary_form_wins(silero_be, text, expected):
+    assert silero_be(text) == expected
+
+
+# GrammarDB writes the ASCII apostrophe; the silero alphabet keeps ’ and
+# drops the others, so every spelling must find the entry
+@pytest.mark.parametrize("text,expected", [
+    ("з'ядка", "з'я́дка"),
+    ("з’ядка", "з’я́дка"),
+    ("зʼядка", "зʼя́дка"),
+    ("раз'ятрывае", "раз'я́трывае"),
+    ("раз’ятрывае", "раз’я́трывае"),
+    ("разʼятрывае", "разʼя́трывае"),
+])
+def test_dictionary_form_with_any_apostrophe(silero_be, text, expected):
+    assert silero_be(text) == expected
+
+
+@pytest.mark.parametrize("text,expected", [
+    ("аднаўляецца", "аднаўля́ецца"),
+    ("пастаўшчыкоў", "пастаўшчыко́ў"),
+])
+def test_dictionary_form_from_decomposed_input(silero_be, text, expected):
+    """NFD input (ў as у + U+0306) keeps the layer's vowel and the input's letters."""
+    nfd = unicodedata.normalize("NFD", text)
+    assert nfd != text
+    assert unicodedata.normalize("NFC", silero_be(nfd)) == expected
+
+
+@pytest.mark.parametrize("text,expected", [
+    ("Эканаміста хлушу.", "Эканамі́ста хлушу́."),
+    ("ЭКАНАМІСТА", "ЭКАНАМІ́СТА"),
+    ("Эканаміста", "Эканамі́ста"),
+    ("'эканаміста'", "'эканамі́ста'"),
+    ("«эканаміста»", "«эканамі́ста»"),
+])
+def test_dictionary_form_keeps_case_and_quotes(silero_be, text, expected):
+    """The stored vowel ordinal lands on the right vowel whatever the token carries."""
+    assert silero_be(text) == expected
+
+
+@pytest.mark.parametrize("text,expected", [
+    ("мука", "мука́"),
+    ("пара", "пара́"),
+    ("рукі", "ру́кі"),
+])
+def test_homograph_leaves_the_dictionary_layer(silero_be, text, expected):
+    """GrammarDB lists му́ка and мука́, so the key is not in the dictionary layer.
+
+    Alone, the word takes the reading the homograph layer's prior corpora
+    count most: мука́ 2 of 2, пара́ 7 of 9, ру́кі 35 of 38 (``prior_counts``
+    in ``homographs.json.gz``).
+    """
+    silero_be._ensure_loaded()
+    assert text not in silero_be._dictionary
+    assert text in silero_be._homographs
+    assert silero_be(text) == expected
+
+
+# GrammarDB holds сталі+н (genitive plural of сталі+на) and the pipeline says
+# сталі́н; inside a sentence the capitalized token takes no lowercase key
+@pytest.mark.parametrize("text,expected", [
+    ("Іосіф Сталін", "Іо́сіф Ста́лін"),
+    ("Уладзімір Пуцін", "Уладзі́мір Пу́цін"),
+])
+def test_capitalized_name_inside_a_sentence_stays_with_the_model(silero_be, text, expected):
+    assert silero_be(text) == expected
+
+
+# Інтэрфа+ксу is a capitalized form of the database, keyed Інтэрфаксу
+@pytest.mark.parametrize("text,expected", [
+    ("паводле Інтэрфаксу", "паво́дле Інтэрфа́ксу"),
+    ("ІНТЭРФАКСУ", "ІНТЭРФА́КСУ"),
+])
+def test_capitalized_key_applies_inside_a_sentence(silero_be, text, expected):
+    assert silero_be(text) == expected
+
+
+def test_capitalized_key_does_not_apply_at_sentence_start(silero_be):
+    """A name alone is a sentence start; its key stays unused there."""
+    silero_be._ensure_loaded()
+    assert "Інтэрфаксу" in silero_be._dictionary
+    assert silero_be._dictionary_ordinal("інтэрфаксу", "Інтэрфаксу", True) is None
+    assert silero_be._dictionary_ordinal("інтэрфаксу", "Інтэрфаксу", False) == 2
+
+
+# en-Wiktionary stresses the names Ста́лін and Ві́льня, so the common-noun
+# keys сталі́н and вільні́ are out of the layer, and the sentence start after
+# an initial or an abbreviation does not reach them
+@pytest.mark.parametrize("text,expected", [
+    ("В. Сталін", "В. Ста́лін"),
+    ("Іосіф В. Сталін", "Іо́сіф В. Ста́лін"),
+    ("г. Вільні", "г. Ві́льні"),
+    ("Сталін", "Ста́лін"),
+])
+def test_name_wiktionary_contradicts_stays_with_the_model(silero_be, text, expected):
+    silero_be._ensure_loaded()
+    assert "сталін" not in silero_be._dictionary and "вільні" not in silero_be._dictionary
+    assert silero_be(text) == expected
+

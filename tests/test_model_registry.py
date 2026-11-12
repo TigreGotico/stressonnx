@@ -17,7 +17,10 @@ from stressonnx import (
 # ---------------------------------------------------------------------------
 
 def test_registry_keys():
-    assert set(MODEL_REGISTRY.keys()) == {"ruaccent", "silero", "simple"}
+    assert set(MODEL_REGISTRY.keys()) == {
+        "ruaccent", "ruaccent-int8", "ruaccent-big-poetry", "ruaccent-silero",
+        "ruaccent-silero-int8", "silero", "simple", "kubataba", "stressrnn", "uk-accentor",
+    }
 
 
 def test_registry_families():
@@ -35,7 +38,7 @@ def test_default_model_covers_all_langs():
 
 
 def test_default_model_ru():
-    assert DEFAULT_MODEL["ru"] == "ruaccent"
+    assert DEFAULT_MODEL["ru"] == "ruaccent-silero"
 
 
 def test_default_model_ukr_bel():
