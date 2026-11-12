@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a41](https://github.com/TigreGotico/stressonnx/tree/0.0.3a41) (2026-11-12)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a40...0.0.3a41)
+
+**Merged pull requests:**
+
+- fix: encode through Tokenizer.compile\(\) on tokenizers 1.0.0rc4 [\#93](https://github.com/TigreGotico/stressonnx/pull/93) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.3a40](https://github.com/TigreGotico/stressonnx/tree/0.0.3a40) (2026-11-09)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a39...0.0.3a40)
