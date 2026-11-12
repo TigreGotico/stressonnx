@@ -30,7 +30,7 @@ from importlib.metadata import version
 import numpy as np
 import onnxruntime as ort
 
-from stressonnx._common import _RU_VOWELS, _UNSTRESSED_HYPHEN_CLITICS, _softmax
+from stressonnx._common import _RU_VOWELS, _UNSTRESSED_HYPHEN_CLITICS, _encoder, _softmax
 from stressonnx.download import _download_files
 from stressonnx.registry import MODEL_REGISTRY
 from stressonnx.errors import ModelDownloadError, ModelLoadError, UnknownModelError
@@ -244,8 +244,7 @@ class _Tokenizer:
     """A ``tokenizer.json`` with truncation off, on tokenizers 0.x and 1.x.
 
     tokenizers 1.x has no ``Encoding.word_ids`` and refuses vocab keys that
-    hold NUL, so this class reads the file itself.  On 1.x only the
-    ``CompiledTokenizer`` that ``Tokenizer.compile()`` builds can encode.  :meth:`word_ids` and
+    hold NUL, so this class reads the file itself.  :meth:`word_ids` and
     :meth:`pretokens` need a WordPiece model behind a BERT pre-tokenizer
     with a template post-processor, as the BERT tokenizers of this
     pipeline have.
@@ -268,7 +267,7 @@ class _Tokenizer:
                     json.dump(spec, fh)
                 tok = Tokenizer.from_file(sanitized)
             tok.truncation = None
-            self._tok = tok.compile()
+            self._tok = _encoder(tok)
         else:
             self._tok = Tokenizer.from_file(path)
             self._tok.no_truncation()

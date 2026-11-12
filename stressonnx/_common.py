@@ -100,6 +100,22 @@ def lower_preserving_length(text: str, turkic: bool = False) -> str:
     return "".join(c.lower() if len(c.lower()) == 1 else c.lower()[0] for c in text)
 
 
+def _encoder(tokenizer):
+    """The object that encodes for a ``tokenizers.Tokenizer``.
+
+    From tokenizers 1.0.0rc4 on, only the ``CompiledTokenizer`` that
+    ``Tokenizer.compile()`` builds can encode, with no truncation and no
+    padding.  Older versions, 1.0.0rc1 to rc3 among them, have no
+    ``compile()`` and encode on the ``Tokenizer``.
+    """
+    if not hasattr(tokenizer, "compile"):
+        return tokenizer
+    # compile() freezes the settings: edits after it do not reach the result
+    tokenizer.truncation = None
+    tokenizer.padding = None
+    return tokenizer.compile()
+
+
 def _softmax(x: np.ndarray) -> np.ndarray:
     x = x - x.max(axis=1, keepdims=True)
     e = np.exp(x)

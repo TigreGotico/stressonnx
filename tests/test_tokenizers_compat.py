@@ -9,6 +9,7 @@ sentences take each mark from an English Wiktionary usage example
 import pytest
 
 from stressonnx import stress
+from stressonnx._common import _encoder
 from stressonnx.backends.ruaccent import RuAccentStressor
 
 
@@ -101,3 +102,28 @@ def test_ru_sentence_through_the_real_tokenizers():
 def test_uk_accentor_sentence_through_the_real_tokenizer():
     # Wiktionary: «Приві́т усі́м!», «як спра́ви?»
     assert stress("Привіт, як справи?", "uk", model="uk-accentor") == "Приві́т, як спра́ви?"
+
+
+class _EncodesItself:
+    """Has ``encode`` and no ``compile``, as tokenizers 0.x and 1.0.0rc1 to rc3."""
+
+    def encode(self, text):
+        return text
+
+
+class _NeedsCompile:
+    """Has ``compile`` and no ``encode``, as tokenizers 1.0.0rc4."""
+
+    truncation = "truncate at 512"
+    padding = "pad to 512"
+
+    def compile(self):
+        # the settings the compiled tokenizer keeps
+        return {"truncation": self.truncation, "padding": self.padding}
+
+
+def test_encoder_is_chosen_by_feature_not_version():
+    # either assert fails under a version check, whichever version is installed
+    tok = _EncodesItself()
+    assert _encoder(tok) is tok
+    assert _encoder(_NeedsCompile()) == {"truncation": None, "padding": None}
