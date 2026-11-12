@@ -1,8 +1,9 @@
 name: Tokenizers Compat
 
-# The ruaccent backend supports the tokenizers 0.x and 1.x Python bindings,
-# which differ in API.  build-tests installs whichever the resolver picks;
-# this job pins each major version in turn.
+# The ruaccent and uk-accentor backends support the tokenizers 0.x and 1.x
+# Python bindings, which differ in API.  build-tests installs whichever the
+# resolver picks.  This job pins 0.x, 1.0.0rc3 (encode on Tokenizer, no
+# compile()) and the newest 1.x (encode only after compile()) in turn.
 
 on:
   pull_request:
@@ -21,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tokenizers: ["tokenizers<1", "tokenizers>=1.0.0rc1"]
+        tokenizers: ["tokenizers<1", "tokenizers==1.0.0rc3", "tokenizers>=1.0.0rc1"]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -40,7 +41,7 @@ jobs:
           uv pip install --system .[test]
           uv pip install --system --prerelease=allow "${{ matrix.tokenizers }}"
           python -c "import tokenizers; print('tokenizers', tokenizers.__version__)"
-      - name: Run ruaccent tests
+      - name: Run tokenizer-backed tests
         run: >
           python -m pytest -v
           tests/test_tokenizers_compat.py
@@ -49,3 +50,4 @@ jobs:
           tests/test_stress_ru.py
           tests/test_ruaccent_keeps_text.py
           tests/test_ruaccent_input_marks.py
+          tests/test_stress_uk_accentor.py

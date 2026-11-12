@@ -30,7 +30,7 @@ from importlib.metadata import version
 import numpy as np
 import onnxruntime as ort
 
-from stressonnx._common import _RU_VOWELS, _UNSTRESSED_HYPHEN_CLITICS, _softmax
+from stressonnx._common import _RU_VOWELS, _UNSTRESSED_HYPHEN_CLITICS, _encoder, _softmax
 from stressonnx.download import _download_files
 from stressonnx.registry import MODEL_REGISTRY
 from stressonnx.errors import ModelDownloadError, ModelLoadError, UnknownModelError
@@ -265,8 +265,9 @@ class _Tokenizer:
                 sanitized = os.path.join(tmp, "tokenizer.json")
                 with open(sanitized, "w", encoding="utf-8") as fh:
                     json.dump(spec, fh)
-                self._tok = Tokenizer.from_file(sanitized)
-            self._tok.truncation = None
+                tok = Tokenizer.from_file(sanitized)
+            tok.truncation = None
+            self._tok = _encoder(tok)
         else:
             self._tok = Tokenizer.from_file(path)
             self._tok.no_truncation()

@@ -36,6 +36,7 @@ import threading
 import numpy as np
 import onnxruntime as ort
 
+from stressonnx._common import _encoder
 from stressonnx.download import _download_files
 from stressonnx.errors import ModelDownloadError, ModelLoadError
 from stressonnx.notation import STRESS_TOKEN, composed, has_stress_mark, in_form_of, render_marks
@@ -139,7 +140,7 @@ class UkAccentorStressor:
 
         data = _download_files(hf_dir(self.lang, "uk_accentor"), _UK_ACCENTOR_FILES,
                                self._cache_dir, model_id="uk-accentor")
-        self._tokenizer = Tokenizer.from_file(data["tokenizer.json"])
+        self._tokenizer = _encoder(Tokenizer.from_file(data["tokenizer.json"]))
         with open(data["tokenizer.json"], encoding="utf-8") as fh:
             self._tokenizer_pieces = [piece for piece, _ in json.load(fh)["model"]["vocab"]]
         # decoder rows follow vocab.txt (CTranslate2 order: <blank> first,
