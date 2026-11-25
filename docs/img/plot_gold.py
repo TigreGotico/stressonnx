@@ -13,6 +13,7 @@ rows = sorted(((f"{lang} {name} ({DEFAULT_MODEL[lang]})", acc[DEFAULT_MODEL[lang
 
 
 def draw(fig, theme):
+    fig.get_layout_engine().set(w_pad=0.15)
     ax = fig.subplots()
     ax.barh([r[0] for r in rows], [r[1] for r in rows], color=theme["series"][0])
     for y, (_, v) in enumerate(rows):
@@ -22,4 +23,4 @@ def draw(fig, theme):
     ax.tick_params(axis="y", labelsize=8)
 
 
-save(str(Path(__file__).parent / "gold-accuracy"), draw)
+save(str(Path(__file__).parent / "gold-accuracy"), draw, width=7.6)
