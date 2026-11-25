@@ -41,7 +41,7 @@ How hard that is depends entirely on the language's **stress system**:
 | **Free / lexical** | stress is a property of each word, not predictable from its shape (Russian, Bulgarian, and others) | you need a dictionary, a model, or both |
 | **Fixed** | stress always falls on the same position (Latvian: first syllable; Macedonian: antepenultimate) | a one-line rule covers almost everything |
 | **Conditioned** | position is predictable from the word's phonology (Chuvash: last non-reduced vowel) | a slightly smarter rule |
-| **Written** | the orthography already encodes stress (Spanish, Greek) | you do not need this library, see the README's [bifonia](https://github.com/TigreGotico/bifonia) note for the interesting exception |
+| **Written** | the orthography already encodes stress (Spanish, Greek) | you do not need this library; for European Portuguese homographs use [bifonia](https://github.com/TigreGotico/bifonia) |
 
 ---
 
@@ -405,4 +405,4 @@ these languages, university pronunciation dictionaries are ideal, see
 [`export/ADDING_A_LANGUAGE.md`](../export/ADDING_A_LANGUAGE.md).
 
 ---
-[Home](../README.md) · [Models →](models.md)
+[Index](index.md) · [Models →](models.md)
