@@ -2,11 +2,29 @@
 
 <!-- agent-hint: start at agents.md for layout, test command and pitfalls -->
 
-stressonnx puts word-stress marks into text for text-to-speech front ends. It supports 26 language tags. It runs on `onnxruntime` and `numpy` only, with no torch at runtime. The output is the combining acute accent (U+0301) after the stressed vowel, or the `+` notation before it.
+stressonnx marks the stressed vowel of each word, so that a text-to-speech front end can pronounce text whose spelling does not show stress.
 
-![Word accuracy of the default model on human-labelled sets](img/gold-accuracy.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="img/gold-accuracy-dark.svg">
+  <img alt="Default-model word accuracy on human-labelled sets: ru 0.951 and 0.990, be 0.924 to 0.977, uk 0.843 and 0.905; be homographs 0.543." src="img/gold-accuracy.svg">
+</picture>
 
-The 23 languages other than ru, uk and be have no human-labelled test set. Their scores are in [`benchmarks/RESULTS.md`](../benchmarks/RESULTS.md).
+`img/plot_gold.py` makes this figure from `benchmarks/RESULTS.md`. The 23 languages other than ru, uk and be have no human-labelled test set.
+
+## Quickstart
+
+```bash
+uv pip install stressonnx
+```
+
+```python
+from stressonnx import stress
+
+stress("старинный замок стоит на горе", "ru")   # 'стари́нный за́мок сто́ит на горе́'
+stress("дверной замок надёжен", "ru")           # 'дверно́й замо́к надё́жен'
+```
+
+The output is the combining acute accent (U+0301) after the stressed vowel. The library supports 26 language tags and runs on `onnxruntime` and `numpy`, with no torch at runtime.
 
 ## Pages
 

@@ -25,4 +25,4 @@ Hugging Face revision in `meta.json`.
 
 ---
 
-[Index](index.md)
+[← Add a language](adding-a-language.md) · [Home](index.md) · [Agent hints →](agents.md)

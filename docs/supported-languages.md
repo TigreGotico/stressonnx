@@ -78,4 +78,4 @@ and download automatically on first use (see *Offline & failure behavior*).
 
 ---
 
-[Index](index.md)
+[Home](index.md) · [Usage →](usage.md)

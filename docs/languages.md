@@ -405,4 +405,5 @@ these languages, university pronunciation dictionaries are ideal, see
 [`export/ADDING_A_LANGUAGE.md`](../export/ADDING_A_LANGUAGE.md).
 
 ---
-[Index](index.md) · [Models →](models.md)
+
+[← Offline use and failure behaviour](offline-and-errors.md) · [Home](index.md) · [Model reference →](models.md)

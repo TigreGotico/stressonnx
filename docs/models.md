@@ -22,6 +22,13 @@ Full accuracy numbers, not just relative quality claims, live in
 [`../benchmarks/RESULTS.md`](../benchmarks/RESULTS.md), reproducible with
 `python benchmarks/run.py`. Headline results:
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="img/ru-models-dark.svg">
+  <img alt="ru russtress word accuracy: ruaccent-silero 0.951 is the highest; simple 0.871 is the lowest." src="img/ru-models.svg">
+</picture>
+
+`img/plot_ru_models.py` makes this figure from `benchmarks/RESULTS.md`.
+
 | lang | model | accuracy | homograph accuracy |
 |------|-------|----------|--------------------|
 | ru | ruaccent | 0.947 | 0.833 |
@@ -1202,4 +1209,5 @@ See [`../benchmarks/RESULTS.md`](../benchmarks/RESULTS.md) for measured
 accuracy numbers instead of qualitative claims.
 
 ---
-[← Languages](languages.md) · [Index](index.md) · [Architecture →](architecture.md)
+
+[← Language guide](languages.md) · [Home](index.md) · [Architecture →](architecture.md)

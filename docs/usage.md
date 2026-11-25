@@ -92,4 +92,4 @@ plain strings shared with phoonnx's `Alphabet` enum for direct comparison.
 
 ---
 
-[Index](index.md)
+[← Supported languages and models](supported-languages.md) · [Home](index.md) · [Offline use and failure behaviour →](offline-and-errors.md)

@@ -29,4 +29,4 @@ GitHub CI runs the full suite. Some tests download models from the Hugging Face 
 
 ---
 
-[Index](index.md)
+[← Credits and licences](credits.md) · [Home](index.md)
