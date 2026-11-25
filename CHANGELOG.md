@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.3a42](https://github.com/TigreGotico/stressonnx/tree/0.0.3a42) (2026-11-25)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a41...0.0.3a42)
+
+**Merged pull requests:**
+
+- docs: short README, docs index, agent hints and accuracy plot [\#97](https://github.com/TigreGotico/stressonnx/pull/97) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+- feat: export SCRIPT\_VOWELS and resolve\_lang as public API [\#95](https://github.com/TigreGotico/stressonnx/pull/95) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a41](https://github.com/TigreGotico/stressonnx/tree/0.0.3a41) (2026-11-12)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a40...0.0.3a41)
