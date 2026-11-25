@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a46](https://github.com/TigreGotico/stressonnx/tree/0.0.3a46) (2026-11-25)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a45...0.0.3a46)
+
+**Merged pull requests:**
+
+- docs: plot nits for the ru models and gold accuracy figures [\#104](https://github.com/TigreGotico/stressonnx/pull/104) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a45](https://github.com/TigreGotico/stressonnx/tree/0.0.3a45) (2026-11-25)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a44...0.0.3a45)
@@ -372,7 +380,6 @@
 
 - feat: typed data model, Script alphabet, kubataba backend, docs + tests [\#3](https://github.com/TigreGotico/stressonnx/pull/3) ([JarbasAl](https://github.com/JarbasAl))
 - feat: RUAccent homograph-aware Russian backend [\#2](https://github.com/TigreGotico/stressonnx/pull/2) ([JarbasAl](https://github.com/JarbasAl))
-- chore: Configure Renovate [\#1](https://github.com/TigreGotico/stressonnx/pull/1) ([renovate[bot]](https://github.com/apps/renovate))
 
 
 
