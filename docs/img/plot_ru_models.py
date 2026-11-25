@@ -3,8 +3,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from plot_style import save  # noqa: E402
-from results import gold_accuracy  # noqa: E402
+from plot_style import save
+from results import gold_accuracy
 
 rows = sorted(gold_accuracy()[("ru", "russtress")].items(), key=lambda r: r[1])
 

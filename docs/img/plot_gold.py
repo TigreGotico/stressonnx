@@ -3,9 +3,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from plot_style import save  # noqa: E402
-from results import gold_accuracy  # noqa: E402
-from stressonnx import DEFAULT_MODEL  # noqa: E402
+from plot_style import save
+from results import gold_accuracy
+
+from stressonnx import DEFAULT_MODEL
 
 rows = sorted(((f"{lang} {name} ({DEFAULT_MODEL[lang]})", acc[DEFAULT_MODEL[lang]])
                for (lang, name), acc in gold_accuracy().items()), key=lambda r: r[1])

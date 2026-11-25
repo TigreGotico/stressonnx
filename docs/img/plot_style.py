@@ -23,7 +23,7 @@ dataviz skill; the light and dark steps are validated for colour-vision deficien
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
+import matplotlib.pyplot as plt
 
 LIGHT = {
     "surface": "#ffffff", "text": "#191919", "muted": "#666666", "grid": "#e6e6e6",
