@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.0.3a44](https://github.com/TigreGotico/stressonnx/tree/0.0.3a44) (2026-11-25)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a43...0.0.3a44)
+
+**Merged pull requests:**
+
+- docs: SVG plots from RESULTS.md, index quickstart, page footers [\#101](https://github.com/TigreGotico/stressonnx/pull/101) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+- refactor: drop private pipeline aliases from the package root [\#96](https://github.com/TigreGotico/stressonnx/pull/96) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a43](https://github.com/TigreGotico/stressonnx/tree/0.0.3a43) (2026-11-25)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a42...0.0.3a43)
+
 ## [0.0.3a42](https://github.com/TigreGotico/stressonnx/tree/0.0.3a42) (2026-11-25)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a41...0.0.3a42)
