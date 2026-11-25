@@ -69,4 +69,4 @@ sessions are thread-safe for inference).
 
 ---
 
-[Index](index.md)
+[← Usage](usage.md) · [Home](index.md) · [Language guide →](languages.md)

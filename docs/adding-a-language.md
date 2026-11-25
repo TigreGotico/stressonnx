@@ -17,4 +17,4 @@ came from the RUAccent pronunciation dictionary.
 
 ---
 
-[Index](index.md)
+[← Architecture](architecture.md) · [Home](index.md) · [Credits and licences →](credits.md)

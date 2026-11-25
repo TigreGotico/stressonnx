@@ -537,4 +537,5 @@ constructs a model path itself.
 5. Add tests in `tests/`.
 
 ---
-[← Models](models.md) · [Index](index.md)
+
+[← Model reference](models.md) · [Home](index.md) · [Add a language →](adding-a-language.md)
