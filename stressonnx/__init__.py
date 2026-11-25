@@ -90,6 +90,8 @@ from stressonnx.registry import (
     StressorBackend,
     lang_to_script,
 )
+from stressonnx._common import SCRIPT_VOWELS
+from stressonnx.langs import resolve_lang
 from stressonnx.notation import STRESS_TOKEN, _apply_notation, to_plus_notation
 from stressonnx.backends import (
     KubatabaStressor,
@@ -185,7 +187,6 @@ __all__ = [
     "ModelLoadError",
     "FALLBACK_PRIORITY",
     "DEFAULT_PIPELINE",
-    "_SileroStressor",
     "SimpleStressor",
     "RuAccentStressor",
     "StressRnnStressor",
@@ -207,4 +208,6 @@ __all__ = [
     "StressorBackend",
     "LANG_SCRIPT",
     "lang_to_script",
+    "resolve_lang",
+    "SCRIPT_VOWELS",
 ]
