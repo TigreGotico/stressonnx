@@ -22,11 +22,20 @@ stressed vowel.
 uv pip install stressonnx
 ```
 
+Optional: `razdel` gives better Russian sentence splitting in the `ruaccent` pipeline. Without it, the pipeline reads the full input as one span.
+
 ## Documentation
 
 See [`docs/index.md`](docs/index.md): supported languages and measured
 accuracy, usage, offline behaviour, models, architecture and how to add a
 language. The scoreboard is in [`benchmarks/RESULTS.md`](benchmarks/RESULTS.md).
+
+## Related projects
+
+- [phoonnx](https://github.com/TigreGotico/phoonnx): ONNX TTS that calls stressonnx for Russian voices.
+- [bifonia](https://github.com/TigreGotico/bifonia): European Portuguese homographs by meaning.
+- [scriptconv](https://github.com/TigreGotico/scriptconv): script detection and phoneme-notation conversion.
+- [silabificador](https://github.com/TigreGotico/silabificador): Portuguese syllables and stress by rule.
 
 ## License
 

@@ -6,7 +6,7 @@ stressonnx puts word-stress marks into text for text-to-speech front ends. It su
 
 ![Word accuracy of the default model on human-labelled sets](img/gold-accuracy.png)
 
-The 20 `simple` languages have no human-labelled test set. Their scores are in [`benchmarks/RESULTS.md`](../benchmarks/RESULTS.md).
+The 23 languages other than ru, uk and be have no human-labelled test set. Their scores are in [`benchmarks/RESULTS.md`](../benchmarks/RESULTS.md).
 
 ## Pages
 

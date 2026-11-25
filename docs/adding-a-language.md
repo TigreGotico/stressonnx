@@ -1,7 +1,7 @@
 # Add a language
 
 Two paths, both documented step-by-step for newcomers in
-[`export/ADDING_A_LANGUAGE.md`](export/ADDING_A_LANGUAGE.md):
+[`export/ADDING_A_LANGUAGE.md`](../export/ADDING_A_LANGUAGE.md):
 
 1. **You have a stressed wordlist.** Ship a `simple` language: package the
    vocabulary, declare alphabet/vowels/OOV rule, upload to the HF repo,
