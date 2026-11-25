@@ -1202,4 +1202,4 @@ See [`../benchmarks/RESULTS.md`](../benchmarks/RESULTS.md) for measured
 accuracy numbers instead of qualitative claims.
 
 ---
-[← Languages](languages.md) · [Home](../README.md) · [Architecture →](architecture.md)
+[← Languages](languages.md) · [Index](index.md) · [Architecture →](architecture.md)

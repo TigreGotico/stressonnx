@@ -31,7 +31,7 @@ monolithic file:
 | `stressonnx/download.py` | The single download layer. `_download_files()` resolves model files via `huggingface_hub.hf_hub_download`, honoring the standard HF cache (`HF_HOME`, `HF_HUB_OFFLINE`) or an explicit `cache_dir` override. Every fetch is pinned to `HF_REPO_REVISION` (a commit hash) and logged. |
 | `stressonnx/errors.py` | Typed exceptions: `StressonnxError` (base), `UnsupportedLanguageError` (`ValueError` subclass), `ModelDownloadError`, `ModelLoadError`. |
 | `stressonnx/notation.py` | `STRESS_TOKEN` (U+0301), `render_marks()` (the single offset-to-string renderer), `to_plus_notation()`, `_apply_notation()`, `_plus_to_diacritic()`. |
-| `stressonnx/_common.py` | Small helpers shared by more than one backend: `_softmax`, `SCRIPT_VOWELS` (per-script vowel supersets used by the vowel-ordinal vocabulary format), `lower_preserving_length`, `_RE_SPLIT` (shared tokenizer boundary regex), `_RE_RU_COND`, `_UNSTRESSED_HYPHEN_CLITICS`. |
+| `stressonnx/_common.py` | Small helpers shared by more than one backend: `_softmax`, `SCRIPT_VOWELS` (per-script vowel supersets, frozensets, exported at the package root), `lower_preserving_length`, `_RE_SPLIT` (shared tokenizer boundary regex), `_RE_RU_COND`, `_UNSTRESSED_HYPHEN_CLITICS`. |
 | `stressonnx/stressor.py` | `make_stressor()`, the model-aware backend factory. |
 | `stressonnx/pipeline.py` | `StressPipeline`, an isolated engine instance with its own backend cache and failure policy: `.stress()`, `.stress_batch()`, `.analyze()`, `.warm_up()`, `StressResult`, `StressedWord`, `DEFAULT_PIPELINE` (the shared instance the module-level functions delegate to), `FALLBACK_PRIORITY`. |
 | `stressonnx/backends/ruaccent.py` | `RuAccentStressor`, the `ruaccent` family. |
@@ -537,4 +537,4 @@ constructs a model path itself.
 5. Add tests in `tests/`.
 
 ---
-[← Models](models.md) · [Home](../README.md)
+[← Models](models.md) · [Index](index.md)
