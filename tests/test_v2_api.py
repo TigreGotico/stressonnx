@@ -58,7 +58,7 @@ def test_private_pipeline_is_isolated():
     assert ("kk", "simple") in p._singletons
     import stressonnx
     # the private pipeline's cache is not the default pipeline's
-    assert p._singletons is not stressonnx._SINGLETONS
+    assert p._singletons is not stressonnx.DEFAULT_PIPELINE._singletons
 
 
 def _independent_mark_offsets(marked: str) -> list:

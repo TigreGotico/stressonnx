@@ -16,7 +16,7 @@ from stressonnx import (
     UnsupportedLanguageError,
     stress,
 )
-from stressonnx import _fallback_chain
+from stressonnx import DEFAULT_PIPELINE
 
 
 def test_exception_hierarchy():
@@ -34,13 +34,13 @@ def test_unsupported_language_names_lang_and_supported():
 
 def test_fallback_priority_order():
     assert FALLBACK_PRIORITY == ("ruaccent-silero", "ruaccent", "silero", "simple")
-    assert _fallback_chain("ru") == [
+    assert DEFAULT_PIPELINE._chain("ru") == [
         ("ruaccent-silero", "ru"), ("ruaccent", "ru"), ("silero", "ru"), ("simple", "ru")
     ]
-    assert _fallback_chain("uk") == [("silero", "uk"), ("simple", "uk")]
-    assert _fallback_chain("be") == [("silero", "be"), ("simple", "be")]
-    assert _fallback_chain("kk") == [("simple", "kk")]
-    assert _fallback_chain("xx") == []
+    assert DEFAULT_PIPELINE._chain("uk") == [("silero", "uk"), ("simple", "uk")]
+    assert DEFAULT_PIPELINE._chain("be") == [("silero", "be"), ("simple", "be")]
+    assert DEFAULT_PIPELINE._chain("kk") == [("simple", "kk")]
+    assert DEFAULT_PIPELINE._chain("xx") == []
 
 
 def test_download_failure_propagates_without_fallback(monkeypatch):
@@ -48,7 +48,7 @@ def test_download_failure_propagates_without_fallback(monkeypatch):
         raise OSError("simulated outage")
 
     monkeypatch.setattr(download, "hf_hub_download", _boom)
-    stressonnx._SINGLETONS.clear()
+    stressonnx.DEFAULT_PIPELINE._singletons.clear()
     with pytest.raises(ModelDownloadError) as excinfo:
         stress("привет", "ru")
     assert excinfo.value.model_id == "ruaccent-silero"  # user-facing id, not the HF subdir
@@ -64,7 +64,7 @@ def test_fallback_walks_chain_and_warns(monkeypatch, caplog):
         return real(*args, **kwargs)
 
     monkeypatch.setattr(download, "hf_hub_download", _fail_ruaccent)
-    stressonnx._SINGLETONS.clear()
+    stressonnx.DEFAULT_PIPELINE._singletons.clear()
     with caplog.at_level(logging.WARNING, logger="stressonnx"):
         result = stress("красивый город", "ru", fallback=True)
     assert result == "краси́вый го́род"
@@ -76,7 +76,7 @@ def test_fallback_exhaustion_raises(monkeypatch):
         raise OSError("simulated outage")
 
     monkeypatch.setattr(download, "hf_hub_download", _boom)
-    stressonnx._SINGLETONS.clear()
+    stressonnx.DEFAULT_PIPELINE._singletons.clear()
     with pytest.raises(ModelDownloadError):
         stress("привет", "ru", fallback=True)
 

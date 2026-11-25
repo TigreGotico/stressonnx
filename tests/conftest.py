@@ -13,9 +13,9 @@ def _clear_failure_cooldown():
     so real consumers don't hammer a failing download; tests that simulate
     outages must not poison the tests that follow them.
     """
-    stressonnx._RECENT_FAILURES.clear()
+    stressonnx.DEFAULT_PIPELINE._failures.clear()
     yield
-    stressonnx._RECENT_FAILURES.clear()
+    stressonnx.DEFAULT_PIPELINE._failures.clear()
 
 
 @pytest.fixture(scope="session")

@@ -75,17 +75,17 @@ def test_revision_is_pinned():
 def test_warm_up_shares_singleton_with_stress():
     warm_up("kk")
     key = ("kk", "simple")
-    assert key in stressonnx._SINGLETONS
-    backend = stressonnx._SINGLETONS[key]
+    assert key in stressonnx.DEFAULT_PIPELINE._singletons
+    backend = stressonnx.DEFAULT_PIPELINE._singletons[key]
     assert backend._loaded
     assert stress("Қазақстан", "kk") == "Қазақста́н"
-    assert stressonnx._SINGLETONS[key] is backend
+    assert stressonnx.DEFAULT_PIPELINE._singletons[key] is backend
 
 
 def test_default_and_explicit_model_share_one_instance():
     stress("Қазақстан", "kk")
     stress("Қазақстан", "kk", model="simple")
-    keys = [k for k in stressonnx._SINGLETONS if k[0] == "kk"]
+    keys = [k for k in stressonnx.DEFAULT_PIPELINE._singletons if k[0] == "kk"]
     assert keys == [("kk", "simple")]
 
 
@@ -97,7 +97,7 @@ def test_failure_cooldown_prevents_immediate_retry(monkeypatch):
         raise OSError("simulated outage")
 
     monkeypatch.setattr(download, "hf_hub_download", _boom)
-    stressonnx._SINGLETONS.clear()
+    stressonnx.DEFAULT_PIPELINE._singletons.clear()
     with pytest.raises(ModelDownloadError):
         stress("привет", "ru")
     first = len(calls)

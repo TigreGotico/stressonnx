@@ -110,16 +110,6 @@ from stressonnx.pipeline import (
     StressedWord,
 )
 
-#: Shared state of the default pipeline, exposed for tests/introspection.
-_SINGLETONS = DEFAULT_PIPELINE._singletons
-_RECENT_FAILURES = DEFAULT_PIPELINE._failures
-
-
-def _fallback_chain(lang: str) -> list:
-    """``(model, lang)`` pairs able to serve *lang*, best first."""
-    return DEFAULT_PIPELINE._chain(lang)
-
-
 def stress(
     text: str,
     lang: str = "ru",
@@ -196,6 +186,7 @@ __all__ = [
     "ModelDownloadError",
     "ModelLoadError",
     "FALLBACK_PRIORITY",
+    "DEFAULT_PIPELINE",
     "SimpleStressor",
     "RuAccentStressor",
     "StressRnnStressor",
