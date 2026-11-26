@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a50](https://github.com/TigreGotico/stressonnx/tree/0.0.3a50) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a49...0.0.3a50)
+
+**Merged pull requests:**
+
+- docs\(languages\): primary-source quotes for kjh, kbd, ba, uk, ka and xal [\#116](https://github.com/TigreGotico/stressonnx/pull/116) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a49](https://github.com/TigreGotico/stressonnx/tree/0.0.3a49) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a48...0.0.3a49)
@@ -383,10 +391,6 @@
 ## [0.0.2a1](https://github.com/TigreGotico/stressonnx/tree/0.0.2a1) (2026-07-22)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.1...0.0.2a1)
-
-**Merged pull requests:**
-
-- fix\(ci\): use token-based PyPI publishing instead of OIDC [\#10](https://github.com/TigreGotico/stressonnx/pull/10) ([JarbasAl](https://github.com/JarbasAl))
 
 ## [0.0.1](https://github.com/TigreGotico/stressonnx/tree/0.0.1) (2026-07-22)
 
