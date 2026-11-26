@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.3a57](https://github.com/TigreGotico/stressonnx/tree/0.0.3a57) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a56...0.0.3a57)
+
+**Merged pull requests:**
+
+- fix\(hy\): the mark of ու follows ւ [\#131](https://github.com/TigreGotico/stressonnx/pull/131) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a56](https://github.com/TigreGotico/stressonnx/tree/0.0.3a56) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a55...0.0.3a56)
+
 ## [0.0.3a55](https://github.com/TigreGotico/stressonnx/tree/0.0.3a55) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a54...0.0.3a55)
@@ -270,11 +282,6 @@
 ## [0.0.3a20](https://github.com/TigreGotico/stressonnx/tree/0.0.3a20) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a19...0.0.3a20)
-
-**Merged pull requests:**
-
-- Update actions/checkout action to v7 [\#24](https://github.com/TigreGotico/stressonnx/pull/24) ([renovate[bot]](https://github.com/apps/renovate))
-- Update actions/cache action to v6 [\#23](https://github.com/TigreGotico/stressonnx/pull/23) ([renovate[bot]](https://github.com/apps/renovate))
 
 ## [0.0.3a19](https://github.com/TigreGotico/stressonnx/tree/0.0.3a19) (2026-11-05)
 
