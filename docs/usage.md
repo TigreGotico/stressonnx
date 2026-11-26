@@ -5,7 +5,7 @@ from stressonnx import StressPipeline, analyze, stress, to_plus_notation
 
 # One-shot function (caches model instances internally)
 stress("Привіт світ", "uk")                   # 'Приві́т сві́т'
-stress("Сәлем Қазақстан", "kk")               # 'Сәле́м Қазақста́н'
+stress("Алматы Қазақстан", "kk")              # 'Алматы́ Қазақста́н'
 
 # Pick a specific model, or a capability instead of a model id
 stress("красивый город", "ru", model="silero")    # 'краси́вый го́род'
