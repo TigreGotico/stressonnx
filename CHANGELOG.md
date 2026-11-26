@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a59](https://github.com/TigreGotico/stressonnx/tree/0.0.3a59) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a58...0.0.3a59)
+
+**Merged pull requests:**
+
+- test: drop the inert vocabulary-upload xfail mark [\#136](https://github.com/TigreGotico/stressonnx/pull/136) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a58](https://github.com/TigreGotico/stressonnx/tree/0.0.3a58) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a57...0.0.3a58)
@@ -278,10 +286,6 @@
 ## [0.0.3a22](https://github.com/TigreGotico/stressonnx/tree/0.0.3a22) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a21...0.0.3a22)
-
-**Merged pull requests:**
-
-- Update actions/setup-python action to v7 [\#27](https://github.com/TigreGotico/stressonnx/pull/27) ([renovate[bot]](https://github.com/apps/renovate))
 
 ## [0.0.3a21](https://github.com/TigreGotico/stressonnx/tree/0.0.3a21) (2026-11-05)
 
