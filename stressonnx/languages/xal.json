@@ -1,7 +1,7 @@
 {
   "name": "Kalmyk",
   "script": "cyrillic",
-  "rule": "last",
+  "rule": "none",
   "hf": {
     "simple": "xal"
   },
