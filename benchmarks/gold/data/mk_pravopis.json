@@ -1,0 +1,5146 @@
+{
+"n_in": 1284,
+"drops": {
+"more than one mark (words)": 20,
+"one vowel letter (words)": 100,
+"mark on the syllabic р or a consonant (words)": 15,
+"word with two stresses (words)": 25
+},
+"words": [
+{
+"word": "абдулаќим",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "абеба",
+"stressed_vowel_index": 1,
+"page": 291
+},
+{
+"word": "абиџаец",
+"stressed_vowel_index": 2,
+"page": 291
+},
+{
+"word": "абиџајка",
+"stressed_vowel_index": 2,
+"page": 291
+},
+{
+"word": "абиџајски",
+"stressed_vowel_index": 2,
+"page": 291
+},
+{
+"word": "абиџајци",
+"stressed_vowel_index": 2,
+"page": 291
+},
+{
+"word": "авангарда",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "авантурист",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "авганистан",
+"stressed_vowel_index": 3,
+"page": 291
+},
+{
+"word": "авганистанец",
+"stressed_vowel_index": 3,
+"page": 291
+},
+{
+"word": "авганистанка",
+"stressed_vowel_index": 3,
+"page": 291
+},
+{
+"word": "авганистански",
+"stressed_vowel_index": 3,
+"page": 291
+},
+{
+"word": "авганистанци",
+"stressed_vowel_index": 3,
+"page": 291
+},
+{
+"word": "авион",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "агрегат",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "адаптибилен",
+"stressed_vowel_index": 3,
+"page": 32
+},
+{
+"word": "адвокат",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "адеми",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "адисабепски",
+"stressed_vowel_index": 3,
+"page": 291
+},
+{
+"word": "административен",
+"stressed_vowel_index": 4,
+"page": 32
+},
+{
+"word": "адмирал",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "адреса",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "адријана",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "аждерска",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "аждерски",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "ажурен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "азербејџан",
+"stressed_vowel_index": 3,
+"page": 30
+},
+{
+"word": "азербејџанец",
+"stressed_vowel_index": 3,
+"page": 30
+},
+{
+"word": "азербејџанка",
+"stressed_vowel_index": 3,
+"page": 30
+},
+{
+"word": "азербејџански",
+"stressed_vowel_index": 3,
+"page": 291
+},
+{
+"word": "азербејџанци",
+"stressed_vowel_index": 3,
+"page": 291
+},
+{
+"word": "азијат",
+"stressed_vowel_index": 2,
+"page": 291
+},
+{
+"word": "азијати",
+"stressed_vowel_index": 2,
+"page": 291
+},
+{
+"word": "азијатка",
+"stressed_vowel_index": 2,
+"page": 291
+},
+{
+"word": "азијатски",
+"stressed_vowel_index": 2,
+"page": 291
+},
+{
+"word": "азурен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "акварел",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "акробат",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "аксентиев",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "актива",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "активен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "актуелен",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "алармантен",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "алачка",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "алачки",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "албум",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "александров",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "алерголог",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "алеја",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "алигиери",
+"stressed_vowel_index": 3,
+"page": 29
+},
+{
+"word": "алинеја",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "алмаатски",
+"stressed_vowel_index": 2,
+"page": 291
+},
+{
+"word": "алтернатива",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "алтруист",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "алјаска",
+"stressed_vowel_index": 1,
+"page": 291
+},
+{
+"word": "аматер",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "амбалажа",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "амбиент",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "амстердамец",
+"stressed_vowel_index": 2,
+"page": 291
+},
+{
+"word": "амстердамка",
+"stressed_vowel_index": 2,
+"page": 291
+},
+{
+"word": "амстердамски",
+"stressed_vowel_index": 2,
+"page": 291
+},
+{
+"word": "амстердамци",
+"stressed_vowel_index": 2,
+"page": 291
+},
+{
+"word": "ангола",
+"stressed_vowel_index": 1,
+"page": 291
+},
+{
+"word": "андова",
+"stressed_vowel_index": 0,
+"page": 33
+},
+{
+"word": "андора",
+"stressed_vowel_index": 1,
+"page": 291
+},
+{
+"word": "анкета",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "анкетен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "ансамбл",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "антананаривец",
+"stressed_vowel_index": 4,
+"page": 292
+},
+{
+"word": "антананаривка",
+"stressed_vowel_index": 4,
+"page": 292
+},
+{
+"word": "антананариво",
+"stressed_vowel_index": 4,
+"page": 292
+},
+{
+"word": "антананаривски",
+"stressed_vowel_index": 4,
+"page": 292
+},
+{
+"word": "антананаривци",
+"stressed_vowel_index": 4,
+"page": 292
+},
+{
+"word": "антена",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "антига",
+"stressed_vowel_index": 1,
+"page": 292
+},
+{
+"word": "антимон",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "апанажа",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "апарат",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "апенини",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "апостол",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "апсана",
+"stressed_vowel_index": 1,
+"page": 28
+},
+{
+"word": "аптека",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "арбитража",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "аргентина",
+"stressed_vowel_index": 2,
+"page": 30
+},
+{
+"word": "аргентинец",
+"stressed_vowel_index": 2,
+"page": 292
+},
+{
+"word": "аргентинка",
+"stressed_vowel_index": 2,
+"page": 292
+},
+{
+"word": "аргентински",
+"stressed_vowel_index": 2,
+"page": 292
+},
+{
+"word": "аргентинци",
+"stressed_vowel_index": 2,
+"page": 292
+},
+{
+"word": "аргумент",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "ардени",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "арогантен",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "артемида",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "аруба",
+"stressed_vowel_index": 1,
+"page": 292
+},
+{
+"word": "архаизам",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "архива",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "архитектура",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "асмара",
+"stressed_vowel_index": 1,
+"page": 292
+},
+{
+"word": "аспект",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "астана",
+"stressed_vowel_index": 1,
+"page": 292
+},
+{
+"word": "асунсион",
+"stressed_vowel_index": 3,
+"page": 292
+},
+{
+"word": "асунсионец",
+"stressed_vowel_index": 3,
+"page": 292
+},
+{
+"word": "асунсионка",
+"stressed_vowel_index": 3,
+"page": 292
+},
+{
+"word": "асунсионски",
+"stressed_vowel_index": 3,
+"page": 292
+},
+{
+"word": "асунсионци",
+"stressed_vowel_index": 3,
+"page": 292
+},
+{
+"word": "аташе",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "атеизам",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "ателје",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "афинитет",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "афродита",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "ацетон",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "ајдарска",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "ајдарски",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "бабане",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "бамако",
+"stressed_vowel_index": 1,
+"page": 292
+},
+{
+"word": "бангуи",
+"stressed_vowel_index": 1,
+"page": 292
+},
+{
+"word": "барбадос",
+"stressed_vowel_index": 1,
+"page": 292
+},
+{
+"word": "барбуда",
+"stressed_vowel_index": 1,
+"page": 292
+},
+{
+"word": "бариера",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "баритон",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "барселона",
+"stressed_vowel_index": 2,
+"page": 292
+},
+{
+"word": "барселонец",
+"stressed_vowel_index": 2,
+"page": 292
+},
+{
+"word": "барселонка",
+"stressed_vowel_index": 2,
+"page": 292
+},
+{
+"word": "барселонски",
+"stressed_vowel_index": 2,
+"page": 292
+},
+{
+"word": "барселонци",
+"stressed_vowel_index": 2,
+"page": 292
+},
+{
+"word": "барутана",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "бахами",
+"stressed_vowel_index": 1,
+"page": 292
+},
+{
+"word": "бездруго",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "белиз",
+"stressed_vowel_index": 1,
+"page": 292
+},
+{
+"word": "белмопан",
+"stressed_vowel_index": 2,
+"page": 293
+},
+{
+"word": "белмопанец",
+"stressed_vowel_index": 2,
+"page": 293
+},
+{
+"word": "белмопанка",
+"stressed_vowel_index": 2,
+"page": 293
+},
+{
+"word": "белмопански",
+"stressed_vowel_index": 2,
+"page": 293
+},
+{
+"word": "белмопанци",
+"stressed_vowel_index": 2,
+"page": 293
+},
+{
+"word": "беломорски",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "белоруси",
+"stressed_vowel_index": 2,
+"page": 293
+},
+{
+"word": "белорусин",
+"stressed_vowel_index": 2,
+"page": 293
+},
+{
+"word": "белоруски",
+"stressed_vowel_index": 2,
+"page": 293
+},
+{
+"word": "бензин",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "бермуди",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "бесими",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "биде",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "бидејќи",
+"stressed_vowel_index": 1,
+"page": 28
+},
+{
+"word": "билтен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "биолог",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "биро",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "бисаец",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "бисао",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "бисајка",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "бисајски",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "бисајци",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "богота",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "божик",
+"stressed_vowel_index": 0,
+"page": 35
+},
+{
+"word": "болоња",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "бонбониера",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "бордо",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "бордоанец",
+"stressed_vowel_index": 2,
+"page": 30
+},
+{
+"word": "бордоанка",
+"stressed_vowel_index": 2,
+"page": 30
+},
+{
+"word": "ботаничар",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "боцвана",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "бојкот",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "братучед",
+"stressed_vowel_index": 1,
+"page": 35
+},
+{
+"word": "братучетка",
+"stressed_vowel_index": 2,
+"page": 35
+},
+{
+"word": "брунеец",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "брунеј",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "брунејка",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "брунејски",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "брунејци",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "булевар",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "буркина",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "бурунди",
+"stressed_vowel_index": 1,
+"page": 293
+},
+{
+"word": "буџумбура",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "валета",
+"stressed_vowel_index": 1,
+"page": 294
+},
+{
+"word": "вануату",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "вардар",
+"stressed_vowel_index": 0,
+"page": 35
+},
+{
+"word": "варијабилен",
+"stressed_vowel_index": 3,
+"page": 32
+},
+{
+"word": "василиј",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "ватиканец",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "ватикански",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "ватиканци",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "ваши",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "вајан",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "вегетаријанец",
+"stressed_vowel_index": 4,
+"page": 31
+},
+{
+"word": "велигден",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "велосипед",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "венецуела",
+"stressed_vowel_index": 3,
+"page": 294
+},
+{
+"word": "венецуелец",
+"stressed_vowel_index": 3,
+"page": 294
+},
+{
+"word": "венецуелка",
+"stressed_vowel_index": 3,
+"page": 294
+},
+{
+"word": "венецуелски",
+"stressed_vowel_index": 3,
+"page": 294
+},
+{
+"word": "венецуелци",
+"stressed_vowel_index": 3,
+"page": 294
+},
+{
+"word": "вентилатор",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "вергилиј",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "верлен",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "ветеран",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "вечарава",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "вечерава",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "виде",
+"stressed_vowel_index": 0,
+"page": 32
+},
+{
+"word": "видел",
+"stressed_vowel_index": 0,
+"page": 36
+},
+{
+"word": "видете",
+"stressed_vowel_index": 1,
+"page": 35
+},
+{
+"word": "видување",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "виена",
+"stressed_vowel_index": 1,
+"page": 294
+},
+{
+"word": "виентијан",
+"stressed_vowel_index": 3,
+"page": 294
+},
+{
+"word": "визуелен",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "викајќи",
+"stressed_vowel_index": 1,
+"page": 28
+},
+{
+"word": "вирман",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "висок",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "витамин",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "внимателно",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "волонтер",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "второстепен",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "вулканизер",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "габороне",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "габоронец",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "габоронка",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "габоронски",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "габоронци",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "габриела",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "гази",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "гарниран",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "гваделуп",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "гваделупец",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "гваделупка",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "гваделупски",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "гваделупци",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "гватемала",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "гватемалец",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "гватемалка",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "гватемалски",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "гватемалци",
+"stressed_vowel_index": 2,
+"page": 294
+},
+{
+"word": "гвајана",
+"stressed_vowel_index": 1,
+"page": 294
+},
+{
+"word": "гвајанец",
+"stressed_vowel_index": 1,
+"page": 294
+},
+{
+"word": "гвајанка",
+"stressed_vowel_index": 1,
+"page": 294
+},
+{
+"word": "гвајанци",
+"stressed_vowel_index": 1,
+"page": 294
+},
+{
+"word": "гвинеец",
+"stressed_vowel_index": 1,
+"page": 294
+},
+{
+"word": "гвинеја",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "гвинејка",
+"stressed_vowel_index": 1,
+"page": 294
+},
+{
+"word": "гвинејци",
+"stressed_vowel_index": 1,
+"page": 294
+},
+{
+"word": "генерал",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "генијален",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "генијалец",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "геолог",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "герулмуд",
+"stressed_vowel_index": 1,
+"page": 300
+},
+{
+"word": "гимназијалец",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "гијана",
+"stressed_vowel_index": 1,
+"page": 294
+},
+{
+"word": "глава",
+"stressed_vowel_index": 0,
+"page": 33
+},
+{
+"word": "глазура",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "гледај",
+"stressed_vowel_index": 0,
+"page": 36
+},
+{
+"word": "гледање",
+"stressed_vowel_index": 0,
+"page": 34
+},
+{
+"word": "голо",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "горе",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "горноселец",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "градоначалник",
+"stressed_vowel_index": 2,
+"page": 27
+},
+{
+"word": "гренада",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "гримаса",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "грозјебрање",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "гуру",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "давај",
+"stressed_vowel_index": 0,
+"page": 36
+},
+{
+"word": "дадам",
+"stressed_vowel_index": 0,
+"page": 36
+},
+{
+"word": "даде",
+"stressed_vowel_index": 0,
+"page": 33
+},
+{
+"word": "дајте",
+"stressed_vowel_index": 0,
+"page": 35
+},
+{
+"word": "двесте",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "деби",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "деветмина",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "деветтемина",
+"stressed_vowel_index": 2,
+"page": 27
+},
+{
+"word": "девиза",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "дежурен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "декан",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "декември",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "демир",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "демократ",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "депо",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "десет",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "дефицит",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "диего",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "дижон",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "дижонец",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "дижонка",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "динамичен",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "динамо",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "диоклецијан",
+"stressed_vowel_index": 4,
+"page": 29
+},
+{
+"word": "дипломат",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "директен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "директор",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "диспанзер",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "дијалог",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "дијамант",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "дијана",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "дијапазон",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "добар",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "добре",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "добрејци",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "добро",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "додома",
+"stressed_vowel_index": 1,
+"page": 295
+},
+{
+"word": "докторанд",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "документарец",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "долговечен",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "долу",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "доминго",
+"stressed_vowel_index": 1,
+"page": 302
+},
+{
+"word": "доминика",
+"stressed_vowel_index": 2,
+"page": 295
+},
+{
+"word": "доминикана",
+"stressed_vowel_index": 3,
+"page": 295
+},
+{
+"word": "доминиканец",
+"stressed_vowel_index": 3,
+"page": 295
+},
+{
+"word": "доминиканка",
+"stressed_vowel_index": 3,
+"page": 295
+},
+{
+"word": "доминиканска",
+"stressed_vowel_index": 3,
+"page": 295
+},
+{
+"word": "доминикански",
+"stressed_vowel_index": 3,
+"page": 295
+},
+{
+"word": "доминиканци",
+"stressed_vowel_index": 3,
+"page": 295
+},
+{
+"word": "донеси",
+"stressed_vowel_index": 1,
+"page": 35
+},
+{
+"word": "достоевски",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "дојде",
+"stressed_vowel_index": 0,
+"page": 32
+},
+{
+"word": "дојдовте",
+"stressed_vowel_index": 0,
+"page": 34
+},
+{
+"word": "драматичен",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "драстичен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "дрвошанов",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "друга",
+"stressed_vowel_index": 1,
+"page": 144
+},
+{
+"word": "другата",
+"stressed_vowel_index": 2,
+"page": 33
+},
+{
+"word": "душанбе",
+"stressed_vowel_index": 1,
+"page": 295
+},
+{
+"word": "душанбеец",
+"stressed_vowel_index": 2,
+"page": 295
+},
+{
+"word": "душанбејка",
+"stressed_vowel_index": 2,
+"page": 295
+},
+{
+"word": "душанбејски",
+"stressed_vowel_index": 2,
+"page": 295
+},
+{
+"word": "душанбејци",
+"stressed_vowel_index": 2,
+"page": 295
+},
+{
+"word": "еднообразен",
+"stressed_vowel_index": 2,
+"page": 27
+},
+{
+"word": "едноподруго",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "еквадор",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "екватогвинеец",
+"stressed_vowel_index": 4,
+"page": 295
+},
+{
+"word": "екватогвинејка",
+"stressed_vowel_index": 4,
+"page": 295
+},
+{
+"word": "екватогвинејци",
+"stressed_vowel_index": 4,
+"page": 295
+},
+{
+"word": "експозе",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "елада",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "електричен",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "електрон",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "елемент",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "елипса",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "емигрант",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "емирати",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "емиратски",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "епизода",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "епилог",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "епископ",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "епопеја",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "еритреец",
+"stressed_vowel_index": 2,
+"page": 295
+},
+{
+"word": "еритреја",
+"stressed_vowel_index": 2,
+"page": 295
+},
+{
+"word": "еритрејка",
+"stressed_vowel_index": 2,
+"page": 295
+},
+{
+"word": "еритрејски",
+"stressed_vowel_index": 2,
+"page": 295
+},
+{
+"word": "еритрејци",
+"stressed_vowel_index": 2,
+"page": 295
+},
+{
+"word": "ерудит",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "есеист",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "етапа",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "ете",
+"stressed_vowel_index": 0,
+"page": 35
+},
+{
+"word": "ефективен",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "желе",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "жена",
+"stressed_vowel_index": 0,
+"page": 34
+},
+{
+"word": "жената",
+"stressed_vowel_index": 1,
+"page": 35
+},
+{
+"word": "жири",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "жуан",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "журнал",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "журналист",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "заблагодарете",
+"stressed_vowel_index": 5,
+"page": 36
+},
+{
+"word": "зеколи",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "земјоделец",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "зимбабве",
+"stressed_vowel_index": 1,
+"page": 296
+},
+{
+"word": "зимно",
+"stressed_vowel_index": 1,
+"page": 33
+},
+{
+"word": "знаменосец",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "ивоар",
+"stressed_vowel_index": 2,
+"page": 293
+},
+{
+"word": "ивоарец",
+"stressed_vowel_index": 2,
+"page": 293
+},
+{
+"word": "ивоарка",
+"stressed_vowel_index": 2,
+"page": 293
+},
+{
+"word": "ивоарски",
+"stressed_vowel_index": 2,
+"page": 293
+},
+{
+"word": "ивоарци",
+"stressed_vowel_index": 2,
+"page": 293
+},
+{
+"word": "идеал",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "идеален",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "идеализам",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "идеја",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "идиот",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "илегалец",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "имитатор",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "имунитет",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "институт",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "интегритет",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "интелектуалец",
+"stressed_vowel_index": 4,
+"page": 31
+},
+{
+"word": "интервал",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "интервју",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "интернист",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "иритира",
+"stressed_vowel_index": 2,
+"page": 27
+},
+{
+"word": "иронизира",
+"stressed_vowel_index": 3,
+"page": 32
+},
+{
+"word": "ироничен",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "исидора",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "исламабад",
+"stressed_vowel_index": 2,
+"page": 296
+},
+{
+"word": "историограф",
+"stressed_vowel_index": 4,
+"page": 31
+},
+{
+"word": "кабаре",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "кабинет",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "казахстан",
+"stressed_vowel_index": 2,
+"page": 296
+},
+{
+"word": "казахстанец",
+"stressed_vowel_index": 2,
+"page": 296
+},
+{
+"word": "казахстанка",
+"stressed_vowel_index": 2,
+"page": 296
+},
+{
+"word": "казахстанци",
+"stressed_vowel_index": 2,
+"page": 296
+},
+{
+"word": "казахтански",
+"stressed_vowel_index": 2,
+"page": 296
+},
+{
+"word": "казино",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "казненопоправен",
+"stressed_vowel_index": 3,
+"page": 27
+},
+{
+"word": "какаду",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "калиопи",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "калциум",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "камбана",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "камбоџа",
+"stressed_vowel_index": 1,
+"page": 297
+},
+{
+"word": "камелеон",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "кампала",
+"stressed_vowel_index": 1,
+"page": 297
+},
+{
+"word": "кандидат",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "капитал",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "каравецки",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "карактер",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "кариби",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "кариера",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "кармин",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "карпати",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "картотека",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "карфиол",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "катманду",
+"stressed_vowel_index": 1,
+"page": 297
+},
+{
+"word": "киви",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "кигали",
+"stressed_vowel_index": 1,
+"page": 297
+},
+{
+"word": "кинематограф",
+"stressed_vowel_index": 4,
+"page": 31
+},
+{
+"word": "кино",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "кинотека",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "киншаса",
+"stressed_vowel_index": 1,
+"page": 297
+},
+{
+"word": "киргистан",
+"stressed_vowel_index": 2,
+"page": 297
+},
+{
+"word": "киргистанец",
+"stressed_vowel_index": 2,
+"page": 297
+},
+{
+"word": "киргистанка",
+"stressed_vowel_index": 2,
+"page": 297
+},
+{
+"word": "киргистански",
+"stressed_vowel_index": 2,
+"page": 297
+},
+{
+"word": "киргистанци",
+"stressed_vowel_index": 2,
+"page": 297
+},
+{
+"word": "кирибати",
+"stressed_vowel_index": 2,
+"page": 297
+},
+{
+"word": "кирибатски",
+"stressed_vowel_index": 2,
+"page": 297
+},
+{
+"word": "кисела",
+"stressed_vowel_index": 2,
+"page": 33
+},
+{
+"word": "кисело",
+"stressed_vowel_index": 2,
+"page": 33
+},
+{
+"word": "кларинет",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "класичен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "клише",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "кога",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "когадојде",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "кокетен",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "коломбо",
+"stressed_vowel_index": 1,
+"page": 297
+},
+{
+"word": "колорит",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "комори",
+"stressed_vowel_index": 1,
+"page": 297
+},
+{
+"word": "компјутер",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "комфор",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "конакри",
+"stressed_vowel_index": 1,
+"page": 297
+},
+{
+"word": "конзервативец",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "константинов",
+"stressed_vowel_index": 1,
+"page": 33
+},
+{
+"word": "консумира",
+"stressed_vowel_index": 2,
+"page": 27
+},
+{
+"word": "континуум",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "конфликт",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "конфликтен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "копенхашки",
+"stressed_vowel_index": 2,
+"page": 297
+},
+{
+"word": "коректура",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "кореограф",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "кореја",
+"stressed_vowel_index": 1,
+"page": 296
+},
+{
+"word": "корзо",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "костарика",
+"stressed_vowel_index": 2,
+"page": 298
+},
+{
+"word": "кочишка",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "кочишки",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "красимира",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "кристал",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "крокодил",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "крупие",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "куала",
+"stressed_vowel_index": 1,
+"page": 298
+},
+{
+"word": "кулоар",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "култура",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "културен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "купе",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "лабилен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "лавабо",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "лаванда",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "лавиринт",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "лакира",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "лампион",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "лапниголтни",
+"stressed_vowel_index": 1,
+"page": 28
+},
+{
+"word": "левата",
+"stressed_vowel_index": 2,
+"page": 33
+},
+{
+"word": "легален",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "лексикон",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "лектор",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "лектура",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "леоне",
+"stressed_vowel_index": 1,
+"page": 303
+},
+{
+"word": "лесото",
+"stressed_vowel_index": 1,
+"page": 298
+},
+{
+"word": "летно",
+"stressed_vowel_index": 1,
+"page": 33
+},
+{
+"word": "летуваат",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "лилонгве",
+"stressed_vowel_index": 1,
+"page": 298
+},
+{
+"word": "лимузина",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "лингвист",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "линдита",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "литература",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "локален",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "ломе",
+"stressed_vowel_index": 1,
+"page": 298
+},
+{
+"word": "ломеец",
+"stressed_vowel_index": 1,
+"page": 298
+},
+{
+"word": "ломејка",
+"stressed_vowel_index": 1,
+"page": 298
+},
+{
+"word": "ломејски",
+"stressed_vowel_index": 1,
+"page": 298
+},
+{
+"word": "ломејци",
+"stressed_vowel_index": 1,
+"page": 298
+},
+{
+"word": "луанда",
+"stressed_vowel_index": 1,
+"page": 298
+},
+{
+"word": "лусака",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "мавзолеј",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "магистер",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "магистратура",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "маглешев",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "магнезиум",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "мадагаскар",
+"stressed_vowel_index": 2,
+"page": 299
+},
+{
+"word": "мака",
+"stressed_vowel_index": 0,
+"page": 35
+},
+{
+"word": "македонист",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "макијавели",
+"stressed_vowel_index": 3,
+"page": 29
+},
+{
+"word": "макро",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "максимум",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "малабо",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "малави",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "малаец",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "малаја",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "малајка",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "малајски",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "малајци",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "малдиви",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "малерозен",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "манагва",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "манама",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "манамец",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "манамка",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "манамски",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "манамци",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "маникир",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "манила",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "манилец",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "манилка",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "манилски",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "манилци",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "манир",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "мапуто",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "мапутоанец",
+"stressed_vowel_index": 3,
+"page": 299
+},
+{
+"word": "мапутоанка",
+"stressed_vowel_index": 3,
+"page": 299
+},
+{
+"word": "мапутоански",
+"stressed_vowel_index": 3,
+"page": 299
+},
+{
+"word": "мапутоанци",
+"stressed_vowel_index": 3,
+"page": 299
+},
+{
+"word": "марино",
+"stressed_vowel_index": 1,
+"page": 302
+},
+{
+"word": "мароканец",
+"stressed_vowel_index": 2,
+"page": 299
+},
+{
+"word": "мароканка",
+"stressed_vowel_index": 2,
+"page": 299
+},
+{
+"word": "марокански",
+"stressed_vowel_index": 2,
+"page": 299
+},
+{
+"word": "мароканци",
+"stressed_vowel_index": 2,
+"page": 299
+},
+{
+"word": "мароко",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "маршал",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "маршира",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "масеру",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "маскенбал",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "математичар",
+"stressed_vowel_index": 2,
+"page": 30
+},
+{
+"word": "материјал",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "материјализам",
+"stressed_vowel_index": 4,
+"page": 31
+},
+{
+"word": "матура",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "мајка",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "маџуро",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "маџуроанец",
+"stressed_vowel_index": 3,
+"page": 299
+},
+{
+"word": "маџуроанка",
+"stressed_vowel_index": 3,
+"page": 299
+},
+{
+"word": "маџуроански",
+"stressed_vowel_index": 3,
+"page": 299
+},
+{
+"word": "маџуроанци",
+"stressed_vowel_index": 3,
+"page": 299
+},
+{
+"word": "мексиканец",
+"stressed_vowel_index": 2,
+"page": 299
+},
+{
+"word": "мексиканка",
+"stressed_vowel_index": 2,
+"page": 299
+},
+{
+"word": "мексикански",
+"stressed_vowel_index": 2,
+"page": 299
+},
+{
+"word": "мексиканци",
+"stressed_vowel_index": 2,
+"page": 299
+},
+{
+"word": "мемоар",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "мерита",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "метропола",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "мечкин",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "меѓу",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "микроскоп",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "милионер",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "милијардер",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "минерал",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "минимум",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "министер",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "митровден",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "младост",
+"stressed_vowel_index": 0,
+"page": 35
+},
+{
+"word": "мобилен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "могадишу",
+"stressed_vowel_index": 2,
+"page": 300
+},
+{
+"word": "молчитолчи",
+"stressed_vowel_index": 1,
+"page": 28
+},
+{
+"word": "момент",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "монако",
+"stressed_vowel_index": 1,
+"page": 300
+},
+{
+"word": "монитор",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "монолог",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "монопол",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "монтажен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "монтевидео",
+"stressed_vowel_index": 2,
+"page": 300
+},
+{
+"word": "морони",
+"stressed_vowel_index": 1,
+"page": 300
+},
+{
+"word": "мотивиран",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "мреношка",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "мреношки",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "навреме",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "наполеон",
+"stressed_vowel_index": 3,
+"page": 29
+},
+{
+"word": "насау",
+"stressed_vowel_index": 1,
+"page": 300
+},
+{
+"word": "наталитет",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "натриум",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "науру",
+"stressed_vowel_index": 1,
+"page": 300
+},
+{
+"word": "нафталин",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "национализам",
+"stressed_vowel_index": 4,
+"page": 31
+},
+{
+"word": "националист",
+"stressed_vowel_index": 4,
+"page": 31
+},
+{
+"word": "нашата",
+"stressed_vowel_index": 2,
+"page": 33
+},
+{
+"word": "наше",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "наши",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "најроби",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "нервозен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "ниво",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "никарагва",
+"stressed_vowel_index": 2,
+"page": 300
+},
+{
+"word": "никотин",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "нијамеец",
+"stressed_vowel_index": 2,
+"page": 300
+},
+{
+"word": "нијамеј",
+"stressed_vowel_index": 2,
+"page": 300
+},
+{
+"word": "нијамејка",
+"stressed_vowel_index": 2,
+"page": 300
+},
+{
+"word": "нијамејски",
+"stressed_vowel_index": 2,
+"page": 300
+},
+{
+"word": "нијамејци",
+"stressed_vowel_index": 2,
+"page": 300
+},
+{
+"word": "новата",
+"stressed_vowel_index": 2,
+"page": 33
+},
+{
+"word": "ново",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "новото",
+"stressed_vowel_index": 2,
+"page": 33
+},
+{
+"word": "ноември",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "нормален",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "носи",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "нострадамус",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "нуакшот",
+"stressed_vowel_index": 2,
+"page": 300
+},
+{
+"word": "нуакшотски",
+"stressed_vowel_index": 2,
+"page": 300
+},
+{
+"word": "нукуалофа",
+"stressed_vowel_index": 3,
+"page": 300
+},
+{
+"word": "објект",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "ова",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "овој",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "овче",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "одам",
+"stressed_vowel_index": 0,
+"page": 36
+},
+{
+"word": "оди",
+"stressed_vowel_index": 0,
+"page": 35
+},
+{
+"word": "одисеев",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "одисеј",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "однадвор",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "однатре",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "октавијан",
+"stressed_vowel_index": 3,
+"page": 29
+},
+{
+"word": "октомври",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "олкуцка",
+"stressed_vowel_index": 1,
+"page": 28
+},
+{
+"word": "оперативец",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "оператор",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "опозиционер",
+"stressed_vowel_index": 5,
+"page": 31
+},
+{
+"word": "орбита",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "организам",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "организирајќи",
+"stressed_vowel_index": 4,
+"page": 28
+},
+{
+"word": "орден",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "ореол",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "орхидеја",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "остроумен",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "отава",
+"stressed_vowel_index": 1,
+"page": 301
+},
+{
+"word": "отавјански",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "отсега",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "отстрана",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "оттука",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "очевидец",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "паднистани",
+"stressed_vowel_index": 1,
+"page": 28
+},
+{
+"word": "пакистан",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "пакистанец",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "пакистанка",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "пакистански",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "пакистанци",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "палау",
+"stressed_vowel_index": 1,
+"page": 301
+},
+{
+"word": "палестина",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "палестинец",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "палестинка",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "палестински",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "палестинци",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "палто",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "панама",
+"stressed_vowel_index": 1,
+"page": 301
+},
+{
+"word": "панамец",
+"stressed_vowel_index": 1,
+"page": 301
+},
+{
+"word": "панамка",
+"stressed_vowel_index": 1,
+"page": 301
+},
+{
+"word": "панамци",
+"stressed_vowel_index": 1,
+"page": 301
+},
+{
+"word": "пано",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "папуа",
+"stressed_vowel_index": 1,
+"page": 301
+},
+{
+"word": "папуанец",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "папуанка",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "папуански",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "папуанци",
+"stressed_vowel_index": 2,
+"page": 301
+},
+{
+"word": "паразит",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "паралела",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "парафин",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "парафраза",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "паркет",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "паркира",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "парламент",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "парламентарец",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "пармачка",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "пармачки",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "парфем",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "пасива",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "пасивен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "пастер",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "патацка",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "патацки",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "патоказ",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "патронат",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "пеат",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "пеницилин",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "перископ",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "петмина",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "петровден",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "петтемина",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "пиеса",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "пилот",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "пире",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "пиринеи",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "пишувајќи",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "планиран",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "плантажа",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "пластелин",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "плато",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "плеоназам",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "плоштад",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "поетеса",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "поетичен",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "позитивен",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "поле",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "полиција",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "полицијата",
+"stressed_vowel_index": 2,
+"page": 27
+},
+{
+"word": "половина",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "полубог",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "полубрат",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "полувреме",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "полуглас",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "полужив",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "полукруг",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "полулево",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "полуостров",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "полуписмен",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "полупијан",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "полусвет",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "полусенка",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "полусестра",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "полутемен",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "полутопка",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "понекаде",
+"stressed_vowel_index": 1,
+"page": 28
+},
+{
+"word": "понекогаш",
+"stressed_vowel_index": 1,
+"page": 28
+},
+{
+"word": "попладне",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "потенцијал",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "пољоска",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "празнина",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "практикант",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "практичен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "праматар",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "прдејци",
+"stressed_vowel_index": 0,
+"page": 29
+},
+{
+"word": "преку",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "премиер",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "премиера",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "прецизен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "продуцент",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "проектил",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "прометеј",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "протеже",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "протеин",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "професор",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "процент",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "прочитав",
+"stressed_vowel_index": 0,
+"page": 36
+},
+{
+"word": "психоза",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "психолог",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "пубертет",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "публицист",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "радожда",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "раичка",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "раички",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "рамадани",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "рамнина",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "рамнината",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "рандеву",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "раскажувајќи",
+"stressed_vowel_index": 3,
+"page": 28
+},
+{
+"word": "раце",
+"stressed_vowel_index": 0,
+"page": 33
+},
+{
+"word": "реализам",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "регенератор",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "регулатива",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "резерват",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "резервиран",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "резиме",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "рекол",
+"stressed_vowel_index": 0,
+"page": 36
+},
+{
+"word": "рекордер",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "ректор",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "релативен",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "рели",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "рендгенограм",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "рендгенолог",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "реноме",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "репертоар",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "репортажа",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "репортер",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "репрезентативец",
+"stressed_vowel_index": 4,
+"page": 31
+},
+{
+"word": "респект",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "ресторан",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "рефлекс",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "рецитал",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "рече",
+"stressed_vowel_index": 0,
+"page": 33
+},
+{
+"word": "ритуал",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "романтизам",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "руанда",
+"stressed_vowel_index": 1,
+"page": 302
+},
+{
+"word": "руса",
+"stressed_vowel_index": 1,
+"page": 33
+},
+{
+"word": "русо",
+"stressed_vowel_index": 1,
+"page": 302
+},
+{
+"word": "сакајќи",
+"stressed_vowel_index": 1,
+"page": 28
+},
+{
+"word": "сако",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "салвадор",
+"stressed_vowel_index": 1,
+"page": 295
+},
+{
+"word": "самоа",
+"stressed_vowel_index": 1,
+"page": 302
+},
+{
+"word": "самоанец",
+"stressed_vowel_index": 2,
+"page": 302
+},
+{
+"word": "самоанка",
+"stressed_vowel_index": 2,
+"page": 302
+},
+{
+"word": "самоанци",
+"stressed_vowel_index": 2,
+"page": 302
+},
+{
+"word": "самуил",
+"stressed_vowel_index": 0,
+"page": 33
+},
+{
+"word": "санела",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "санмаринец",
+"stressed_vowel_index": 2,
+"page": 302
+},
+{
+"word": "санмаринка",
+"stressed_vowel_index": 2,
+"page": 302
+},
+{
+"word": "санмарински",
+"stressed_vowel_index": 2,
+"page": 302
+},
+{
+"word": "санмаринци",
+"stressed_vowel_index": 2,
+"page": 302
+},
+{
+"word": "сантјаго",
+"stressed_vowel_index": 1,
+"page": 302
+},
+{
+"word": "сарказам",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "саунтомеец",
+"stressed_vowel_index": 3,
+"page": 303
+},
+{
+"word": "саунтомејка",
+"stressed_vowel_index": 3,
+"page": 303
+},
+{
+"word": "саунтомејски",
+"stressed_vowel_index": 3,
+"page": 303
+},
+{
+"word": "саунтомејци",
+"stressed_vowel_index": 3,
+"page": 303
+},
+{
+"word": "светложолт",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "северозапад",
+"stressed_vowel_index": 3,
+"page": 28
+},
+{
+"word": "северозападен",
+"stressed_vowel_index": 3,
+"page": 28
+},
+{
+"word": "североисток",
+"stressed_vowel_index": 3,
+"page": 28
+},
+{
+"word": "североисточен",
+"stressed_vowel_index": 3,
+"page": 28
+},
+{
+"word": "седуммина",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "седумтемина",
+"stressed_vowel_index": 2,
+"page": 27
+},
+{
+"word": "секое",
+"stressed_vowel_index": 2,
+"page": 34
+},
+{
+"word": "секој",
+"stressed_vowel_index": 0,
+"page": 34
+},
+{
+"word": "секоја",
+"stressed_vowel_index": 2,
+"page": 34
+},
+{
+"word": "сектор",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "секундарен",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "село",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "семафор",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "сенилен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "сепаре",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "септември",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "сејшели",
+"stressed_vowel_index": 1,
+"page": 303
+},
+{
+"word": "сивокос",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "сивоок",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "сиера",
+"stressed_vowel_index": 1,
+"page": 303
+},
+{
+"word": "сиже",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "силуета",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "симбол",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "симпатизер",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "синоок",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "синтакса",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "сиудад",
+"stressed_vowel_index": 2,
+"page": 299
+},
+{
+"word": "славомира",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "соломонец",
+"stressed_vowel_index": 2,
+"page": 303
+},
+{
+"word": "соломони",
+"stressed_vowel_index": 2,
+"page": 303
+},
+{
+"word": "соломонка",
+"stressed_vowel_index": 2,
+"page": 303
+},
+{
+"word": "соломонски",
+"stressed_vowel_index": 2,
+"page": 303
+},
+{
+"word": "соломонци",
+"stressed_vowel_index": 2,
+"page": 303
+},
+{
+"word": "сообраќај",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "сообраќајот",
+"stressed_vowel_index": 2,
+"page": 27
+},
+{
+"word": "сосила",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "сосир",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "спасовден",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "специјален",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "спортист",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "спроти",
+"stressed_vowel_index": 1,
+"page": 35
+},
+{
+"word": "среда",
+"stressed_vowel_index": 0,
+"page": 35
+},
+{
+"word": "средина",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "стабилен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "стари",
+"stressed_vowel_index": 1,
+"page": 33
+},
+{
+"word": "старите",
+"stressed_vowel_index": 2,
+"page": 33
+},
+{
+"word": "старова",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "статива",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "стерилен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "стетоскоп",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "стомачен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "стомина",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "стотемина",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "стразбур",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "стразбурец",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "стразбурка",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "структурен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "стујардеса",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "субјект",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "сувенир",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "суво",
+"stressed_vowel_index": 1,
+"page": 33
+},
+{
+"word": "суптилен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "сурогат",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "суфицит",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "таа",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "тарапана",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "татко",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "тајпеец",
+"stressed_vowel_index": 1,
+"page": 304
+},
+{
+"word": "тајпеј",
+"stressed_vowel_index": 1,
+"page": 304
+},
+{
+"word": "тајпејка",
+"stressed_vowel_index": 1,
+"page": 304
+},
+{
+"word": "тајпејци",
+"stressed_vowel_index": 1,
+"page": 304
+},
+{
+"word": "таџикистан",
+"stressed_vowel_index": 3,
+"page": 30
+},
+{
+"word": "таџикистанец",
+"stressed_vowel_index": 3,
+"page": 30
+},
+{
+"word": "таџикистанка",
+"stressed_vowel_index": 3,
+"page": 30
+},
+{
+"word": "таџикистански",
+"stressed_vowel_index": 3,
+"page": 304
+},
+{
+"word": "таџикистанци",
+"stressed_vowel_index": 3,
+"page": 304
+},
+{
+"word": "твоја",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "театрален",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "тегусигалпа",
+"stressed_vowel_index": 3,
+"page": 304
+},
+{
+"word": "телескоп",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "темножолт",
+"stressed_vowel_index": 0,
+"page": 29
+},
+{
+"word": "темнозелен",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "темносин",
+"stressed_vowel_index": 0,
+"page": 29
+},
+{
+"word": "темперамент",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "тенденциозен",
+"stressed_vowel_index": 3,
+"page": 32
+},
+{
+"word": "теодора",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "теписон",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "тераса",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "терен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "тестамент",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "теута",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "тие",
+"stressed_vowel_index": 1,
+"page": 34
+},
+{
+"word": "тирана",
+"stressed_vowel_index": 1,
+"page": 304
+},
+{
+"word": "тирански",
+"stressed_vowel_index": 1,
+"page": 304
+},
+{
+"word": "тоалетен",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "тобаго",
+"stressed_vowel_index": 1,
+"page": 304
+},
+{
+"word": "томе",
+"stressed_vowel_index": 1,
+"page": 303
+},
+{
+"word": "топла",
+"stressed_vowel_index": 1,
+"page": 33
+},
+{
+"word": "торзо",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "трактор",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "трезор",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "трениран",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "трета",
+"stressed_vowel_index": 1,
+"page": 33
+},
+{
+"word": "трико",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "трипати",
+"stressed_vowel_index": 0,
+"page": 28
+},
+{
+"word": "триумф",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "троицка",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "троицки",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "тротинет",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "тротоар",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "трофеј",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "трошичка",
+"stressed_vowel_index": 1,
+"page": 28
+},
+{
+"word": "трпејца",
+"stressed_vowel_index": 0,
+"page": 29
+},
+{
+"word": "тувалу",
+"stressed_vowel_index": 1,
+"page": 304
+},
+{
+"word": "туризам",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "турипечи",
+"stressed_vowel_index": 1,
+"page": 28
+},
+{
+"word": "туркменистан",
+"stressed_vowel_index": 3,
+"page": 304
+},
+{
+"word": "туркменистанец",
+"stressed_vowel_index": 3,
+"page": 304
+},
+{
+"word": "туркменистанка",
+"stressed_vowel_index": 3,
+"page": 304
+},
+{
+"word": "туркменистански",
+"stressed_vowel_index": 3,
+"page": 305
+},
+{
+"word": "туркменистанци",
+"stressed_vowel_index": 3,
+"page": 305
+},
+{
+"word": "турнеја",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "турнир",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "тутатанкамон",
+"stressed_vowel_index": 3,
+"page": 29
+},
+{
+"word": "тутун",
+"stressed_vowel_index": 0,
+"page": 33
+},
+{
+"word": "уагадугу",
+"stressed_vowel_index": 3,
+"page": 305
+},
+{
+"word": "уганда",
+"stressed_vowel_index": 1,
+"page": 305
+},
+{
+"word": "узбекистан",
+"stressed_vowel_index": 3,
+"page": 305
+},
+{
+"word": "узбекистанец",
+"stressed_vowel_index": 3,
+"page": 305
+},
+{
+"word": "узбекистанка",
+"stressed_vowel_index": 3,
+"page": 305
+},
+{
+"word": "узбекистански",
+"stressed_vowel_index": 3,
+"page": 305
+},
+{
+"word": "узбекистанци",
+"stressed_vowel_index": 3,
+"page": 305
+},
+{
+"word": "улица",
+"stressed_vowel_index": 0,
+"page": 33
+},
+{
+"word": "универзитет",
+"stressed_vowel_index": 4,
+"page": 31
+},
+{
+"word": "ургентен",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "ученик",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "ученикот",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "училиште",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
+"word": "фаворит",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "фактор",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "фактура",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "факултативен",
+"stressed_vowel_index": 3,
+"page": 32
+},
+{
+"word": "факултет",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "фалсификат",
+"stressed_vowel_index": 3,
+"page": 31
+},
+{
+"word": "фараон",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "февруари",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "феномен",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "фердинанд",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "физичар",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "филипинец",
+"stressed_vowel_index": 2,
+"page": 305
+},
+{
+"word": "филипини",
+"stressed_vowel_index": 2,
+"page": 305
+},
+{
+"word": "филипинка",
+"stressed_vowel_index": 2,
+"page": 305
+},
+{
+"word": "филипински",
+"stressed_vowel_index": 2,
+"page": 305
+},
+{
+"word": "филипинци",
+"stressed_vowel_index": 2,
+"page": 305
+},
+{
+"word": "филмотека",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "флејтист",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "фоаје",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "фолклорист",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "формален",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "формулар",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "франциско",
+"stressed_vowel_index": 1,
+"page": 30
+},
+{
+"word": "фреквентен",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "фрижидер",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "фунафути",
+"stressed_vowel_index": 2,
+"page": 305
+},
+{
+"word": "хаваи",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "хавана",
+"stressed_vowel_index": 1,
+"page": 305
+},
+{
+"word": "хаванец",
+"stressed_vowel_index": 1,
+"page": 305
+},
+{
+"word": "хаванка",
+"stressed_vowel_index": 1,
+"page": 305
+},
+{
+"word": "хаванци",
+"stressed_vowel_index": 1,
+"page": 305
+},
+{
+"word": "хаити",
+"stressed_vowel_index": 1,
+"page": 305
+},
+{
+"word": "хараре",
+"stressed_vowel_index": 1,
+"page": 305
+},
+{
+"word": "хидратантен",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "хипофиза",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "хирошима",
+"stressed_vowel_index": 2,
+"page": 30
+},
+{
+"word": "хонијара",
+"stressed_vowel_index": 2,
+"page": 305
+},
+{
+"word": "хонорар",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "хосе",
+"stressed_vowel_index": 1,
+"page": 302
+},
+{
+"word": "хроничен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "хуморист",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "цедетека",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "цела",
+"stressed_vowel_index": 1,
+"page": 33
+},
+{
+"word": "цело",
+"stressed_vowel_index": 1,
+"page": 33
+},
+{
+"word": "целофан",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "цензура",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "централен",
+"stressed_vowel_index": 0,
+"page": 30
+},
+{
+"word": "цитат",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "црвенобрад",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "црвенокож",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "црвенокос",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "цунами",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "чекај",
+"stressed_vowel_index": 0,
+"page": 36
+},
+{
+"word": "чилеанец",
+"stressed_vowel_index": 2,
+"page": 306
+},
+{
+"word": "чилеанка",
+"stressed_vowel_index": 2,
+"page": 306
+},
+{
+"word": "чилеански",
+"stressed_vowel_index": 2,
+"page": 306
+},
+{
+"word": "чилеанци",
+"stressed_vowel_index": 2,
+"page": 306
+},
+{
+"word": "човек",
+"stressed_vowel_index": 0,
+"page": 34
+},
+{
+"word": "шамија",
+"stressed_vowel_index": 0,
+"page": 33
+},
+{
+"word": "шампион",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "шармантен",
+"stressed_vowel_index": 1,
+"page": 32
+},
+{
+"word": "шахист",
+"stressed_vowel_index": 1,
+"page": 31
+},
+{
+"word": "штафелај",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "јамајка",
+"stressed_vowel_index": 1,
+"page": 296
+},
+{
+"word": "јануари",
+"stressed_vowel_index": 2,
+"page": 32
+},
+{
+"word": "јашари",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "јуанде",
+"stressed_vowel_index": 1,
+"page": 296
+},
+{
+"word": "јубилеј",
+"stressed_vowel_index": 2,
+"page": 31
+},
+{
+"word": "југозапад",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "југозападен",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "југоисток",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "југоисточен",
+"stressed_vowel_index": 2,
+"page": 28
+},
+{
+"word": "јулијана",
+"stressed_vowel_index": 2,
+"page": 29
+},
+{
+"word": "љубљана",
+"stressed_vowel_index": 1,
+"page": 299
+},
+{
+"word": "ќерка",
+"stressed_vowel_index": 0,
+"page": 27
+},
+{
+"word": "џакарта",
+"stressed_vowel_index": 1,
+"page": 306
+},
+{
+"word": "џамбаска",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "џамбаски",
+"stressed_vowel_index": 1,
+"page": 29
+},
+{
+"word": "џамена",
+"stressed_vowel_index": 1,
+"page": 300
+},
+{
+"word": "џаменец",
+"stressed_vowel_index": 1,
+"page": 300
+},
+{
+"word": "џаменка",
+"stressed_vowel_index": 1,
+"page": 300
+},
+{
+"word": "џаменски",
+"stressed_vowel_index": 1,
+"page": 300
+},
+{
+"word": "џаменци",
+"stressed_vowel_index": 1,
+"page": 300
+},
+{
+"word": "џибути",
+"stressed_vowel_index": 1,
+"page": 306
+},
+{
+"word": "џузепе",
+"stressed_vowel_index": 1,
+"page": 29
+}
+]
+}

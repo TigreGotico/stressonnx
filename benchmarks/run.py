@@ -50,6 +50,7 @@ DEFAULT_TARGETS = {
     "hy": ["simple"],
     "bg": ["simple"],
     "sl": ["simple"],
+    "mk": ["simple"],
 }
 BEGIN = "<!-- run.py:begin -->"
 END = "<!-- run.py:end -->"
@@ -100,6 +101,8 @@ DICTIONARIES = {
     "bg": ("stressonnx simple-bg vocabulary (silero_stress export)", lambda: simple_vocabulary("bg"), ()),
     "hy": ("stressonnx simple-hy vocabulary (silero_stress export)", armenian_vocabulary, ()),
     "sl": ("stressonnx simple-sl vocabulary (English Wiktionary tonal-mark headwords)", lambda: simple_vocabulary("sl"), ()),
+    "mk": ("stressonnx simple-mk vocabulary (English Wiktionary headwords that break the antepenult rule)",
+           lambda: simple_vocabulary("mk"), ()),
 }
 
 
