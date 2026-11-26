@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a52](https://github.com/TigreGotico/stressonnx/tree/0.0.3a52) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a51...0.0.3a52)
+
+**Merged pull requests:**
+
+- test\(benchmarks\): pin the bg vowel set through run\_set [\#121](https://github.com/TigreGotico/stressonnx/pull/121) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a51](https://github.com/TigreGotico/stressonnx/tree/0.0.3a51) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a50...0.0.3a51)
@@ -379,10 +387,6 @@
 ## [0.0.3a2](https://github.com/TigreGotico/stressonnx/tree/0.0.3a2) (2026-08-14)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a1...0.0.3a2)
-
-**Merged pull requests:**
-
-- fix: resolve BCP-47 regional/script tags in all lang lookups [\#14](https://github.com/TigreGotico/stressonnx/pull/14) ([JarbasAl](https://github.com/JarbasAl))
 
 ## [0.0.3a1](https://github.com/TigreGotico/stressonnx/tree/0.0.3a1) (2026-07-30)
 
