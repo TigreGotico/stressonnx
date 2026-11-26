@@ -1,15 +1,17 @@
 {
   "name": "Yakut / Sakha",
   "script": "cyrillic",
-  "rule": "sah",
+  "rule": "last",
   "hf": {
     "simple": "sah"
   },
   "sources": [
-    "Krueger 1962 + vocabulary evidence: heavy nuclei (long vowels/diphthongs) attract stress"
+    "Böhtlingk 1851, Über die Sprache der Jakuten, Einleitung p. XXVII: \"Der Ton ruht auf der letzten Silbe\"",
+    "Russian Wikipedia, Якутский язык, citing Campbell & King 2013, p. 1794: \"финальное (падающее всегда на последний слог) ударение, которое не связано с дифтонгами и долготой гласных\"",
+    "The simple-sah vocabulary marks the second letter of a long vowel or diphthong in 85,180 of its 85,232 words, so its marks show vowel length, not stress (#142)"
   ],
   "tag": "sah",
   "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяёҕҥүһө",
   "vowels": "аеиоуыэюяёүө",
-  "rule_accuracy": 0.994
+  "rule_accuracy": 0.177
 }

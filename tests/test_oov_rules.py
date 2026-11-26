@@ -88,15 +88,14 @@ def test_rules_table_prevails_over_meta():
     assert s._oov_rule == "chv"  # meta.json says "last"; the language file wins
 
 
-# Yakut: long vowels / diphthongs (vowel digraphs) attract stress; the mark
-# sits on the second element of the heavy nucleus (Krueger 1962; see
-# _rule_sah).  Words below are vocabulary-attested spellings.
+# Yakut: final stress, not tied to diphthongs or vowel length (Böhtlingk 1851,
+# p. XXVII; Russian Wikipedia citing Campbell & King 2013, p. 1794).
 @pytest.mark.parametrize("word,expected", [
-    ("буолан", "буо́лан"),    # diphthong уо in the first syllable wins
-    ("эрээри", "эрээ́ри"),    # long ээ wins over final short и
-    ("кини", "кини́"),        # no heavy nucleus → final vowel
+    ("буолан", "буола́н"),
+    ("эрээри", "эрээри́"),
+    ("уоттарга", "уоттарга́"),
 ])
-def test_yakut_heavy_nucleus(word, expected):
+def test_yakut_final(word, expected):
     assert oov("sah", word) == expected
 
 
