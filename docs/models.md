@@ -91,7 +91,7 @@ The difficulty varies enormously by language:
 | Russian | Very low | Free (can fall on any syllable), 3 000+ homograph pairs with context-dependent stress |
 | Ukrainian | Low-medium | Free stress, fewer homographs than Russian but same phonology |
 | Belarusian | Low-medium | Free, akane (unstressed /o/ → [a]) changes surface form |
-| Turkic (Kazakh, Tatar, Kyrgyz, and others) | High | Predominantly final-syllable stress with grammatically regular exceptions |
+| Turkic (Tatar, Kyrgyz, and others; Kazakh takes rule `none`) | High | Predominantly final-syllable stress with grammatically regular exceptions |
 | Caucasian (Georgian, Armenian, Kabardino-Balkarian) | Medium | Fixed position in most forms, loanwords and compound words break the rule |
 | Erzya / Moksha | Low-medium | Initial stress default, but many exceptions, vowel reduction in unstressed syllables |
 | Yakut (Sah) | Medium | Long vowels attract stress, vowel harmony constrains position |
@@ -975,7 +975,7 @@ is scored against the language's own curated vocabulary in
 
 | Language(s) | Rule | Source | Accuracy |
 |---|---|---|---|
-| kk ky tt ba az uz kjh sah udm xal | final vowel | Turkic/Permic final-stress default (Kirchner 1998, Poppe 1964, Krueger 1962, Winkler 2001) | 0.82 to 1.00 (sah is an open item, see scoreboard) |
+| ky tt ba az uz kjh sah udm | final vowel | Turkic/Permic final-stress default (Kirchner 1998, Poppe 1964, Krueger 1962, Winkler 2001) | 0.82 to 1.00 (sah is an open item, see scoreboard) |
 | cv | last **full** vowel: reduced ӑ/ӗ never stressed, all-reduced words stress the first syllable | Clark 1998, Krueger 1961, Dobrovolsky 1999 (ICPhS) | 0.94 |
 | ka | antepenultimate vowel, initial for shorter words | Akhvlediani 1949, Gudava 1969, Aronson 1990 (Georgian stress is weak and contested, Borise 2020 argues fixed initial) | 1.00 |
 | hy | last non-schwa vowel (ը never stressed) | Chakmakjian 2024 (Speech Prosody) | 0.78 |

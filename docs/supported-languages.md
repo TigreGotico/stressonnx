@@ -13,7 +13,7 @@ Whether you need this library depends on how your language writes stress:
 | Orthography type | Examples | What you need |
 |---|---|---|
 | Stress is free/mobile and **not written** | Russian, Ukrainian, Belarusian, most languages here | **A stress model. this library.** Nothing in the spelling of `замок` tells you which syllable to stress. Only context does. |
-| Stress is **predictable by rule** | Kazakh/Turkic (final syllable), Armenian, Georgian | A positional rule covers most words. That is the `simple` backend: a curated exception vocabulary plus a per-language default rule. |
+| Stress is **predictable by rule** | Kyrgyz and Tatar (final syllable), Armenian, Georgian | A positional rule covers most words. That is the `simple` backend: a curated exception vocabulary plus a per-language default rule. |
 | Stress is **already written** | Spanish, Greek, Portuguese | You do not need stressonnx. The orthography (accent rules) already encodes it. You may still need *sense* disambiguation, see below. |
 
 **The Portuguese case (why "stress is written" is not the end of the story):**
