@@ -3,7 +3,6 @@
 Expected values come from the sources named next to each case, never from
 the library's own output.
 """
-import gzip
 import unicodedata
 
 import pytest
@@ -11,16 +10,9 @@ import pytest
 from stressonnx import stress
 from stressonnx._common import lower_preserving_length
 from stressonnx.backends.simple import SimpleStressor
-from stressonnx.registry import HF_REPO_REVISION, LANGUAGES
+from stressonnx.registry import LANGUAGES
 
 ACUTE = "́"
-
-#: Vocabulary files that the runtime repairs at load until they are
-#: re-uploaded; the cases marked with it pass once HF_REPO_REVISION moves.
-WAITS_ON_UPLOAD = pytest.mark.xfail(
-    HF_REPO_REVISION == "13ab09f55a725395f857695ac218b5ae1f5b22e4",
-    reason="waits on the re-uploaded vocabularies", strict=True, raises=AssertionError,
-)
 
 
 def simple(text, lang):
@@ -86,7 +78,6 @@ def test_be_never_stresses_the_non_syllabic_u():
     assert "ў" + ACUTE not in simple(" ".join(with_u), "be")
 
 
-@WAITS_ON_UPLOAD
 def test_be_repaired_entries_stress_the_vowel_after_u():
     # Wiktionary be: аўто́бус, даўно́, заўсёды with ё; the shipped index
     # pointed at ў and the staged bundle moves it to the next vowel
@@ -129,7 +120,6 @@ def test_mk_syllabic_r_is_a_stress_base(word, expected):
     assert simple(word, "mk") == expected
 
 
-@WAITS_ON_UPLOAD
 def test_mk_vocabulary_holds_words_with_gje_and_kje():
     # Wiktionary marks these headwords; the acute of ќ is not a stress mark
     words = vocab_words("mk")
