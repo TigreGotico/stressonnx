@@ -40,9 +40,23 @@ def strip_stress(text: str) -> str:
     return unicodedata.normalize("NFC", nfd.replace(STRESS, "").replace(GRAVE, ""))
 
 
+def split_acute(text: str) -> str:
+    """*text* in NFC, except that a Latin letter with an acute is the letter and U+0301.
+
+    NFC composes a Latin vowel and its acute into one letter (e + U+0301 -> é),
+    which hides the mark.  Macedonian ќ and ѓ stay whole: their acute is part
+    of the letter.
+    """
+    out = []
+    for c in unicodedata.normalize("NFC", text):
+        d = unicodedata.normalize("NFD", c)
+        out.append(d if len(d) == 2 and d[1] == STRESS and d[0].isascii() else c)
+    return "".join(out)
+
+
 def marked_ordinals(token: str, vowels=VOWELS) -> list:
     """Vowel ordinal of every acute in *token*; -1 for an acute after a non-vowel."""
-    token = unicodedata.normalize("NFC", token)
+    token = split_acute(token)
     marks = []
     seen = 0
     prev_vowel = None
@@ -84,7 +98,7 @@ def align(text: str, output: str):
     pieces = [[] for _ in tokens]
     got = 0
     current = 0
-    for c in unicodedata.normalize("NFC", output):
+    for c in split_acute(output):
         if c.isalpha():
             if got >= len(want) or _letter_key(c) != want[got]:
                 return None

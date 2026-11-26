@@ -254,3 +254,14 @@ def test_bulgarian_run_scores_the_hard_sign_as_a_vowel(tmp_path):
     (target,) = [t for r in rows for t in r["targets"] if t["word"] == "държава"]
     assert (target["gold"], target["pred"], target["hit"]) == (1, [1], True)
     assert result["models"]["fixed"]["correct"] == 1
+
+
+def test_a_latin_vowel_with_an_acute_is_a_mark():
+    # NFC writes abecéda with one letter é; the acute is still the mark on the third vowel
+    assert marked_ordinals("abecéda", frozenset("aeiou")) == [2]
+    assert align("abeceda", "abecéda") == ["abecéda"]
+
+
+def test_macedonian_kje_is_a_letter_not_a_mark():
+    assert marked_ordinals("ќерка") == []
+    assert align("ќерка", "ќе́рка") == ["ќе́рка"]

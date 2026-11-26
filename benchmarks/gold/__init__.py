@@ -17,7 +17,7 @@ from scoring import BG_VOWELS, VOWELS
 
 from gold import (
     belarusian_homographs, homograph_eval, jipa_armenian, prose_accents, rbe_bulgarian, russtress, silver_tts,
-    wiktionary,
+    sloleks_slovene, wiktionary,
 )
 
 GOLD = "GOLD"
@@ -103,6 +103,12 @@ SETS = [
             rbe_bulgarian.load, vowels=BG_VOWELS,
             note="Lemmas in citation form, so the score does not cover inflected forms.  bg has rule "
                  "`none`, so a lemma outside the simple-bg vocabulary stays unmarked and counts as a miss."),
+    EvalSet("sloleks", "sl", GOLD, "CC-BY-SA-4.0", "http://hdl.handle.net/11356/1745",
+            "lemmas of the MANUAL entries, stress as the accentuation form marks it",
+            sloleks_slovene.load, vowels=sloleks_slovene.VOWELS,
+            note="Lemmas in citation form, so the score does not cover inflected forms.  sl has rule "
+                 "`none`, so a lemma outside the simple-sl vocabulary stays unmarked and counts as a miss.  "
+                 "A stress on the syllabic r is left out, because the model marks vowels only."),
 ]
 
 
