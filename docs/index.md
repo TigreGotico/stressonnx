@@ -6,10 +6,10 @@ stressonnx marks the stressed vowel of each word, so that a text-to-speech front
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="img/gold-accuracy-dark.svg">
-  <img alt="Default-model word accuracy on human-labelled sets: ru 0.951 and 0.990, be 0.924 to 0.977, uk 0.843 and 0.905; be homographs 0.543." src="img/gold-accuracy.svg">
+  <img alt="Default-model word accuracy on human-labelled sets: ru 0.951 and 0.990, be 0.924 to 0.977, uk 0.843 and 0.905, hy 0.935, bg 0.764; be homographs 0.543." src="img/gold-accuracy.svg">
 </picture>
 
-`img/plot_gold.py` makes this figure from `benchmarks/RESULTS.md`. The 23 languages other than ru, uk and be have no human-labelled test set.
+`img/plot_gold.py` makes this figure from `benchmarks/RESULTS.md`. hy and bg are scored with the `simple` model. The 21 other `simple` languages have no human-labelled test set.
 
 ## Quickstart
 
