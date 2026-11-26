@@ -40,7 +40,7 @@ def test_measured_numbers_come_from_results():
 def _example_pages():
     """Pages with example lines; each page's blocks share one namespace, in order."""
     for page in DOCS:
-        blocks = re.findall(r"```python\n(.*?)```", page.read_text(encoding="utf-8"), re.S)
+        blocks = re.findall(r"```python\n(.*?)```", page.read_text(encoding="utf-8"), re.DOTALL)
         blocks = [b for b in blocks if any(EXAMPLE.match(line) for line in b.splitlines())]
         if blocks:
             yield page.relative_to(ROOT).as_posix(), blocks
@@ -59,4 +59,4 @@ def test_example_prints_its_comment(page, blocks):
             if m:
                 line = f"_check({m['expr']}, {ast.literal_eval(m['want'])!r}, {m['expr']!r})"
             lines.append(line)
-        exec(compile("\n".join(lines), page, "exec"), namespace)
+        exec(compile("\n".join(lines), page, "exec"), namespace)  # noqa: S102 - runs the docs examples
