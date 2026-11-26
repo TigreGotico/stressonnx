@@ -19,7 +19,7 @@ ACUTE = "́"
 #: re-uploaded; the cases marked with it pass once HF_REPO_REVISION moves.
 WAITS_ON_UPLOAD = pytest.mark.xfail(
     HF_REPO_REVISION == "13ab09f55a725395f857695ac218b5ae1f5b22e4",
-    reason="waits on the re-uploaded vocabularies", strict=True,
+    reason="waits on the re-uploaded vocabularies", strict=True, raises=AssertionError,
 )
 
 
