@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a58](https://github.com/TigreGotico/stressonnx/tree/0.0.3a58) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a57...0.0.3a58)
+
+**Merged pull requests:**
+
+- test: strict xfail expects AssertionError [\#135](https://github.com/TigreGotico/stressonnx/pull/135) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a57](https://github.com/TigreGotico/stressonnx/tree/0.0.3a57) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a56...0.0.3a57)
