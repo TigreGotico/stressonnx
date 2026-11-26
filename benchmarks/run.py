@@ -35,18 +35,19 @@ from functools import cache
 from itertools import combinations
 from pathlib import Path
 
-from stressonnx import make_stressor
+from stressonnx import SCRIPT_VOWELS, lang_to_script, make_stressor
 
 from external import JsonlCommand
 from gold import GOLD, SETS, SILVER, sets_for, wiktionary
 from gold._cache import CACHE
-from scoring import Scored, bootstrap_ci, clean_word, is_vowel, mcnemar_exact, score
+from scoring import STRESS, Scored, bootstrap_ci, clean_word, is_vowel, marked_ordinals, mcnemar_exact, score
 
 DEFAULT_TARGETS = {
     "ru": ["ruaccent", "ruaccent-int8", "ruaccent-big-poetry", "ruaccent-silero", "ruaccent-silero-int8",
            "silero", "stressrnn", "kubataba", "simple"],
     "uk": ["silero", "uk-accentor", "simple"],
     "be": ["silero", "simple"],
+    "hy": ["simple"],
 }
 BEGIN = "<!-- run.py:begin -->"
 END = "<!-- run.py:end -->"
@@ -76,6 +77,17 @@ def simple_vocabulary(lang: str) -> dict:
     return s._vocab
 
 
+@cache
+def armenian_vocabulary() -> dict:
+    """simple-hy vocabulary with ordinals recounted so that ու is one vowel, as the scorer counts."""
+    vowels = SCRIPT_VOWELS[lang_to_script("hy")]
+    out = {}
+    for word, k in simple_vocabulary("hy").items():
+        at = [i for i, c in enumerate(word) if c in vowels][k]
+        out[word] = marked_ordinals(word[:at + 1] + STRESS + word[at + 1:])[0]
+    return out
+
+
 #: lang → (dictionary description, loader, set names the dictionary is NOT independent of)
 DICTIONARIES = {
     "ru": ("RUAccent accent dictionary, unambiguous entries", lambda: ruaccent_dictionaries()[1], ()),
@@ -83,6 +95,7 @@ DICTIONARIES = {
            lambda: simple_vocabulary("uk"), ("wiktionary",)),
     "be": ("stressonnx simple-be vocabulary (GrammarDB, plus English Wiktionary entries for spellings outside it)",
            lambda: simple_vocabulary("be"), ("wiktionary",)),
+    "hy": ("stressonnx simple-hy vocabulary (silero_stress export)", armenian_vocabulary, ()),
 }
 
 
@@ -246,16 +259,16 @@ def render(results: list, date: str) -> list:
         "are published.",
         "",
     ]
-    for lang in ("ru", "uk", "be"):
+    for lang in DEFAULT_TARGETS:
         lang_results = [r for r in results if r["lang"] == lang]
         if not lang_results:
             continue
         lang_results.sort(key=lambda r: (r["tier"] != GOLD, r["set"]))
-        lines += [f"## {lang}", "", "Leader on each GOLD set, against the runner-up:", ""]
-        for r in lang_results:
-            if r["tier"] == GOLD and len(r["models"]) > 1:
-                lines.append(f"- {r['set']}: {_leader(r)}")
-        lines.append("")
+        lines += [f"## {lang}", ""]
+        leaders = [f"- {r['set']}: {_leader(r)}" for r in lang_results
+                   if r["tier"] == GOLD and len(r["models"]) > 1]
+        if leaders:
+            lines += ["Leader on each GOLD set, against the runner-up:", "", *leaders, ""]
         for r in lang_results:
             lines += [
                 f"### {lang} / {r['set']} — {r['tier']}",
@@ -302,7 +315,7 @@ def render(results: list, date: str) -> list:
     lines += [
         "## Languages without independent gold",
         "",
-        "The 20 `simple`-model languages ship curated vocabularies exported from",
+        "The other `simple`-model languages ship curated vocabularies exported from",
         "silero_stress; no independent stress-annotated corpus is publicly",
         "available for them, so no accuracy row is reported (the parity test in",
         "`tests/test_export_parity.py` locks them to the upstream reference).",

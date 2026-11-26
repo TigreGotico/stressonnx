@@ -214,3 +214,17 @@ def test_skipped_model_is_named_in_the_report():
     text = "\n".join(render([summary], "2026-01-01"))
     assert "Not run: m3, too slow" in text
     assert evs.name in text
+
+
+def test_armenian_u_digraph_is_one_vowel():
+    # ու is one vowel; a mark after ո or after ւ marks it
+    assert marked_ordinals("լեզու́") == [1]
+    assert marked_ordinals("լեզո́ւ") == [1]
+    assert marked_ordinals("իտալուհի́") == [3]
+    assert marked_ordinals("Ղազարո́ս") == [2]
+
+
+def test_armenian_gold_loads_every_word():
+    from gold import jipa_armenian
+    rows, n_in, drops = jipa_armenian.load()
+    assert (len(rows), n_in, sum(drops.values())) == (46, 46, 0)

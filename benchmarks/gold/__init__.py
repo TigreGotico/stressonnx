@@ -1,4 +1,5 @@
-"""Evaluation sets: loaders and provenance, never the data itself.
+"""Evaluation sets: loaders and provenance.  Data is fetched at run time, except small
+hand-extracted sets in ``data/``.
 
 Every set carries a label tier.  GOLD labels were written by people.  SILVER
 labels were made by a machine (an LLM, a dictionary tool, a context model) or
@@ -12,7 +13,9 @@ unit (rows or targets).
 from dataclasses import dataclass
 from typing import Callable
 
-from gold import belarusian_homographs, homograph_eval, prose_accents, russtress, silver_tts, wiktionary
+from gold import (
+    belarusian_homographs, homograph_eval, jipa_armenian, prose_accents, russtress, silver_tts, wiktionary,
+)
 
 GOLD = "GOLD"
 SILVER = "SILVER"
@@ -87,6 +90,10 @@ SETS = [
             "https://huggingface.co/datasets/alex73/benchmarks-stress-bel",
             "the marked homographs (labelling method undocumented)",
             lambda: belarusian_homographs.load_sentences("common_voice.txt"), homographs_only=True),
+    EvalSet("jipa", "hy", GOLD, "CC-BY-4.0", "https://doi.org/10.1017/S0025100323000130",
+            "polysyllabic Yerevan citation forms (IPA transcriptions by the authors)",
+            jipa_armenian.load,
+            note="46 words, so the confidence interval is wide."),
 ]
 
 

@@ -20,8 +20,9 @@ import numpy as np
 
 STRESS = "\u0301"
 GRAVE = "\u0300"
-#: Union of the Russian, Ukrainian and Belarusian vowel letters (ў is a glide).
-VOWELS = frozenset("аеёиоуыэюя" "іїє")
+#: Russian, Ukrainian, Belarusian and Armenian vowel letters (ў is a glide).
+#: Armenian ու is one vowel: ւ after ո continues it, and a mark after either letter counts.
+VOWELS = frozenset("аеёиоуыэюя" "іїє" "աեէըիոօ")
 
 DROP_LETTERS = "model changed the letters of the row (targets)"
 DROP_CALL_FAILED = "stress function raised (targets)"
@@ -43,16 +44,21 @@ def marked_ordinals(token: str) -> list:
     marks = []
     seen = 0
     prev_vowel = None
+    prev_letter = ""
     for c in token:
         if c == STRESS:
             marks.append(prev_vowel if prev_vowel is not None else -1)
             prev_vowel = None
             continue
-        if is_vowel(c):
+        if c == "ւ" and prev_letter == "ո":
+            prev_vowel = seen - 1
+        elif is_vowel(c):
             prev_vowel = seen
             seen += 1
         elif not unicodedata.combining(c):
             prev_vowel = None
+        if not unicodedata.combining(c):
+            prev_letter = c.lower()
     return marks
 
 
