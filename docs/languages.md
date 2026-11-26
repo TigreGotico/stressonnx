@@ -279,17 +279,17 @@ rule improvement in the library.
 
 ### Yakut/Sakha (`sah`)
 
-**Why.** Yakut writes its long vowels and diphthongs as vowel digraphs
-(аа, ыы, уо, иэ, and others) and they **attract stress**: бии́р, буо́лан,
-эрээ́ри, overriding the plain final-stress default the older literature
-leads with (Krueger 1962 notes the default plus exceptions; the
-weight-sensitivity is overwhelming in the 85,746-word vocabulary). A TTS
-system using naive final stress mis-stresses most polysyllabic Yakut words.
+**Why.** Yakut stress falls on the last syllable, and vowel length does not
+move it. Böhtlingk (1851, Einleitung p. XXVII): "Der Ton ruht auf der letzten
+Silbe." Russian Wikipedia, citing Campbell & King (2013, p. 1794): the stress
+"не связано с дифтонгами и долготой гласных" (is not tied to diphthongs and
+vowel length).
 
-**What stressonnx does.** The `sah` rule: stress the last long
-vowel/diphthong (marking its second element, matching the vocabulary
-convention), else the final vowel, **0.994** against the vocabulary,
-versus 0.178 for naive final stress.
+**What stressonnx does.** The OOV rule is `last`. The simple-sah vocabulary
+puts its mark on the second letter of a long vowel or diphthong in 85,180 of
+its 85,232 words, so those marks show vowel length, not stress. The rule
+agrees with the vocabulary on 0.177 of its words, and that number is not an
+accuracy.
 
 ### Khakas (`kjh`)
 
