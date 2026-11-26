@@ -9,7 +9,7 @@
     "stressrnn": "ru_stressrnn"
   },
   "sources": [
-    "East Slavic accentology: stress is lexical/paradigmatic, not positional",
+    "Русская грамматика 1980 (АН СССР), §140: stress \"в разных словах может находиться на любом слоге словоформы и на разных морфемах … Такое ударение называется разноместным\"; §142: \"ударение может перемещаться с одного слога на другой … Эта особенность называется подвижностью словесного ударения\"",
     "ё is almost always stressed; unstressed ё occurs only in compound numerals and a few derived terms (Wikipedia, Yo)"
   ],
   "tag": "ru",
