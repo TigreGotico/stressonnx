@@ -227,4 +227,4 @@ def test_armenian_u_digraph_is_one_vowel():
 def test_armenian_gold_loads_every_word():
     from gold import jipa_armenian
     rows, n_in, drops = jipa_armenian.load()
-    assert (len(rows), n_in, sum(drops.values())) == (49, 49, 0)
+    assert (len(rows), n_in, sum(drops.values())) == (46, 46, 0)

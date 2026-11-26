@@ -93,7 +93,7 @@ SETS = [
     EvalSet("jipa", "hy", GOLD, "CC-BY-4.0", "https://doi.org/10.1017/S0025100323000130",
             "polysyllabic Yerevan citation forms (IPA transcriptions by the authors)",
             jipa_armenian.load,
-            note="49 words, so the confidence interval is wide."),
+            note="46 words, so the confidence interval is wide."),
 ]
 
 

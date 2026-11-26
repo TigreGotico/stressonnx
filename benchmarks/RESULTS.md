@@ -469,13 +469,13 @@ McNemar (exact, two-sided) on targets both models scored:
 ### hy / jipa — GOLD
 
 Source: https://doi.org/10.1017/S0025100323000130 (CC-BY-4.0).  Scored: polysyllabic Yerevan citation forms (IPA transcriptions by the authors).
-Rows in: 49; rows scored: 49; targets: 49.
-49 words, so the confidence interval is wide.
-Labels agree with the stressonnx simple-hy vocabulary (silero_stress export) on 91.4% of 35 targets the dictionary covers.
+Rows in: 46; rows scored: 46; targets: 46.
+46 words, so the confidence interval is wide.
+Labels agree with the stressonnx simple-hy vocabulary (silero_stress export) on 90.6% of 32 targets the dictionary covers.
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| simple | GOLD | 49 | 0 | 0.939 | 0.857–1.000 | — | 0.0 | 0.1 |
+| simple | GOLD | 46 | 0 | 0.935 | 0.848–1.000 | — | 0.0 | 0.1 |
 
 ## Languages without independent gold
 
