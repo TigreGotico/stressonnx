@@ -228,3 +228,16 @@ def test_armenian_gold_loads_every_word():
     from gold import jipa_armenian
     rows, n_in, drops = jipa_armenian.load()
     assert (len(rows), n_in, sum(drops.values())) == (46, 46, 0)
+
+
+def test_bulgarian_hard_sign_is_a_vowel_only_with_bg_vowels():
+    from scoring import BG_VOWELS
+    assert marked_ordinals("къ́ща", BG_VOWELS) == [0]
+    assert marked_ordinals("объе́кт") == [1]
+    assert marked_ordinals("войни́к", BG_VOWELS) == [1]
+
+
+def test_bulgarian_gold_loads_every_word():
+    from gold import rbe_bulgarian
+    rows, n_in, drops = rbe_bulgarian.load()
+    assert (len(rows), n_in, sum(drops.values())) == (292, 292, 0)

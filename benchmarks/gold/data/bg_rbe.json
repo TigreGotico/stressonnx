@@ -1,0 +1,1466 @@
+{
+ "source": "Институт за български език (БАН), Речник на българския език, https://ibl.bas.bg/rbe/. Each row records only the stressed vowel that the dictionary marks on the headword. Words with two stresses in the dictionary (variants or homographs) are left out.",
+ "selection": "The most frequent noun, verb, adjective and adverb lemmas of UD_Bulgarian-BTB, plus a fixed list of mobile-stress words.",
+ "words": [
+  {
+   "word": "вода",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/вода/"
+  },
+  {
+   "word": "глава",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/глава/"
+  },
+  {
+   "word": "говоря",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/говоря/"
+  },
+  {
+   "word": "нога",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/нога/"
+  },
+  {
+   "word": "сестра",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/сестра/"
+  },
+  {
+   "word": "дърво",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/дърво/"
+  },
+  {
+   "word": "планина",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/планина/"
+  },
+  {
+   "word": "къща",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/къща/"
+  },
+  {
+   "word": "човек",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/човек/"
+  },
+  {
+   "word": "пиша",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/пиша/"
+  },
+  {
+   "word": "река",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/река/"
+  },
+  {
+   "word": "трева",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/трева/"
+  },
+  {
+   "word": "цена",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/цена/"
+  },
+  {
+   "word": "година",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/година/"
+  },
+  {
+   "word": "мога",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/мога/"
+  },
+  {
+   "word": "нямам",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/нямам/"
+  },
+  {
+   "word": "страна",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/страна/"
+  },
+  {
+   "word": "много",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/много/"
+  },
+  {
+   "word": "още",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/още/"
+  },
+  {
+   "word": "време",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/време/"
+  },
+  {
+   "word": "кажа",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/кажа/"
+  },
+  {
+   "word": "трябва",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/трябва/"
+  },
+  {
+   "word": "голям",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/голям/"
+  },
+  {
+   "word": "български",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/български/"
+  },
+  {
+   "word": "вчера",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/вчера/"
+  },
+  {
+   "word": "само",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/само/"
+  },
+  {
+   "word": "така",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/така/"
+  },
+  {
+   "word": "когато",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/когато/"
+  },
+  {
+   "word": "хора",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/хора/"
+  },
+  {
+   "word": "вече",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/вече/"
+  },
+  {
+   "word": "президент",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/президент/"
+  },
+  {
+   "word": "искам",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/искам/"
+  },
+  {
+   "word": "защото",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/защото/"
+  },
+  {
+   "word": "обаче",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/обаче/"
+  },
+  {
+   "word": "повече",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/повече/"
+  },
+  {
+   "word": "въпрос",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/въпрос/"
+  },
+  {
+   "word": "процент",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/процент/"
+  },
+  {
+   "word": "проблем",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/проблем/"
+  },
+  {
+   "word": "съобщя",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/съобщя/"
+  },
+  {
+   "word": "стана",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/стана/"
+  },
+  {
+   "word": "закон",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/закон/"
+  },
+  {
+   "word": "сега",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/сега/"
+  },
+  {
+   "word": "министър",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/министър/"
+  },
+  {
+   "word": "решение",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/решение/"
+  },
+  {
+   "word": "държавен",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/държавен/"
+  },
+  {
+   "word": "може",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/може/"
+  },
+  {
+   "word": "европейски",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/европейски/"
+  },
+  {
+   "word": "място",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/място/"
+  },
+  {
+   "word": "право",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/право/"
+  },
+  {
+   "word": "работа",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/работа/"
+  },
+  {
+   "word": "втори",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/втори/"
+  },
+  {
+   "word": "милион",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/милион/"
+  },
+  {
+   "word": "военен",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/военен/"
+  },
+  {
+   "word": "добър",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/добър/"
+  },
+  {
+   "word": "политически",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/политически/"
+  },
+  {
+   "word": "заявя",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/заявя/"
+  },
+  {
+   "word": "среща",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/среща/"
+  },
+  {
+   "word": "съвет",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/съвет/"
+  },
+  {
+   "word": "фирма",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/фирма/"
+  },
+  {
+   "word": "национален",
+   "stressed_vowel_index": 3,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/национален/"
+  },
+  {
+   "word": "последен",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/последен/"
+  },
+  {
+   "word": "долар",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/долар/"
+  },
+  {
+   "word": "месец",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/месец/"
+  },
+  {
+   "word": "държава",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/държава/"
+  },
+  {
+   "word": "книга",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/книга/"
+  },
+  {
+   "word": "избор",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/избор/"
+  },
+  {
+   "word": "събрание",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/събрание/"
+  },
+  {
+   "word": "дойда",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/дойда/"
+  },
+  {
+   "word": "сила",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/сила/"
+  },
+  {
+   "word": "живот",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/живот/"
+  },
+  {
+   "word": "както",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/както/"
+  },
+  {
+   "word": "взема",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/взема/"
+  },
+  {
+   "word": "политика",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/политика/"
+  },
+  {
+   "word": "правителство",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/правителство/"
+  },
+  {
+   "word": "добре",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/добре/"
+  },
+  {
+   "word": "също",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/също/"
+  },
+  {
+   "word": "случай",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/случай/"
+  },
+  {
+   "word": "дума",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/дума/"
+  },
+  {
+   "word": "парламент",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/парламент/"
+  },
+  {
+   "word": "отношение",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/отношение/"
+  },
+  {
+   "word": "малко",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/малко/"
+  },
+  {
+   "word": "смятам",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/смятам/"
+  },
+  {
+   "word": "съюз",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/съюз/"
+  },
+  {
+   "word": "промяна",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/промяна/"
+  },
+  {
+   "word": "започна",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/започна/"
+  },
+  {
+   "word": "очаквам",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/очаквам/"
+  },
+  {
+   "word": "комисия",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/комисия/"
+  },
+  {
+   "word": "партия",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/партия/"
+  },
+  {
+   "word": "получа",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/получа/"
+  },
+  {
+   "word": "начин",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/начин/"
+  },
+  {
+   "word": "министерство",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/министерство/"
+  },
+  {
+   "word": "армия",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/армия/"
+  },
+  {
+   "word": "лице",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/лице/"
+  },
+  {
+   "word": "където",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/където/"
+  },
+  {
+   "word": "господин",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/господин/"
+  },
+  {
+   "word": "име",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/име/"
+  },
+  {
+   "word": "представител",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/представител/"
+  },
+  {
+   "word": "тогава",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/тогава/"
+  },
+  {
+   "word": "остана",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/остана/"
+  },
+  {
+   "word": "сигурност",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/сигурност/"
+  },
+  {
+   "word": "основен",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/основен/"
+  },
+  {
+   "word": "дело",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/дело/"
+  },
+  {
+   "word": "момент",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/момент/"
+  },
+  {
+   "word": "отново",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/отново/"
+  },
+  {
+   "word": "мисля",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/мисля/"
+  },
+  {
+   "word": "малък",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/малък/"
+  },
+  {
+   "word": "различен",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/различен/"
+  },
+  {
+   "word": "възможност",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/възможност/"
+  },
+  {
+   "word": "отбрана",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/отбрана/"
+  },
+  {
+   "word": "условие",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/условие/"
+  },
+  {
+   "word": "виза",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/виза/"
+  },
+  {
+   "word": "затова",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/затова/"
+  },
+  {
+   "word": "изляза",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/изляза/"
+  },
+  {
+   "word": "резултат",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/резултат/"
+  },
+  {
+   "word": "причина",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/причина/"
+  },
+  {
+   "word": "международен",
+   "stressed_vowel_index": 3,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/международен/"
+  },
+  {
+   "word": "гражданин",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/гражданин/"
+  },
+  {
+   "word": "твърдя",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/твърдя/"
+  },
+  {
+   "word": "документ",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/документ/"
+  },
+  {
+   "word": "икономика",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/икономика/"
+  },
+  {
+   "word": "депутат",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/депутат/"
+  },
+  {
+   "word": "служба",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/служба/"
+  },
+  {
+   "word": "декември",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/декември/"
+  },
+  {
+   "word": "важен",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/важен/"
+  },
+  {
+   "word": "личен",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/личен/"
+  },
+  {
+   "word": "световен",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/световен/"
+  },
+  {
+   "word": "едва",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/едва/"
+  },
+  {
+   "word": "договор",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/договор/"
+  },
+  {
+   "word": "връзка",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/връзка/"
+  },
+  {
+   "word": "председател",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/председател/"
+  },
+  {
+   "word": "начало",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/начало/"
+  },
+  {
+   "word": "приема",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/приема/"
+  },
+  {
+   "word": "първи",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/първи/"
+  },
+  {
+   "word": "късно",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/късно/"
+  },
+  {
+   "word": "висок",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/висок/"
+  },
+  {
+   "word": "гледам",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/гледам/"
+  },
+  {
+   "word": "интерес",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/интерес/"
+  },
+  {
+   "word": "позиция",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/позиция/"
+  },
+  {
+   "word": "българин",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/българин/"
+  },
+  {
+   "word": "финансов",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/финансов/"
+  },
+  {
+   "word": "играя",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/играя/"
+  },
+  {
+   "word": "трети",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/трети/"
+  },
+  {
+   "word": "къде",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/къде/"
+  },
+  {
+   "word": "икономически",
+   "stressed_vowel_index": 3,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/икономически/"
+  },
+  {
+   "word": "януари",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/януари/"
+  },
+  {
+   "word": "наистина",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/наистина/"
+  },
+  {
+   "word": "пазар",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/пазар/"
+  },
+  {
+   "word": "око",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/око/"
+  },
+  {
+   "word": "търся",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/търся/"
+  },
+  {
+   "word": "ставам",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/ставам/"
+  },
+  {
+   "word": "вляза",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/вляза/"
+  },
+  {
+   "word": "процес",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/процес/"
+  },
+  {
+   "word": "следвам",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/следвам/"
+  },
+  {
+   "word": "система",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/система/"
+  },
+  {
+   "word": "премиер",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/премиер/"
+  },
+  {
+   "word": "живея",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/живея/"
+  },
+  {
+   "word": "банка",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/банка/"
+  },
+  {
+   "word": "толкова",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/толкова/"
+  },
+  {
+   "word": "проект",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/проект/"
+  },
+  {
+   "word": "кабинет",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/кабинет/"
+  },
+  {
+   "word": "продължа",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/продължа/"
+  },
+  {
+   "word": "група",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/група/"
+  },
+  {
+   "word": "развитие",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/развитие/"
+  },
+  {
+   "word": "агенция",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/агенция/"
+  },
+  {
+   "word": "вероятно",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/вероятно/"
+  },
+  {
+   "word": "дейност",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/дейност/"
+  },
+  {
+   "word": "участвам",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/участвам/"
+  },
+  {
+   "word": "организация",
+   "stressed_vowel_index": 3,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/организация/"
+  },
+  {
+   "word": "често",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/често/"
+  },
+  {
+   "word": "водя",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/водя/"
+  },
+  {
+   "word": "република",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/република/"
+  },
+  {
+   "word": "програма",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/програма/"
+  },
+  {
+   "word": "управление",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/управление/"
+  },
+  {
+   "word": "минута",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/минута/"
+  },
+  {
+   "word": "община",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/община/"
+  },
+  {
+   "word": "външен",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/външен/"
+  },
+  {
+   "word": "училище",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/училище/"
+  },
+  {
+   "word": "коментирам",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/коментирам/"
+  },
+  {
+   "word": "лидер",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/лидер/"
+  },
+  {
+   "word": "справяне",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/справяне/"
+  },
+  {
+   "word": "плащам",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/плащам/"
+  },
+  {
+   "word": "почти",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/почти/"
+  },
+  {
+   "word": "замина",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/замина/"
+  },
+  {
+   "word": "местен",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/местен/"
+  },
+  {
+   "word": "действие",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/действие/"
+  },
+  {
+   "word": "предложение",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/предложение/"
+  },
+  {
+   "word": "успея",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/успея/"
+  },
+  {
+   "word": "заседание",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/заседание/"
+  },
+  {
+   "word": "досега",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/досега/"
+  },
+  {
+   "word": "подобен",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/подобен/"
+  },
+  {
+   "word": "средство",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/средство/"
+  },
+  {
+   "word": "оставам",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/оставам/"
+  },
+  {
+   "word": "район",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/район/"
+  },
+  {
+   "word": "идея",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/идея/"
+  },
+  {
+   "word": "винаги",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/винаги/"
+  },
+  {
+   "word": "пълен",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/пълен/"
+  },
+  {
+   "word": "вестник",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/вестник/"
+  },
+  {
+   "word": "социален",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/социален/"
+  },
+  {
+   "word": "оценка",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/оценка/"
+  },
+  {
+   "word": "общество",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/общество/"
+  },
+  {
+   "word": "използвам",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/използвам/"
+  },
+  {
+   "word": "преговори",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/преговори/"
+  },
+  {
+   "word": "народ",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/народ/"
+  },
+  {
+   "word": "студент",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/студент/"
+  },
+  {
+   "word": "точно",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/точно/"
+  },
+  {
+   "word": "мнение",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/мнение/"
+  },
+  {
+   "word": "война",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/война/"
+  },
+  {
+   "word": "ситуация",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/ситуация/"
+  },
+  {
+   "word": "контрол",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/контрол/"
+  },
+  {
+   "word": "продължавам",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/продължавам/"
+  },
+  {
+   "word": "успех",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/успех/"
+  },
+  {
+   "word": "сметка",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/сметка/"
+  },
+  {
+   "word": "приемам",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/приемам/"
+  },
+  {
+   "word": "полиция",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/полиция/"
+  },
+  {
+   "word": "служител",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/служител/"
+  },
+  {
+   "word": "ноември",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/ноември/"
+  },
+  {
+   "word": "разговор",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/разговор/"
+  },
+  {
+   "word": "директор",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/директор/"
+  },
+  {
+   "word": "бюджет",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/бюджет/"
+  },
+  {
+   "word": "село",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/село/"
+  },
+  {
+   "word": "чакам",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/чакам/"
+  },
+  {
+   "word": "център",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/център/"
+  },
+  {
+   "word": "доста",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/доста/"
+  },
+  {
+   "word": "помощ",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/помощ/"
+  },
+  {
+   "word": "писмо",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/писмо/"
+  },
+  {
+   "word": "приятел",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/приятел/"
+  },
+  {
+   "word": "веднага",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/веднага/"
+  },
+  {
+   "word": "област",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/област/"
+  },
+  {
+   "word": "приватизация",
+   "stressed_vowel_index": 3,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/приватизация/"
+  },
+  {
+   "word": "министерски",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/министерски/"
+  },
+  {
+   "word": "информация",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/информация/"
+  },
+  {
+   "word": "руски",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/руски/"
+  },
+  {
+   "word": "спечеля",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/спечеля/"
+  },
+  {
+   "word": "необходим",
+   "stressed_vowel_index": 3,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/необходим/"
+  },
+  {
+   "word": "институция",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/институция/"
+  },
+  {
+   "word": "режим",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/режим/"
+  },
+  {
+   "word": "идвам",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/идвам/"
+  },
+  {
+   "word": "обществен",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/обществен/"
+  },
+  {
+   "word": "стабилност",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/стабилност/"
+  },
+  {
+   "word": "сделка",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/сделка/"
+  },
+  {
+   "word": "напълно",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/напълно/"
+  },
+  {
+   "word": "колкото",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/колкото/"
+  },
+  {
+   "word": "после",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/после/"
+  },
+  {
+   "word": "положение",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/положение/"
+  },
+  {
+   "word": "столичен",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/столичен/"
+  },
+  {
+   "word": "точка",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/точка/"
+  },
+  {
+   "word": "отговорност",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/отговорност/"
+  },
+  {
+   "word": "милиард",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/милиард/"
+  },
+  {
+   "word": "предполагам",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/предполагам/"
+  },
+  {
+   "word": "състояние",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/състояние/"
+  },
+  {
+   "word": "съвсем",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/съвсем/"
+  },
+  {
+   "word": "трудно",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/трудно/"
+  },
+  {
+   "word": "земя",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/земя/"
+  },
+  {
+   "word": "опит",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/опит/"
+  },
+  {
+   "word": "колко",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/колко/"
+  },
+  {
+   "word": "стратегия",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/стратегия/"
+  },
+  {
+   "word": "образование",
+   "stressed_vowel_index": 3,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/образование/"
+  },
+  {
+   "word": "мярка",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/мярка/"
+  },
+  {
+   "word": "вътрешен",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/вътрешен/"
+  },
+  {
+   "word": "означавам",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/означавам/"
+  },
+  {
+   "word": "семейство",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/семейство/"
+  },
+  {
+   "word": "поне",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/поне/"
+  },
+  {
+   "word": "стигна",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/стигна/"
+  },
+  {
+   "word": "поискам",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/поискам/"
+  },
+  {
+   "word": "сграда",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/сграда/"
+  },
+  {
+   "word": "парламентарен",
+   "stressed_vowel_index": 3,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/парламентарен/"
+  },
+  {
+   "word": "модел",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/модел/"
+  },
+  {
+   "word": "участие",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/участие/"
+  },
+  {
+   "word": "кандидат",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/кандидат/"
+  },
+  {
+   "word": "регион",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/регион/"
+  },
+  {
+   "word": "избера",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/избера/"
+  },
+  {
+   "word": "секретар",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/секретар/"
+  },
+  {
+   "word": "души",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/души/"
+  },
+  {
+   "word": "войник",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/войник/"
+  },
+  {
+   "word": "бъдеще",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/бъдеще/"
+  },
+  {
+   "word": "въоръжа",
+   "stressed_vowel_index": 3,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/въоръжа/"
+  },
+  {
+   "word": "турски",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/турски/"
+  },
+  {
+   "word": "дълъг",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/дълъг/"
+  },
+  {
+   "word": "създам",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/създам/"
+  },
+  {
+   "word": "чуя",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/чуя/"
+  },
+  {
+   "word": "прочета",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/прочета/"
+  },
+  {
+   "word": "вярвам",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/вярвам/"
+  },
+  {
+   "word": "помогна",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/помогна/"
+  },
+  {
+   "word": "граждански",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/граждански/"
+  },
+  {
+   "word": "близък",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/близък/"
+  },
+  {
+   "word": "влизам",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/влизам/"
+  },
+  {
+   "word": "получавам",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/получавам/"
+  },
+  {
+   "word": "тежък",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/тежък/"
+  },
+  {
+   "word": "платя",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/платя/"
+  },
+  {
+   "word": "известен",
+   "stressed_vowel_index": 1,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/известен/"
+  },
+  {
+   "word": "нисък",
+   "stressed_vowel_index": 0,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/нисък/"
+  },
+  {
+   "word": "специален",
+   "stressed_vowel_index": 2,
+   "rbe_url": "https://ibl.bas.bg/rbe/lang/bg/специален/"
+  }
+ ]
+}
