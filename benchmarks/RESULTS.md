@@ -509,10 +509,10 @@ literature cited in the rule functions of `stressonnx/backends/simple.py`.
 | lang | rule | words | accuracy | note |
 |------|------|-------|----------|------|
 | ka | antepenultimate | 12118 | 1.000 | matches the Akhvlediani/Gudava tradition the vocab follows; Georgian stress is weak and contested (Borise 2020 argues initial) |
-| xal | last | 5918 | 1.000 | |
+| xal | none | 5918 | — | no word stress of the Russian kind (Санжеев 1940); dictionary lookup only |
 | uz-Cyrl / uz-Latn | last | 4791 / 4517 | 1.000 | |
 | ky | last | 11247 | 0.993 | |
-| kk | last | 6659 | 0.987 | unstressable-suffix classes (negation -ма etc., Kirchner 1998) not yet modeled |
+| kk | none | 6659 | — | no evidence for final word stress (McCollum & Chen 2021); dictionary lookup only |
 | udm | last | 13251 | 0.975 | negated/imperative verbs (initial stress) not detectable without morphology |
 | cv | last full vowel (ӑ/ӗ never stressed) | 22050 | 0.940 | Clark 1998 / Krueger 1961 / Dobrovolsky 1999 |
 | tt | final, unstressed suffixes -ча/-чә/-сең/-ме retract (Comrie 1997b) | 11043 | 0.904 | only vocabulary-validated suffix variants enabled |

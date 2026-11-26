@@ -80,7 +80,7 @@ def test_stress_simple_matches_silero():
     # contradicts its vocabulary on 55% of them — see tests/test_oov_rules.py
     # and benchmarks/oov_rules_eval.py.
     sample = {
-        ("kk", "kaz"): "Сәлем Қазақстан",
+        ("kk", "kaz"): "Қазақстан",  # in-vocab only: kk OOV words take rule none, silero puts a final mark
         ("tt", "tat"): "Сәлам Казан",
         ("hy", "hye"): "Բարեւ Երեւան",
         ("az-Latn", "aze_lat"): "Salam Bakı",

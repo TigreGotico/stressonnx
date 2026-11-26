@@ -25,7 +25,7 @@ SIMPLE_CASES = [
     ("kjh", "Абакан", "Абака́н"),
     ("tg", "Душанбе", "Душанбе́"),
     ("udm", "Ижевск", "Иже́вск"),
-    ("xal", "Элиста", "Элиста́"),
+    ("xal", "Элиста", "Элиста"),  # rule none: an OOV word stays unmarked
     ("be", "свет", "све́т"),
     # bel_simple exercises the vocab + rule path
 ]

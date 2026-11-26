@@ -229,14 +229,14 @@ Vowel quality is stable under stress shift, so the cost of an error is
 rhythm and the occasional exception word, much lower stakes than Russian,
 which is why a rule plus an exception dictionary is a defensible design.
 
-### Kazakh (`kk`), Kyrgyz (`ky`), Tatar (`tt`), Bashkir (`ba`), Azerbaijani (`az-Cyrl`/`az-Latn`), Uzbek (`uz-Cyrl`/`uz-Latn`)
+### Kyrgyz (`ky`), Tatar (`tt`), Bashkir (`ba`), Azerbaijani (`az-Cyrl`/`az-Latn`), Uzbek (`uz-Cyrl`/`uz-Latn`)
 
 **What stressonnx does.** Curated vocabularies exported from silero_stress
 (covering common words including the suffix-class exceptions) plus the
 `last` rule for unknown words. Measured rule-vs-vocabulary accuracy: ky
-0.993, kk 0.987, tt 0.896, ba 0.852, az 0.816, uz 1.000. The spread
+0.993, tt 0.896, ba 0.852, az 0.816, uz 1.000. The spread
 reflects how many exception forms each vocabulary happens to contain.
-The closed unstressable-suffix lists (Kazakh -ма/-ме negation, -шА, -ДАй,
+The closed unstressable-suffix lists (-ма/-ме negation, -шА, -ДАй,
 copulas, and others; Kirchner 1998 via Washington 2006) were measured
 against the vocabularies: blind surface-string retraction loses more than
 it gains (алма́ "apple" would wrongly become а́лма). Correct application
@@ -244,8 +244,15 @@ needs morphological segmentation, so they are documented rather than
 enabled. Tatar is the exception: four suffix variants (-ча/-чә adverbial,
 -сең 2sg, -ме interrogative; Comrie 1997b) pass a 0.7-or-higher
 vocabulary-evidence bar and are enabled in the `tt` rule (0.896 → 0.904).
-The Kazakh alphabet includes ё and ъ, which occur in Russian loanwords;
-ё is a vowel, so самолё́т is stressed on it.
+### Kazakh (`kk`)
+
+**What stressonnx does.** The curated vocabulary exported from silero_stress,
+and rule `none` for unknown words: a word outside the vocabulary stays
+unmarked. The acoustic study of McCollum & Chen 2021 (JIPA) found "no
+evidence for claims that Kazakh exhibits a final pitch accent, and perhaps
+only marginal evidence for an initial stress accent", and other authors hold
+that Kazakh has phrase-level prominence only. The Kazakh alphabet includes ё
+and ъ, which occur in Russian loanwords; ё is a vowel.
 
 Azerbaijani Latin text is lowercased the Turkic way for the lookup: İ to i
 and I to ı, so İbrahimov finds its vocabulary entry.
@@ -381,11 +388,11 @@ reflects that. Treat kbd as functional but low-confidence.
 
 ### Kalmyk (`xal`)
 
-**Why.** Final-syllable stress on the last full vowel is the working
-consensus (Bläsing's *Kalmuck* chapter), with the literature itself warning
-that Kalmyk stress "has barely been studied." The `last` rule measures
-1.000 against the vocabulary, the cleanest fit in the library, but the
-thinness of the underlying scholarship is worth knowing.
+**What stressonnx does.** The curated vocabulary exported from silero_stress,
+and rule `none` for unknown words. Санжеев 1940 (Грамматика калмыцкого
+языка) states that Kalmyk has no stress of the kind Russian has. The
+vocabulary marks final stress on its entries, but no primary source in the
+library supports a positional rule for unknown words.
 
 ---
 
