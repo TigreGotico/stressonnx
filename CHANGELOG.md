@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a48](https://github.com/TigreGotico/stressonnx/tree/0.0.3a48) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a47...0.0.3a48)
+
+**Merged pull requests:**
+
+- test: strict xfail for the hy ու stress mark [\#110](https://github.com/TigreGotico/stressonnx/pull/110) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a47](https://github.com/TigreGotico/stressonnx/tree/0.0.3a47) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a46...0.0.3a47)
