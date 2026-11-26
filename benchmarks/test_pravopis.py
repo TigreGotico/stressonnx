@@ -26,3 +26,10 @@ def test_drops(marked, reason):
 
 def test_a_token_in_a_hyphenated_compound_is_not_a_word():
     assert MARKED.findall("ког'о-годе, к'ој-\n-годе, шт'о‑годе и 'однатре") == ["'однатре"]
+
+
+def test_a_word_before_a_clitic_is_not_a_word():
+    from gold.pravopis_macedonian import CLITIC
+    text = "нос'ете ја, лет'уваат"
+    kept = [m.group() for m in MARKED.finditer(text) if not CLITIC.match(text, m.end())]
+    assert kept == ["лет'уваат"]

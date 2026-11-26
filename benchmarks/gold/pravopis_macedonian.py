@@ -34,6 +34,9 @@ MARKED = re.compile(rf"(?<![{LETTER}'\-‑])[{LETTER}']*'[{LETTER}']+(?![{LETTER
 #: examples of the stress sign on p. 144, mark the stress of a phrase
 #: (старит'е луѓе, кисел'о млеко), not of the word alone.
 PHRASE_START, PHRASE_END, SIGN_PAGE = 32, 36, 144
+#: A mark before one of these short forms is the stress of the word and clitic
+#: together (нос'ете ја).
+CLITIC = re.compile(r"\s+(?:ме|те|го|ја|ги|ни|ви|му|ѝ|им|се|си|ли)(?![а-шѓќљњџѕј])")
 #: The text layer prints д as the Latin script g in many places.
 GLYPHS = str.maketrans({"ɡ": "д"})
 
@@ -64,9 +67,12 @@ def build():
             page = page.split("\n43.")[0]
         page = unicodedata.normalize("NFC", page.translate(GLYPHS)).lower()
         page = re.sub("\u00ad+\n\\s*", "", page).replace("\u00ad", "")
-        for marked in MARKED.findall(page):
+        for match in MARKED.finditer(page):
             n_in += 1
-            word, ordinal = stress_ordinal(marked)
+            if CLITIC.match(page, match.end()):
+                drops["word with a clitic after it (words)"] += 1
+                continue
+            word, ordinal = stress_ordinal(match.group())
             if word is None:
                 drops[ordinal] += 1
             else:

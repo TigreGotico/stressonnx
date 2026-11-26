@@ -2,6 +2,7 @@
 "n_in": 1078,
 "drops": {
 "more than one mark (words)": 20,
+"word with a clitic after it (words)": 1,
 "one vowel letter (words)": 11,
 "mark on the syllabic р or a consonant (words)": 11,
 "word with two stresses (words)": 18
@@ -2796,11 +2797,6 @@
 "word": "нормален",
 "stressed_vowel_index": 0,
 "page": 30
-},
-{
-"word": "носете",
-"stressed_vowel_index": 1,
-"page": 27
 },
 {
 "word": "носи",
