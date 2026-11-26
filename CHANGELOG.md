@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a55](https://github.com/TigreGotico/stressonnx/tree/0.0.3a55) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a54...0.0.3a55)
+
+**Merged pull requests:**
+
+- test\(docs\): each docs score checked against its own RESULTS.md cell [\#129](https://github.com/TigreGotico/stressonnx/pull/129) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a54](https://github.com/TigreGotico/stressonnx/tree/0.0.3a54) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a53...0.0.3a54)
@@ -368,10 +376,6 @@
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a6...0.0.3a7)
 
-**Merged pull requests:**
-
-- fix: handle ruaccent sentences past the 512-token model limit [\#21](https://github.com/TigreGotico/stressonnx/pull/21) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
-
 ## [0.0.3a6](https://github.com/TigreGotico/stressonnx/tree/0.0.3a6) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a5...0.0.3a6)
@@ -383,10 +387,6 @@
 ## [0.0.3a4](https://github.com/TigreGotico/stressonnx/tree/0.0.3a4) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a3...0.0.3a4)
-
-**Merged pull requests:**
-
-- fix: resolve capitalized homographs in ruaccent [\#20](https://github.com/TigreGotico/stressonnx/pull/20) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 
 ## [0.0.3a3](https://github.com/TigreGotico/stressonnx/tree/0.0.3a3) (2026-11-05)
 
