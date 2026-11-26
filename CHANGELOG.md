@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a51](https://github.com/TigreGotico/stressonnx/tree/0.0.3a51) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a50...0.0.3a51)
+
+**Merged pull requests:**
+
+- feat\(benchmarks\): bg GOLD set from the BAS dictionary [\#119](https://github.com/TigreGotico/stressonnx/pull/119) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a50](https://github.com/TigreGotico/stressonnx/tree/0.0.3a50) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a49...0.0.3a50)
@@ -379,10 +387,6 @@
 ## [0.0.3a1](https://github.com/TigreGotico/stressonnx/tree/0.0.3a1) (2026-07-30)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.2...0.0.3a1)
-
-**Merged pull requests:**
-
-- docs: rewrite README in Simplified Technical English [\#12](https://github.com/TigreGotico/stressonnx/pull/12) ([JarbasAl](https://github.com/JarbasAl))
 
 ## [0.0.2](https://github.com/TigreGotico/stressonnx/tree/0.0.2) (2026-07-22)
 
