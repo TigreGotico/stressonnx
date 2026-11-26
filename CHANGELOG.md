@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.3a61](https://github.com/TigreGotico/stressonnx/tree/0.0.3a61) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a60...0.0.3a61)
+
+**Merged pull requests:**
+
+- docs: quoted stress-rule sources for cv, tt and uz [\#141](https://github.com/TigreGotico/stressonnx/pull/141) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+- feat!: lang is required in stress, stress\_batch and analyze [\#140](https://github.com/TigreGotico/stressonnx/pull/140) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a60](https://github.com/TigreGotico/stressonnx/tree/0.0.3a60) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a59...0.0.3a60)
@@ -371,25 +380,13 @@
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a10...0.0.3a11)
 
-**Merged pull requests:**
-
-- fix: keep every input character in ruaccent output [\#33](https://github.com/TigreGotico/stressonnx/pull/33) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
-
 ## [0.0.3a10](https://github.com/TigreGotico/stressonnx/tree/0.0.3a10) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a9...0.0.3a10)
 
-**Merged pull requests:**
-
-- fix: treat U+0301 as stress only after a vowel [\#32](https://github.com/TigreGotico/stressonnx/pull/32) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
-
 ## [0.0.3a9](https://github.com/TigreGotico/stressonnx/tree/0.0.3a9) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a8...0.0.3a9)
-
-**Merged pull requests:**
-
-- fix: run the ruaccent backend on tokenizers 0.x and 1.x [\#31](https://github.com/TigreGotico/stressonnx/pull/31) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 
 ## [0.0.3a8](https://github.com/TigreGotico/stressonnx/tree/0.0.3a8) (2026-11-05)
 
