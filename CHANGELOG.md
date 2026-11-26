@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a49](https://github.com/TigreGotico/stressonnx/tree/0.0.3a49) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a48...0.0.3a49)
+
+**Merged pull requests:**
+
+- docs\(languages\): exact quotes for six stress-rule sources [\#114](https://github.com/TigreGotico/stressonnx/pull/114) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a48](https://github.com/TigreGotico/stressonnx/tree/0.0.3a48) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a47...0.0.3a48)
