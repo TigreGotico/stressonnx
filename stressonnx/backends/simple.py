@@ -155,22 +155,6 @@ def _rule_tat(word: str, vowels: list) -> Optional[int]:
     return len(vowels) - 1
 
 
-def _rule_sah(word: str, vowels: list) -> Optional[int]:
-    """Yakut/Sakha: stress the last long vowel or diphthong, else the final
-    vowel.  Yakut writes long vowels and diphthongs as vowel digraphs (аа,
-    ыы, уо, иэ …) and they attract stress (Krueger 1962: default final
-    stress, with weight-sensitivity; the curated vocabulary marks the second
-    element of the heavy nucleus — бии́р, буо́лан, эрээ́ри — and this rule
-    scores 0.994 against it vs 0.178 for naive final stress)."""
-    groups: list = []
-    for n, i in enumerate(vowels):
-        if groups and i == vowels[groups[-1][-1]] + 1:
-            groups[-1].append(n)
-        else:
-            groups.append([n])
-    heavy = [g for g in groups if len(g) >= 2]
-    return (heavy[-1] if heavy else groups[-1])[-1]
-
 
 def _digraph_head(word: str, i: int) -> bool:
     """True for the ո of Armenian ու: the digraph is one vowel, marked after ւ."""
@@ -194,7 +178,6 @@ OOV_RULES: dict = {
     "tgk": _rule_tgk,
     "mdf": _rule_mdf,
     "tat": _rule_tat,
-    "sah": _rule_sah,
     "kbd": _rule_kbd,
 }
 

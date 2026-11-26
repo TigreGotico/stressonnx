@@ -94,7 +94,7 @@ The difficulty varies enormously by language:
 | Turkic (Tatar, Kyrgyz, and others; Kazakh takes rule `none`) | High | Predominantly final-syllable stress with grammatically regular exceptions |
 | Caucasian (Georgian, Armenian, Kabardino-Balkarian) | Medium | Fixed position in most forms, loanwords and compound words break the rule |
 | Erzya / Moksha | Low-medium | Initial stress default, but many exceptions, vowel reduction in unstressed syllables |
-| Yakut (Sah) | Medium | Long vowels attract stress, vowel harmony constrains position |
+| Yakut (Sah) | Medium | Final stress (Böhtlingk 1851); the vocabulary marks vowel length, not stress |
 
 ---
 
@@ -975,7 +975,7 @@ is scored against the language's own curated vocabulary in
 
 | Language(s) | Rule | Source | Accuracy |
 |---|---|---|---|
-| ky tt ba az uz kjh sah udm | final vowel | Turkic/Permic final-stress default (Kirchner 1998, Poppe 1964, Krueger 1962, Winkler 2001) | 0.82 to 1.00 (sah is an open item, see scoreboard) |
+| ky tt ba az uz kjh sah udm | final vowel | Turkic/Permic final-stress default (Kirchner 1998, Poppe 1964, Krueger 1962, Winkler 2001) | 0.82 to 1.00 (sah 0.177: its vocabulary marks vowel length, not stress) |
 | cv | last **full** vowel: reduced ӑ/ӗ never stressed, all-reduced words stress the first syllable | Clark 1998, Krueger 1961, Dobrovolsky 1999 (ICPhS) | 0.94 |
 | ka | antepenultimate vowel, initial for shorter words | Akhvlediani 1949, Gudava 1969, Aronson 1990 (Georgian stress is weak and contested, Borise 2020 argues fixed initial) | 1.00 |
 | hy | last non-schwa vowel (ը never stressed) | Chakmakjian 2024 (Speech Prosody) | 0.78 |
@@ -1058,10 +1058,9 @@ stress is the default. The OOV last-vowel rule is correct for native
 vocabulary.
 
 **Yakut/Sakha (`sah`)**
-Siberian Turkic. Stress interacts with vowel length: **long vowels attract
-stress** and diphthongs are always stressed. Standard orthography marks
-long vowels, so the dictionary covers most cases. The OOV last-vowel rule
-is a rough approximation.
+Siberian Turkic. Stress falls on the last syllable and does not depend on
+vowel length (Böhtlingk 1851; Campbell & King 2013). The OOV rule is
+`last`. The simple-sah vocabulary marks vowel length, not stress.
 
 **Tajik (`tg`)**
 An Iranian language, not Turkic. Stress in Tajik is **penultimate** in most

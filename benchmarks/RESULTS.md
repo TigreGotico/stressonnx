@@ -524,7 +524,7 @@ literature cited in the rule functions of `stressonnx/backends/simple.py`.
 | myv | first | 4931 | 0.538 | stress is a tendency, not a rule (Oxford Guide to the Uralic Languages) |
 | kbd | final, unless word-final э → penult | 5648 | 0.404 | paraphrase-level sources only; low confidence |
 | kjh | last | 12018 | 0.280 | no primary source on Khakas stress could be located; Turkic-default kept |
-| sah | last heavy nucleus (long vowel/diphthong), else final | 85746 | 0.994 | Yakut long vowels/diphthongs attract stress (Krueger 1962 + weight sensitivity); the old naive final rule scored 0.178 |
+| sah | last | 85232 | 0.177 | final stress (Böhtlingk 1851; Campbell & King 2013); the vocabulary marks the second letter of a long vowel or diphthong, which is length, not stress |
 | be (`simple`) | none | 1891586 | — | Belarusian stress is lexical, not positional — no rule is defensible; vocabulary only |
 
 Open items: suffix-aware refinements for kk/ky/az — the closed
