@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a62](https://github.com/TigreGotico/stressonnx/tree/0.0.3a62) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a61...0.0.3a62)
+
+**Merged pull requests:**
+
+- test: strict xfail for sah final stress \(\#142\) [\#144](https://github.com/TigreGotico/stressonnx/pull/144) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a61](https://github.com/TigreGotico/stressonnx/tree/0.0.3a61) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a60...0.0.3a61)
@@ -371,10 +379,6 @@
 ## [0.0.3a12](https://github.com/TigreGotico/stressonnx/tree/0.0.3a12) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a11...0.0.3a12)
-
-**Merged pull requests:**
-
-- feat: resolve Russian homographs in the silero model with the silero-stress 1.5 homosolver [\#34](https://github.com/TigreGotico/stressonnx/pull/34) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 
 ## [0.0.3a11](https://github.com/TigreGotico/stressonnx/tree/0.0.3a11) (2026-11-05)
 
