@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.3a54](https://github.com/TigreGotico/stressonnx/tree/0.0.3a54) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a53...0.0.3a54)
+
+**Merged pull requests:**
+
+- refactor: drop two getattr layers and a hasattr branch [\#128](https://github.com/TigreGotico/stressonnx/pull/128) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+- docs: hy and bg scores; a test checks figures, scores and examples [\#126](https://github.com/TigreGotico/stressonnx/pull/126) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a53](https://github.com/TigreGotico/stressonnx/tree/0.0.3a53) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a52...0.0.3a53)
@@ -367,10 +376,6 @@
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a5...0.0.3a6)
 
-**Merged pull requests:**
-
-- fix: stress decomposed \(NFD\) input like its composed form [\#19](https://github.com/TigreGotico/stressonnx/pull/19) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
-
 ## [0.0.3a5](https://github.com/TigreGotico/stressonnx/tree/0.0.3a5) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a4...0.0.3a5)
@@ -382,15 +387,10 @@
 **Merged pull requests:**
 
 - fix: resolve capitalized homographs in ruaccent [\#20](https://github.com/TigreGotico/stressonnx/pull/20) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
-- fix: resolve a script subtag that names the language's own script [\#18](https://github.com/TigreGotico/stressonnx/pull/18) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 
 ## [0.0.3a3](https://github.com/TigreGotico/stressonnx/tree/0.0.3a3) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a2...0.0.3a3)
-
-**Merged pull requests:**
-
-- fix: bound tokenizers below 1.0 so the ruaccent tokenizers load [\#17](https://github.com/TigreGotico/stressonnx/pull/17) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 
 ## [0.0.3a2](https://github.com/TigreGotico/stressonnx/tree/0.0.3a2) (2026-08-14)
 
