@@ -305,7 +305,7 @@ class SimpleStressor:
         syllabic consonant (Macedonian р) before a consonant, after a
         consonant, the word start or the apostrophe that spells a
         word-initial syllabic р (’рж)."""
-        ids = [i for i, c in enumerate(raw_lower) if c in self._vowels and not _digraph_head(raw_lower, i)]
+        ids = [i for i, c in enumerate(raw_lower) if c in self._vowels]
         if self._syllabic:
             for i, c in enumerate(raw_lower):
                 if c not in self._syllabic or i == len(raw_lower) - 1:
