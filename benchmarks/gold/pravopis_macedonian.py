@@ -3,7 +3,8 @@
 Source: Институт за македонски јазик „Крсте Мисирков“ (2017), Правопис на
 македонскиот јазик, 2nd ed., Skopje.  The Pravopis marks the stress with an
 apostrophe before the stressed vowel (§25, п'ортр'ет), in its stress rules and
-in the word lists where a word does not take antepenult stress.
+in the word lists where a word does not take antepenult stress.  The pages on
+the stress of phrases (§43 to the end of the chapter) are left out.
 ``data/mk_pravopis.json`` holds only the word, the 0-based ordinal of the
 stressed vowel and the printed page; no text is copied.  ``build`` makes the
 file again from the PDF with ``pdftotext``.
@@ -29,6 +30,9 @@ VOWELS = frozenset("аеиоу")
 LETTER = "а-шѓќљњџѕј"
 #: A token next to a hyphen is part of a compound such as ког'о-годе.
 MARKED = re.compile(rf"(?<![{LETTER}'\-‑])[{LETTER}']*'[{LETTER}']+(?![{LETTER}'\-‑])")
+#: §43 (printed p. 32) to the end of the stress chapter (p. 35) mark the stress
+#: of a phrase (старит'е луѓе, кога г'о виде), not of the word alone.
+PHRASE_START, PHRASE_END = 32, 35
 #: The text layer prints д as the Latin script g in many places.
 GLYPHS = str.maketrans({"ɡ": "д"})
 
@@ -52,15 +56,20 @@ def build():
                           capture_output=True, text=True).stdout
     found, drops, n_in = {}, Counter(), 0
     for pdf_page, page in enumerate(text.split("\f"), start=1):
+        printed = pdf_page - 10
+        if PHRASE_START < printed <= PHRASE_END:
+            continue
+        if printed == PHRASE_START:
+            page = page.split("\n43.")[0]
         page = unicodedata.normalize("NFC", page.translate(GLYPHS)).lower()
-        page = re.sub("\u00ad\\s*", "", page)
+        page = re.sub("\u00ad+\n\\s*", "", page).replace("\u00ad", "")
         for marked in MARKED.findall(page):
             n_in += 1
             word, ordinal = stress_ordinal(marked)
             if word is None:
                 drops[ordinal] += 1
             else:
-                found.setdefault(word, {}).setdefault(ordinal, pdf_page - 10)
+                found.setdefault(word, {}).setdefault(ordinal, printed)
     words = []
     for word, ordinals in sorted(found.items()):
         if len(ordinals) > 1:
