@@ -464,9 +464,22 @@ McNemar (exact, two-sided) on targets both models scored:
 
 - silero vs simple: 2877 common targets, silero only right 2385, simple only right 0, p < 1e-300.
 
+## hy
+
+### hy / jipa — GOLD
+
+Source: https://doi.org/10.1017/S0025100323000130 (CC-BY-4.0).  Scored: polysyllabic Yerevan citation forms (IPA transcriptions by the authors).
+Rows in: 49; rows scored: 49; targets: 49.
+49 words, so the confidence interval is wide.
+Labels agree with the stressonnx simple-hy vocabulary (silero_stress export) on 91.4% of 35 targets the dictionary covers.
+
+| model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
+|-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
+| simple | GOLD | 49 | 0 | 0.939 | 0.857–1.000 | — | 0.0 | 0.1 |
+
 ## Languages without independent gold
 
-The 20 `simple`-model languages ship curated vocabularies exported from
+The other `simple`-model languages ship curated vocabularies exported from
 silero_stress; no independent stress-annotated corpus is publicly
 available for them, so no accuracy row is reported (the parity test in
 `tests/test_export_parity.py` locks them to the upstream reference).

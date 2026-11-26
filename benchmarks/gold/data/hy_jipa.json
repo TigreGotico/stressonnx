@@ -1,0 +1,252 @@
+{
+ "source": "Seyfarth, Dolatian, Guekguezian et al. 2024. Armenian (Yerevan Eastern Armenian and Beirut Western Armenian). Illustrations of the IPA. JIPA 54(1). doi:10.1017/S0025100323000130",
+ "license": "CC-BY-4.0",
+ "dialect": "Yerevan Eastern Armenian, reformed spelling",
+ "words": [
+  {
+   "word": "ռամկակա́ն",
+   "ipa": "rɑmkɑˈkɑn",
+   "pdf_page": 5
+  },
+  {
+   "word": "Ֆաթիմա́",
+   "ipa": "fɑtʰiˈmɑ",
+   "pdf_page": 6
+  },
+  {
+   "word": "Ղազարո́ս",
+   "ipa": "ʁɑzɑˈɾos",
+   "pdf_page": 6
+  },
+  {
+   "word": "յավրի́կ",
+   "ipa": "jɑvˈɾik",
+   "pdf_page": 6
+  },
+  {
+   "word": "Րաֆֆի́",
+   "ipa": "ɾɑˈfi",
+   "pdf_page": 6
+  },
+  {
+   "word": "դա́սը",
+   "ipa": "ˈdɑsə",
+   "pdf_page": 6
+  },
+  {
+   "word": "տա́սը",
+   "ipa": "ˈtɑsə",
+   "pdf_page": 6
+  },
+  {
+   "word": "թա́սը",
+   "ipa": "ˈtʰɑsə",
+   "pdf_page": 6
+  },
+  {
+   "word": "գարի́",
+   "ipa": "ɡɑˈɾi",
+   "pdf_page": 6
+  },
+  {
+   "word": "կարի́",
+   "ipa": "kɑˈɾi",
+   "pdf_page": 6
+  },
+  {
+   "word": "քարի́",
+   "ipa": "kʰɑˈɾi",
+   "pdf_page": 6
+  },
+  {
+   "word": "երեքշաբթի́",
+   "ipa": "jeɾekʃɑpˈtʰi",
+   "pdf_page": 9
+  },
+  {
+   "word": "Ամերիկա́",
+   "ipa": "ɑmeɾiˈkɑ",
+   "pdf_page": 14
+  },
+  {
+   "word": "դանդա́ղ",
+   "ipa": "tʰɑnˈtʰɑʁ",
+   "pdf_page": 14
+  },
+  {
+   "word": "վախկո́տ",
+   "ipa": "vɑχˈkod",
+   "pdf_page": 14
+  },
+  {
+   "word": "լեզվի́կ",
+   "ipa": "lezˈvik",
+   "pdf_page": 15
+  },
+  {
+   "word": "լեզու́",
+   "ipa": "leˈzu",
+   "pdf_page": 15
+  },
+  {
+   "word": "խենթու́կ",
+   "ipa": "χenˈtʰuk",
+   "pdf_page": 14
+  },
+  {
+   "word": "ղենջա́կ",
+   "ipa": "ʁenˈdʒɑk",
+   "pdf_page": 14
+  },
+  {
+   "word": "արու́",
+   "ipa": "ɑˈɾu",
+   "pdf_page": 15
+  },
+  {
+   "word": "իտալուհի́",
+   "ipa": "itɑluˈhi",
+   "pdf_page": 17
+  },
+  {
+   "word": "ութի́",
+   "ipa": "uˈtʰi",
+   "pdf_page": 17
+  },
+  {
+   "word": "էթիկե́տ",
+   "ipa": "etʰiˈket",
+   "pdf_page": 17
+  },
+  {
+   "word": "օդի́",
+   "ipa": "oˈtʰi",
+   "pdf_page": 17
+  },
+  {
+   "word": "աթո́ռ",
+   "ipa": "ɑˈtʰor",
+   "pdf_page": 17
+  },
+  {
+   "word": "դասի́",
+   "ipa": "dɑˈsi",
+   "pdf_page": 18
+  },
+  {
+   "word": "հասու́",
+   "ipa": "hɑˈsu",
+   "pdf_page": 18
+  },
+  {
+   "word": "աղյուսե́",
+   "ipa": "ɑʁjuˈse",
+   "pdf_page": 18
+  },
+  {
+   "word": "փեսա́",
+   "ipa": "pʰeˈsɑ",
+   "pdf_page": 18
+  },
+  {
+   "word": "պատերա́զմ",
+   "ipa": "pɑteˈɾɑzm",
+   "pdf_page": 21
+  },
+  {
+   "word": "մետա́քս",
+   "ipa": "meˈtɑkʰs",
+   "pdf_page": 21
+  },
+  {
+   "word": "ճակա́տ",
+   "ipa": "tʃɑˈkɑt",
+   "pdf_page": 22
+  },
+  {
+   "word": "ճակատի́",
+   "ipa": "tʃɑkɑˈti",
+   "pdf_page": 22
+  },
+  {
+   "word": "ճակատակա́ն",
+   "ipa": "tʃɑkɑtɑˈkɑn",
+   "pdf_page": 22
+  },
+  {
+   "word": "ճակա́տդ",
+   "ipa": "tʃɑˈkɑtət",
+   "pdf_page": 22
+  },
+  {
+   "word": "ճակատամա́րտ",
+   "ipa": "tʃɑkɑtɑˈmɑɾt",
+   "pdf_page": 22
+  },
+  {
+   "word": "ճակա́տը",
+   "ipa": "tʃɑˈkɑtə",
+   "pdf_page": 25
+  },
+  {
+   "word": "բացակա́",
+   "ipa": "bɑtsʰɑˈkɑ",
+   "pdf_page": 25
+  },
+  {
+   "word": "կարդա́լ",
+   "ipa": "kɑɾˈtʰɑl",
+   "pdf_page": 23
+  },
+  {
+   "word": "կարդա́",
+   "ipa": "kɑɾˈtʰɑ",
+   "pdf_page": 23
+  },
+  {
+   "word": "կարդայի́ր",
+   "ipa": "kɑɾtʰɑˈjiɾ",
+   "pdf_page": 23
+  },
+  {
+   "word": "կարդացի́ր",
+   "ipa": "kɑɾtʰɑˈtsʰiɾ",
+   "pdf_page": 23
+  },
+  {
+   "word": "հայերե́ն",
+   "ipa": "hɑjeˈɾen",
+   "pdf_page": 1
+  },
+  {
+   "word": "ռազմակա́ն",
+   "ipa": "rɑzmɑˈɡɑn",
+   "pdf_page": 16
+  },
+  {
+   "word": "Ռաֆայե́լ",
+   "ipa": "rɑfɑˈjel",
+   "pdf_page": 16
+  },
+  {
+   "word": "Մարիա́մ",
+   "ipa": "mɑɾˈjɑm",
+   "pdf_page": 10
+  },
+  {
+   "word": "կիլո́",
+   "ipa": "kiˈlo",
+   "pdf_page": 19
+  },
+  {
+   "word": "ընկե́ր",
+   "ipa": "əŋˈkeɾ",
+   "pdf_page": 21
+  },
+  {
+   "word": "ստանա́լ",
+   "ipa": "stɑˈnɑl",
+   "pdf_page": 21
+  }
+ ]
+}
