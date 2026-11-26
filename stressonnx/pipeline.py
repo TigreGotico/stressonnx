@@ -280,7 +280,7 @@ class StressPipeline:
             return result
         raise last_error.with_traceback(last_tb)
 
-    def stress(self, text: str, lang: str = "ru", model: str | None = None,
+    def stress(self, text: str, lang: str, model: str | None = None,
                notation: str = "diacritic", fallback: bool = False,
                prefer: str | None = None) -> str:
         """Insert stress marks into *text* (see :func:`stressonnx.stress`)."""
@@ -288,7 +288,7 @@ class StressPipeline:
                                lambda backend, t: backend(t))
         return _apply_notation(result, notation)
 
-    def stress_batch(self, texts, lang: str = "ru", model: str | None = None,
+    def stress_batch(self, texts, lang: str, model: str | None = None,
                      notation: str = "diacritic", fallback: bool = False,
                      prefer: str | None = None) -> list:
         """Stress a sequence of texts with one backend resolution."""
@@ -298,7 +298,7 @@ class StressPipeline:
             for t in texts
         ]
 
-    def analyze(self, text: str, lang: str = "ru", model: str | None = None,
+    def analyze(self, text: str, lang: str, model: str | None = None,
                 fallback: bool = False, prefer: str | None = None) -> StressResult:
         """Structured stressing: spans with offsets into the original input.
 

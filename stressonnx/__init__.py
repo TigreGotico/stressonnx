@@ -112,7 +112,7 @@ from stressonnx.pipeline import (
 
 def stress(
     text: str,
-    lang: str = "ru",
+    lang: str,
     model: str | None = None,
     notation: str = "diacritic",
     fallback: bool = False,
@@ -145,12 +145,12 @@ def stress(
                                    fallback=fallback, prefer=prefer)
 
 
-def stress_batch(texts, lang: str = "ru", **kwargs) -> list:
+def stress_batch(texts, lang: str, **kwargs) -> list:
     """Stress a sequence of texts (see :meth:`StressPipeline.stress_batch`)."""
     return DEFAULT_PIPELINE.stress_batch(texts, lang, **kwargs)
 
 
-def analyze(text: str, lang: str = "ru", **kwargs) -> StressResult:
+def analyze(text: str, lang: str, **kwargs) -> StressResult:
     """Structured stressing: per-word spans with offsets into *text* itself.
 
         >>> r = analyze("замок стоит", "ru")
