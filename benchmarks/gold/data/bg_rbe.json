@@ -1,6 +1,6 @@
 {
  "source": "Институт за български език (БАН), Речник на българския език, https://ibl.bas.bg/rbe/. Each row records only the stressed vowel that the dictionary marks on the headword. Words with two stresses in the dictionary (variants or homographs) are left out.",
- "selection": "Candidates: the most frequent noun, verb, adjective and adverb lemmas of UD_Bulgarian-BTB, plus a fixed list of mobile-stress words. The first 300 candidates with one stress in the dictionary were kept, and then 8 with two stresses were removed.",
+ "selection": "Candidates: the most frequent noun, verb, adjective and adverb lemmas of UD_Bulgarian-BTB, plus a fixed list of mobile-stress words. Of the candidates with a stress mark in the dictionary, the first 300 were taken; 8 of them have two stresses and were removed, which leaves 292.",
  "words": [
   {
    "word": "вода",
