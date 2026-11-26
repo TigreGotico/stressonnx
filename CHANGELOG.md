@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a53](https://github.com/TigreGotico/stressonnx/tree/0.0.3a53) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a52...0.0.3a53)
+
+**Merged pull requests:**
+
+- fix\(languages\): kk and xal take rule none, as their primary sources say [\#123](https://github.com/TigreGotico/stressonnx/pull/123) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a52](https://github.com/TigreGotico/stressonnx/tree/0.0.3a52) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a51...0.0.3a52)
