@@ -6,7 +6,7 @@
     "simple": "kbd"
   },
   "sources": [
-    "Jaimoukha grammar compilation; consistent with Colarusso 1992 (paraphrase-level, low confidence)"
+    "Colarusso 1992, A Grammar of the Kabardian Language, §2.5.1, p. 16: stress \"is confined to the last stem morpheme, and does not shift back to most affixes\"; §2.5.2, p. 17: \"final vowels cannot receive normal stress\""
   ],
   "tag": "kbd",
   "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяёӏ",

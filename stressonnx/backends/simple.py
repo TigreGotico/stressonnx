@@ -174,9 +174,8 @@ def _rule_sah(word: str, vowels: list) -> Optional[int]:
 
 def _rule_kbd(word: str, vowels: list) -> Optional[int]:
     """Kabardian: final syllable, except words ending in the schwa letter э,
-    which stress the penult (Jaimoukha, Grammar of the Kabardian-Cherkess
-    Language; consistent with Colarusso 1992's final-stress default).
-    Low-confidence: sources are paraphrase-level only."""
+    which stress the penult (Colarusso 1992, §2.5.2: "final vowels cannot
+    receive normal stress")."""
     return len(vowels) - 2 if word.endswith("э") else len(vowels) - 1
 
 
