@@ -8,21 +8,21 @@ from results import gold_accuracy
 
 from stressonnx import DEFAULT_MODEL
 
-rows = sorted(gold_accuracy()[("ru", "russtress")].items(), key=lambda r: r[1])
-# russtress is the training corpus of StressRNN, so its score is not held out.
-labels = [f"{m} (training data)" if m == "stressrnn" else m for m, _ in rows]
+data = dict(sorted(gold_accuracy()[("ru", "russtress")].items(), key=lambda r: r[1]))
 
 
-def draw(fig, theme):
+def draw(fig, theme, data):
     fig.get_layout_engine().set(w_pad=0.15)
     ax = fig.subplots()
-    colors = [theme["series"][0] if m == DEFAULT_MODEL["ru"] else theme["grid"] for m, _ in rows]
-    ax.barh(labels, [r[1] for r in rows], color=colors)
-    for y, (_, v) in enumerate(rows):
+    # russtress is the training corpus of StressRNN, so its score is not held out.
+    labels = [f"{m} (training data)" if m == "stressrnn" else m for m in data]
+    colors = [theme["series"][0] if m == DEFAULT_MODEL["ru"] else theme["grid"] for m in data]
+    ax.barh(labels, list(data.values()), color=colors)
+    for y, v in enumerate(data.values()):
         ax.text(v + 0.01, y, f"{v:.3f}", va="center", fontsize=8, color=theme["text"])
     ax.set_xlim(0, 1.08)
     ax.set_xlabel("word accuracy, ru russtress (GOLD), default model in colour")
     ax.tick_params(axis="y", labelsize=8)
 
 
-save(str(Path(__file__).parent / "ru-models"), draw)
+save(str(Path(__file__).parent / "ru-models"), draw, data)
