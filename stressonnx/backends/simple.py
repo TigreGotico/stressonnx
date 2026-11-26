@@ -172,6 +172,11 @@ def _rule_sah(word: str, vowels: list) -> Optional[int]:
     return (heavy[-1] if heavy else groups[-1])[-1]
 
 
+def _digraph_head(word: str, i: int) -> bool:
+    """True for the ո of Armenian ու: the digraph is one vowel, marked after ւ."""
+    return word[i] == "ո" and word[i + 1:i + 2] == "ւ"
+
+
 def _rule_kbd(word: str, vowels: list) -> Optional[int]:
     """Kabardian: final syllable, except words ending in the schwa letter э,
     which stress the penult (Colarusso 1992, §2.5.2: "final vowels cannot
@@ -300,7 +305,7 @@ class SimpleStressor:
         syllabic consonant (Macedonian р) before a consonant, after a
         consonant, the word start or the apostrophe that spells a
         word-initial syllabic р (’рж)."""
-        ids = [i for i, c in enumerate(raw_lower) if c in self._vowels]
+        ids = [i for i, c in enumerate(raw_lower) if c in self._vowels and not _digraph_head(raw_lower, i)]
         if self._syllabic:
             for i, c in enumerate(raw_lower):
                 if c not in self._syllabic or i == len(raw_lower) - 1:
@@ -334,7 +339,9 @@ class SimpleStressor:
             if c in self._ordinal_vowels:
                 seen += 1
                 if seen == ordinal:
-                    return i if c in self._vowels else None
+                    if c not in self._vowels:
+                        return None
+                    return i + 1 if _digraph_head(raw_lower, i) else i
         return None
 
     def _word_offset(self, clean_word: str, raw_lower: str) -> Optional[int]:
