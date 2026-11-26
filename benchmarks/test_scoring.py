@@ -241,3 +241,16 @@ def test_bulgarian_gold_loads_every_word():
     from gold import rbe_bulgarian
     rows, n_in, drops = rbe_bulgarian.load()
     assert (len(rows), n_in, sum(drops.values())) == (292, 292, 0)
+
+
+def test_bulgarian_run_scores_the_hard_sign_as_a_vowel(tmp_path):
+    # държава: with ъ as a vowel the stressed а is ordinal 1, without it ordinal 0
+    from gold import sets_for
+    from run import run_set
+    (evs,) = sets_for("bg", ["rbe"])
+    model = {"fixed": lambda: (lambda text: text.replace("държава", "държа\u0301ва"), 0.0, None)}
+    result = run_set(evs, model, None, ("none", dict, ()), tmp_path, 1, {})
+    rows = json.load(gzip.open(tmp_path / "bg__rbe.rows.json.gz", "rt"))["fixed"]
+    (target,) = [t for r in rows for t in r["targets"] if t["word"] == "държава"]
+    assert (target["gold"], target["pred"], target["hit"]) == (1, [1], True)
+    assert result["models"]["fixed"]["correct"] == 1
