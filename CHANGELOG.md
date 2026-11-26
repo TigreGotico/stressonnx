@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a47](https://github.com/TigreGotico/stressonnx/tree/0.0.3a47) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a46...0.0.3a47)
+
+**Merged pull requests:**
+
+- feat\(benchmarks\): hy GOLD set from the JIPA Armenian Illustration [\#108](https://github.com/TigreGotico/stressonnx/pull/108) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a46](https://github.com/TigreGotico/stressonnx/tree/0.0.3a46) (2026-11-25)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a45...0.0.3a46)
@@ -375,11 +383,6 @@
 ## [0.0.1a2](https://github.com/TigreGotico/stressonnx/tree/0.0.1a2) (2026-07-22)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/3e2de722178b203a56c5701d943d6a88d7879568...0.0.1a2)
-
-**Merged pull requests:**
-
-- feat: typed data model, Script alphabet, kubataba backend, docs + tests [\#3](https://github.com/TigreGotico/stressonnx/pull/3) ([JarbasAl](https://github.com/JarbasAl))
-- feat: RUAccent homograph-aware Russian backend [\#2](https://github.com/TigreGotico/stressonnx/pull/2) ([JarbasAl](https://github.com/JarbasAl))
 
 
 
