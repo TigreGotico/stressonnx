@@ -1,10 +1,10 @@
 {
-"n_in": 1111,
+"n_in": 1078,
 "drops": {
 "more than one mark (words)": 20,
-"one vowel letter (words)": 29,
+"one vowel letter (words)": 11,
 "mark on the syllabic р or a consonant (words)": 11,
-"word with two stresses (words)": 19
+"word with two stresses (words)": 18
 },
 "words": [
 {
@@ -958,11 +958,6 @@
 "page": 32
 },
 {
-"word": "видел",
-"stressed_vowel_index": 0,
-"page": 36
-},
-{
 "word": "виена",
 "stressed_vowel_index": 1,
 "page": 294
@@ -1183,16 +1178,6 @@
 "page": 31
 },
 {
-"word": "гледај",
-"stressed_vowel_index": 0,
-"page": 36
-},
-{
-"word": "година",
-"stressed_vowel_index": 2,
-"page": 36
-},
-{
 "word": "горе",
 "stressed_vowel_index": 0,
 "page": 27
@@ -1226,16 +1211,6 @@
 "word": "гуру",
 "stressed_vowel_index": 0,
 "page": 30
-},
-{
-"word": "давај",
-"stressed_vowel_index": 0,
-"page": 36
-},
-{
-"word": "дадам",
-"stressed_vowel_index": 0,
-"page": 36
 },
 {
 "word": "деби",
@@ -1458,11 +1433,6 @@
 "page": 29
 },
 {
-"word": "друга",
-"stressed_vowel_index": 1,
-"page": 144
-},
-{
 "word": "душанбе",
 "stressed_vowel_index": 1,
 "page": 295
@@ -1651,11 +1621,6 @@
 "word": "журналист",
 "stressed_vowel_index": 2,
 "page": 31
-},
-{
-"word": "заблагодарете",
-"stressed_vowel_index": 5,
-"page": 36
 },
 {
 "word": "зеколи",
@@ -2001,11 +1966,6 @@
 "word": "кирибатски",
 "stressed_vowel_index": 2,
 "page": 297
-},
-{
-"word": "кисело",
-"stressed_vowel_index": 2,
-"page": 144
 },
 {
 "word": "кларинет",
@@ -2838,6 +2798,11 @@
 "page": 30
 },
 {
+"word": "носете",
+"stressed_vowel_index": 1,
+"page": 27
+},
+{
 "word": "носи",
 "stressed_vowel_index": 0,
 "page": 27
@@ -2871,11 +2836,6 @@
 "word": "овче",
 "stressed_vowel_index": 1,
 "page": 301
-},
-{
-"word": "одам",
-"stressed_vowel_index": 0,
-"page": 36
 },
 {
 "word": "одисеев",
@@ -3493,11 +3453,6 @@
 "page": 30
 },
 {
-"word": "прочитав",
-"stressed_vowel_index": 0,
-"page": 36
-},
-{
 "word": "психоза",
 "stressed_vowel_index": 1,
 "page": 31
@@ -3586,11 +3541,6 @@
 "word": "резиме",
 "stressed_vowel_index": 2,
 "page": 31
-},
-{
-"word": "рекол",
-"stressed_vowel_index": 0,
-"page": 36
 },
 {
 "word": "рекордер",
@@ -4646,11 +4596,6 @@
 "word": "цунами",
 "stressed_vowel_index": 1,
 "page": 32
-},
-{
-"word": "чекај",
-"stressed_vowel_index": 0,
-"page": 36
 },
 {
 "word": "чилеанец",

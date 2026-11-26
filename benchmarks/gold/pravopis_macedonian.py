@@ -30,9 +30,10 @@ VOWELS = frozenset("аеиоу")
 LETTER = "а-шѓќљњџѕј"
 #: A token next to a hyphen is part of a compound such as ког'о-годе.
 MARKED = re.compile(rf"(?<![{LETTER}'\-‑])[{LETTER}']*'[{LETTER}']+(?![{LETTER}'\-‑])")
-#: §43 (printed p. 32) to the end of the stress chapter (p. 35) mark the stress
-#: of a phrase (старит'е луѓе, кога г'о виде), not of the word alone.
-PHRASE_START, PHRASE_END = 32, 35
+#: §43 (printed p. 32) to the end of the stress chapter (p. 36), and the
+#: examples of the stress sign on p. 144, mark the stress of a phrase
+#: (старит'е луѓе, кисел'о млеко), not of the word alone.
+PHRASE_START, PHRASE_END, SIGN_PAGE = 32, 36, 144
 #: The text layer prints д as the Latin script g in many places.
 GLYPHS = str.maketrans({"ɡ": "д"})
 
@@ -57,7 +58,7 @@ def build():
     found, drops, n_in = {}, Counter(), 0
     for pdf_page, page in enumerate(text.split("\f"), start=1):
         printed = pdf_page - 10
-        if PHRASE_START < printed <= PHRASE_END:
+        if PHRASE_START < printed <= PHRASE_END or printed == SIGN_PAGE:
             continue
         if printed == PHRASE_START:
             page = page.split("\n43.")[0]
