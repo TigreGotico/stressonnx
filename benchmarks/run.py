@@ -48,6 +48,7 @@ DEFAULT_TARGETS = {
     "uk": ["silero", "uk-accentor", "simple"],
     "be": ["silero", "simple"],
     "hy": ["simple"],
+    "bg": ["simple"],
 }
 BEGIN = "<!-- run.py:begin -->"
 END = "<!-- run.py:end -->"
@@ -95,6 +96,7 @@ DICTIONARIES = {
            lambda: simple_vocabulary("uk"), ("wiktionary",)),
     "be": ("stressonnx simple-be vocabulary (GrammarDB, plus English Wiktionary entries for spellings outside it)",
            lambda: simple_vocabulary("be"), ("wiktionary",)),
+    "bg": ("stressonnx simple-bg vocabulary (silero_stress export)", lambda: simple_vocabulary("bg"), ()),
     "hy": ("stressonnx simple-hy vocabulary (silero_stress export)", armenian_vocabulary, ()),
 }
 
@@ -183,7 +185,7 @@ def run_set(evs, models: dict, homographs, dictionary, raw_dir: Path, threads: i
         print(f"  {name}: kept from {raw_dir}", flush=True)
     for name, factory in models.items():
         fn, cold_s, close = factory()
-        result = score(fn, rows, homographs)
+        result = score(fn, rows, homographs, evs.vowels)
         if close:
             close()
         scored[name] = result

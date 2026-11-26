@@ -23,13 +23,15 @@ GRAVE = "\u0300"
 #: Russian, Ukrainian, Belarusian and Armenian vowel letters (ў is a glide).
 #: Armenian ու is one vowel: ւ after ո continues it, and a mark after either letter counts.
 VOWELS = frozenset("аеёиоуыэюя" "іїє" "աեէըիոօ")
+#: Bulgarian ъ is a vowel; in Russian it is the hard sign.
+BG_VOWELS = VOWELS | {"ъ"}
 
 DROP_LETTERS = "model changed the letters of the row (targets)"
 DROP_CALL_FAILED = "stress function raised (targets)"
 
 
-def is_vowel(c: str) -> bool:
-    return c.lower() in VOWELS
+def is_vowel(c: str, vowels=VOWELS) -> bool:
+    return c.lower() in vowels
 
 
 def strip_stress(text: str) -> str:
@@ -38,7 +40,7 @@ def strip_stress(text: str) -> str:
     return unicodedata.normalize("NFC", nfd.replace(STRESS, "").replace(GRAVE, ""))
 
 
-def marked_ordinals(token: str) -> list:
+def marked_ordinals(token: str, vowels=VOWELS) -> list:
     """Vowel ordinal of every acute in *token*; -1 for an acute after a non-vowel."""
     token = unicodedata.normalize("NFC", token)
     marks = []
@@ -52,7 +54,7 @@ def marked_ordinals(token: str) -> list:
             continue
         if c == "ւ" and prev_letter == "ո":
             prev_vowel = seen - 1
-        elif is_vowel(c):
+        elif is_vowel(c, vowels):
             prev_vowel = seen
             seen += 1
         elif not unicodedata.combining(c):
@@ -95,22 +97,22 @@ def align(text: str, output: str):
     return ["".join(p) for p in pieces]
 
 
-def vowel_count(token: str) -> int:
-    return sum(1 for c in unicodedata.normalize("NFC", token) if is_vowel(c))
+def vowel_count(token: str, vowels=VOWELS) -> int:
+    return sum(1 for c in unicodedata.normalize("NFC", token) if is_vowel(c, vowels))
 
 
-def predicted_ordinals(token: str) -> frozenset:
+def predicted_ordinals(token: str, vowels=VOWELS) -> frozenset:
     """Stressed-vowel ordinals a model output token claims.
 
     An unmarked token with exactly one ё claims the ё: ё carries the stress
     by orthographic convention, and some models leave it unmarked.
     """
-    marks = marked_ordinals(token)
+    marks = marked_ordinals(token, vowels)
     if marks:
         return frozenset(marks)
     token = unicodedata.normalize("NFC", token).lower()
     if token.count("ё") == 1:
-        return frozenset({sum(1 for c in token[:token.index("ё")] if is_vowel(c))})
+        return frozenset({sum(1 for c in token[:token.index("ё")] if is_vowel(c, vowels))})
     return frozenset()
 
 
@@ -132,7 +134,7 @@ class Row:
     targets: tuple
 
 
-def marked_sentence_row(row_id: str, marked: str, drops: Counter):
+def marked_sentence_row(row_id: str, marked: str, drops: Counter, vowels=VOWELS):
     """Row from a sentence with acute marks; every marked polysyllabic token is a target.
 
     Tokens with two or more acutes are ambiguous and are dropped, counted in
@@ -141,10 +143,10 @@ def marked_sentence_row(row_id: str, marked: str, drops: Counter):
     tokens = marked.split()
     targets = []
     for i, tok in enumerate(tokens):
-        marks = marked_ordinals(tok)
+        marks = marked_ordinals(tok, vowels)
         if not marks:
             continue
-        if vowel_count(tok) < 2:
+        if vowel_count(tok, vowels) < 2:
             drops["monosyllabic token (targets)"] += 1
             continue
         if len(marks) > 1:
@@ -198,7 +200,7 @@ class Scored:
         }
 
 
-def score(stress_fn: Callable, rows: Iterable, homograph_words=None) -> Scored:
+def score(stress_fn: Callable, rows: Iterable, homograph_words=None, vowels=VOWELS) -> Scored:
     """Run *stress_fn* on every row and score each target.
 
     A target is a hit when the model output token carries exactly the gold
@@ -237,7 +239,7 @@ def score(stress_fn: Callable, rows: Iterable, homograph_words=None) -> Scored:
                 "homograph": bool(homograph_words) and word in homograph_words,
             }
             if record["dropped"] is None:
-                pred = predicted_ordinals(pieces[tgt.token_index])
+                pred = predicted_ordinals(pieces[tgt.token_index], vowels)
                 entry["pred"] = sorted(pred)
                 entry["hit"] = pred == {tgt.ordinal}
             record["targets"].append(entry)

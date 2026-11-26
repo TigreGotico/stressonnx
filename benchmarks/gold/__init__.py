@@ -13,8 +13,11 @@ unit (rows or targets).
 from dataclasses import dataclass
 from typing import Callable
 
+from scoring import BG_VOWELS, VOWELS
+
 from gold import (
-    belarusian_homographs, homograph_eval, jipa_armenian, prose_accents, russtress, silver_tts, wiktionary,
+    belarusian_homographs, homograph_eval, jipa_armenian, prose_accents, rbe_bulgarian, russtress, silver_tts,
+    wiktionary,
 )
 
 GOLD = "GOLD"
@@ -32,6 +35,7 @@ class EvalSet:
     load: Callable
     homographs_only: bool = False
     note: str = ""
+    vowels: frozenset = VOWELS
 
 
 SETS = [
@@ -94,6 +98,11 @@ SETS = [
             "polysyllabic Yerevan citation forms (IPA transcriptions by the authors)",
             jipa_armenian.load,
             note="46 words, so the confidence interval is wide."),
+    EvalSet("rbe", "bg", GOLD, "facts only (stress positions), no entry text",
+            "https://ibl.bas.bg/rbe/", "lemmas, stress as the dictionary marks it",
+            rbe_bulgarian.load, vowels=BG_VOWELS,
+            note="Lemmas in citation form, so the score does not cover inflected forms.  bg has rule "
+                 "`none`, so a lemma outside the simple-bg vocabulary stays unmarked and counts as a miss."),
 ]
 
 

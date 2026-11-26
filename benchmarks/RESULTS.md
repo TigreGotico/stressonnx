@@ -477,6 +477,19 @@ Labels agree with the stressonnx simple-hy vocabulary (silero_stress export) on 
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
 | simple | GOLD | 46 | 0 | 0.935 | 0.848–1.000 | — | 0.0 | 0.1 |
 
+## bg
+
+### bg / rbe — GOLD
+
+Source: https://ibl.bas.bg/rbe/ (facts only (stress positions), no entry text).  Scored: lemmas, stress as the dictionary marks it.
+Rows in: 292; rows scored: 292; targets: 292.
+Lemmas in citation form, so the score does not cover inflected forms.  bg has rule `none`, so a lemma outside the simple-bg vocabulary stays unmarked and counts as a miss.
+Labels agree with the stressonnx simple-bg vocabulary (silero_stress export) on 99.6% of 224 targets the dictionary covers.
+
+| model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
+|-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
+| simple | GOLD | 292 | 0 | 0.764 | 0.716–0.808 | — | 0.0 | 0.1 |
+
 ## Languages without independent gold
 
 The other `simple`-model languages ship curated vocabularies exported from
