@@ -198,6 +198,7 @@ class SimpleStressor:
         lang = resolve_lang(lang, SIMPLE_LANGS)
         self.lang = lang
         spec = LANGUAGES[lang]
+        #: None: the language has no usable vocabulary, so every word takes the rule.
         self._hf_lang = spec["hf"]["simple"]
         self._ordinal_vowels = SCRIPT_VOWELS[spec["script"]]
         self._vowels: str = spec["vowels"]
@@ -232,9 +233,12 @@ class SimpleStressor:
             if self._loaded:
                 return
             try:
-                data = _download_files(self._hf_lang, _SIMPLE_FILES,
-                                       self._cache_dir, model_id="simple")
-                self._vocab: dict = self._usable(_load_vocab(data["vocab.gz"]))
+                if self._hf_lang is None:
+                    self._vocab: dict = {}
+                else:
+                    data = _download_files(self._hf_lang, _SIMPLE_FILES,
+                                           self._cache_dir, model_id="simple")
+                    self._vocab = self._usable(_load_vocab(data["vocab.gz"]))
             except (ModelDownloadError, ModelLoadError):
                 raise
             except Exception as exc:
