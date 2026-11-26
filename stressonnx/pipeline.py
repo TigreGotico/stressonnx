@@ -248,7 +248,8 @@ class StressPipeline:
             key = (try_lang, try_resolved)
 
             failure = self._failures.get(key)
-            if failure is not None and getattr(self._singletons.get(key), "_loaded", False):
+            cached = self._singletons.get(key)
+            if failure is not None and cached is not None and cached._loaded:
                 self._failures.pop(key, None)
                 failure = None
             if failure is not None and now < failure.retry_at:
@@ -342,9 +343,7 @@ class StressPipeline:
         """
         lang, model, resolved = self._resolve(lang, model, None)
         key, backend = self._backend(lang, model, resolved)
-        ensure = getattr(backend, "_ensure_loaded", None)
-        if ensure is not None:
-            ensure()
+        backend._ensure_loaded()
         self._failures.pop(key, None)
 
 

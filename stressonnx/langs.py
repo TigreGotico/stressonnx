@@ -75,11 +75,10 @@ def resolve_lang(lang: str, supported) -> str:
         If *lang* is not a string, or no candidate resolves against
         *supported*.
     """
-    tags = supported.keys() if hasattr(supported, "keys") else supported
     if not isinstance(lang, str):
-        raise UnsupportedLanguageError(lang, tags)
+        raise UnsupportedLanguageError(lang, supported)
 
-    lookup = {tag.lower(): tag for tag in tags}
+    lookup = {tag.lower(): tag for tag in supported}
 
     normalized = lang.replace("_", "-")
     parts = normalized.split("-")
@@ -101,10 +100,10 @@ def resolve_lang(lang: str, supported) -> str:
         spec = load_languages().get(hit)
         if spec is not None and _ISO_15924.get(script) == spec["script"]:
             return hit
-        raise UnsupportedLanguageError(lang, tags)
+        raise UnsupportedLanguageError(lang, supported)
 
     hit = lookup.get(lang_sub)
     if hit is not None:
         return hit
 
-    raise UnsupportedLanguageError(lang, tags)
+    raise UnsupportedLanguageError(lang, supported)
