@@ -134,7 +134,7 @@ def test_pipeline_notation_default():
 def test_stressor_notation_plus():
     from stressonnx import StressPipeline
     s = lambda t: StressPipeline().stress(t, "kk", notation="plus")
-    result = s("Казан")
+    result = s("Алматы")
     assert "+" in result
     assert "́" not in result
 
@@ -142,5 +142,5 @@ def test_stressor_notation_plus():
 def test_stressor_notation_enum():
     from stressonnx import StressPipeline, StressNotation
     s = lambda t: StressPipeline().stress(t, "kk", notation=StressNotation.PLUS)
-    result = s("Казан")
+    result = s("Алматы")
     assert "+" in result
