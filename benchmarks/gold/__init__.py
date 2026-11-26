@@ -16,7 +16,7 @@ from typing import Callable
 from scoring import BG_VOWELS, VOWELS
 
 from gold import (
-    belarusian_homographs, homograph_eval, jipa_armenian, prose_accents, rbe_bulgarian, russtress, silver_tts,
+    belarusian_homographs, homograph_eval, jipa_armenian, pravopis_macedonian, prose_accents, rbe_bulgarian, russtress, silver_tts,
     sloleks_slovene, wiktionary,
 )
 
@@ -109,6 +109,13 @@ SETS = [
             note="Lemmas in citation form, so the score does not cover inflected forms.  sl has rule "
                  "`none`, so a lemma outside the simple-sl vocabulary stays unmarked and counts as a miss.  "
                  "A stress on the syllabic r is left out, because the model marks vowels only."),
+    EvalSet("pravopis", "mk", GOLD, "facts only (stress positions), no text",
+            "http://www.pravopis.mk/sites/default/files/Pravopis-2017.PDF",
+            "words the Pravopis marks with a stress apostrophe, in its rules and word lists",
+            pravopis_macedonian.load, vowels=pravopis_macedonian.VOWELS,
+            note="The Pravopis marks the examples of each stress rule and the words that break the "
+                 "antepenult rule, so the set has more exceptions than running text.  A stress on the "
+                 "syllabic р is left out, because the model marks vowels only."),
 ]
 
 
