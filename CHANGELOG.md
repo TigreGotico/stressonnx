@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a70](https://github.com/TigreGotico/stressonnx/tree/0.0.3a70) (2026-11-27)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a69...0.0.3a70)
+
+**Merged pull requests:**
+
+- docs\(kbd\): cite Matasović for final и as a long vowel [\#169](https://github.com/TigreGotico/stressonnx/pull/169) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a69](https://github.com/TigreGotico/stressonnx/tree/0.0.3a69) (2026-11-27)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a68...0.0.3a69)
