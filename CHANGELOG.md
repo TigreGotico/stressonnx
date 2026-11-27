@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.3a64](https://github.com/TigreGotico/stressonnx/tree/0.0.3a64) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a63...0.0.3a64)
+
+**Merged pull requests:**
+
+- docs: cite Poppe 1963 for tt and Kononov 1960 for uz stress [\#150](https://github.com/TigreGotico/stressonnx/pull/150) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+- fix: Yakut OOV words take final stress [\#149](https://github.com/TigreGotico/stressonnx/pull/149) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+- feat\(benchmarks\): mk GOLD set from the Pravopis 2017 stress marks [\#148](https://github.com/TigreGotico/stressonnx/pull/148) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a63](https://github.com/TigreGotico/stressonnx/tree/0.0.3a63) (2026-11-26)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a62...0.0.3a63)
+
 ## [0.0.3a62](https://github.com/TigreGotico/stressonnx/tree/0.0.3a62) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a61...0.0.3a62)
@@ -356,10 +370,6 @@
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a14...0.0.3a15)
 
-**Merged pull requests:**
-
-- test: scoring harness with gold and silver sets, CIs and McNemar [\#39](https://github.com/TigreGotico/stressonnx/pull/39) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
-
 ## [0.0.3a14](https://github.com/TigreGotico/stressonnx/tree/0.0.3a14) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a13...0.0.3a14)
@@ -371,10 +381,6 @@
 ## [0.0.3a13](https://github.com/TigreGotico/stressonnx/tree/0.0.3a13) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a12...0.0.3a13)
-
-**Merged pull requests:**
-
-- feat: stress Ukrainian dictionary forms from ukrainian-word-stress in the silero model [\#38](https://github.com/TigreGotico/stressonnx/pull/38) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 
 ## [0.0.3a12](https://github.com/TigreGotico/stressonnx/tree/0.0.3a12) (2026-11-05)
 
