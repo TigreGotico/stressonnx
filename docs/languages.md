@@ -294,13 +294,22 @@ accuracy.
 
 ### Khakas (`kjh`)
 
-**Honest entry.** No primary academic description of Khakas stress could
-be located at all (neither StressTyp nor WALS carries an entry; Baskakov
-1975 and Anderson's grammar were not accessible). The Turkic-default `last`
-rule is an explicitly labeled extrapolation, not a sourced rule.
-Ӌ is the Khakas letter (Wikipedia, Khakassian Che). The vocabulary
-writes it as Ҷ in 1136 entries and never as Ӌ, so input Ӌ is looked up as
-Ҷ, and the output keeps Ӌ.
+**Why.** Баскаков (1975, Грамматика хакасского языка, §49, p. 43): roots
+with short vowels stress the last syllable, and "Долгие гласные основы
+(корня) всегда ударные, независимо от места их в слове" (long stem vowels
+are always stressed, in any position).
+
+**What stressonnx does.** The `kjh` rule stresses the first long vowel
+(spelled with a double letter), and puts the mark after the second letter.
+A word with no long vowel gets final stress: хузурух → хузуру́х. A long
+vowel keeps the stress in any position: чоорған → чоо́рған. The simple model has no vocabulary for kjh. The
+silero_stress vocabulary stresses the first syllable or a middle syllable
+of most words that have only short vowels, which the source contradicts.
+
+**Limits.** Баскаков (p. 44) lists stressed affixes (plural, case,
+negation, causative, past tense, the particles -ла/-ле). When one follows a long stem vowel, the affix takes
+the main stress. The rule cannot see morphology, so it keeps the stress on
+the long vowel in these forms.
 
 ---
 
