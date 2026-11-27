@@ -383,7 +383,12 @@ short vowels, я is /ja/, а is the long vowel, and о, у, е can end in a glid
 
 **What stressonnx does.** The `kbd` rule stresses the final syllable, or the
 syllable before it when the word ends in э, ы or я. A final а or и keeps
-final stress, because no source states how they behave (#154). The rule
+final stress, because both letters end in a long vowel, and a final long
+vowel takes the stress. Kuipers (1960, §14, p. 35): "if prefixes are added
+to a monosyllable ending in ā the stress does not move back but remains on
+ā". Gordon & Applebaum (2010, §2.3, p. 37): stress falls on "the final
+syllable if it is heavy, i.e. contains either a long vowel (CVV) or a coda
+consonant (CVC)". The rule
 agrees with the vocabulary on 0.407 of its words. The vocabulary has no
 published provenance, so that number is not an accuracy.
 
