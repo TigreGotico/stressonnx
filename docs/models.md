@@ -981,7 +981,7 @@ is scored against the language's own curated vocabulary in
 | hy | last non-schwa vowel (ը never stressed) | Chakmakjian 2024 (Speech Prosody) | 0.78 |
 | tg | final vowel, except unstressed word-final izafet -и (stressed final /i/ is written ӣ) | Perry 2005, *A Tajik Persian Reference Grammar* | 0.74 |
 | myv mdf | first vowel, Moksha retracts off an initial high vowel to a following а/я syllable | Hamari & Ajanki 2022, *Oxford Guide to the Uralic Languages* §23.2.3 | 0.54 to 0.76 (see per-language rows) |
-| kbd | final vowel, penult when the word ends in the schwa letter э | Jaimoukha, consistent with Colarusso 1992 (low confidence) | 0.40 |
+| kbd | final vowel, penult when the word ends in э, ы or я | Colarusso 1992 §2.5.2; Kuipers 1960 p. 117 | 0.41 |
 | be (`simple`) | no mark: Belarusian stress is lexical, not positional | East Slavic accentology literature | vocabulary only |
 
 Single-vowel OOV words are always stressed on their sole vowel regardless of
