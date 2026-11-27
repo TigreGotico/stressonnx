@@ -122,7 +122,7 @@ def test_make_stressor_default_ukr():
 
 def test_default_model_for_lang():
     from stressonnx import stress
-    assert stress("Алматы", "kk") == "Алматы́"
+    assert stress("Казан", "tt") == "Каза́н"
 
 
 def test_explicit_model_selection():

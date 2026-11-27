@@ -54,8 +54,8 @@ def test_batch():
 
 def test_private_pipeline_is_isolated():
     p = StressPipeline()
-    assert p.stress("Қазақстан", "kk") == "Қазақста́н"
-    assert ("kk", "simple") in p._singletons
+    assert p.stress("Татарстан", "tt") == "Татарста́н"
+    assert ("tt", "simple") in p._singletons
     import stressonnx
     # the private pipeline's cache is not the default pipeline's
     assert p._singletons is not stressonnx.DEFAULT_PIPELINE._singletons
@@ -71,13 +71,13 @@ def _independent_mark_offsets(marked: str) -> list:
 
 
 def test_analyze_keeps_every_mark_of_a_hyphenated_compound():
-    text = "Қазақстан-Ресей"
-    marked = stress(text, "kk")
-    assert marked == "Қазақста́н-Ресе́й"
-    (w,) = analyze(text, "kk").words
-    assert w.stressed_indices == tuple(_independent_mark_offsets(marked)) == (7, 13)
+    text = "Татарстан-Россия"
+    marked = stress(text, "tt")
+    assert marked == "Татарста́н-Росси́я"
+    (w,) = analyze(text, "tt").words
+    assert w.stressed_indices == tuple(_independent_mark_offsets(marked)) == (7, 14)
     assert w.stressed_index == 7
-    assert [w.text[i] for i in w.stressed_indices] == ["а", "е"]
+    assert [w.text[i] for i in w.stressed_indices] == ["а", "и"]
 
 
 def test_analyze_compound_marks_per_word():
@@ -90,8 +90,8 @@ def test_analyze_compound_marks_per_word():
 
 
 def test_stressed_word_single_index_construction_still_compares_equal():
-    (w,) = analyze("Қазақстан", "kk").words
-    assert w == StressedWord("Қазақстан", 0, 9, 7)
+    (w,) = analyze("Татарстан", "tt").words
+    assert w == StressedWord("Татарстан", 0, 9, 7)
     assert StressedWord("на", 0, 2, None).stressed_indices == ()
 
 
@@ -102,9 +102,9 @@ def test_stressed_word_rejects_contradictory_indices(index, indices):
 
 
 def test_stressed_word_replace_keeps_indices_consistent():
-    (compound,) = analyze("Қазақстан-Ресей", "kk").words
+    (compound,) = analyze("Татарстан-Россия", "tt").words
     with pytest.raises(ValueError):
-        dataclasses.replace(compound, stressed_index=13)
+        dataclasses.replace(compound, stressed_index=14)
     with pytest.raises(ValueError):
         dataclasses.replace(StressedWord("Қазақстан", 0, 9, 7), stressed_index=None)
     cleared = dataclasses.replace(compound, stressed_index=None, stressed_indices=())
@@ -129,8 +129,8 @@ def test_stressed_word_unpickles_state_without_stressed_indices():
 
 
 def test_stressed_word_pickle_round_trip():
-    (compound,) = analyze("Қазақстан-Ресей", "kk").words
+    (compound,) = analyze("Татарстан-Россия", "tt").words
     for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
         restored = pickle.loads(pickle.dumps(compound, protocol=protocol))
         assert restored == compound
-        assert restored.stressed_indices == (7, 13)
+        assert restored.stressed_indices == (7, 14)

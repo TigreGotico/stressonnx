@@ -156,7 +156,7 @@ def test_load_failure_retry_delay_doubles_up_to_cap(clock, vocab_source):
         clock.now = float(t)
         before = len(vocab_source.calls)
         with pytest.raises(ModelLoadError) as excinfo:
-            pipeline.stress("Қазақстан", "kk")
+            pipeline.stress("Казан", "tt")
         assert excinfo.value.model_id == "simple"
         if len(vocab_source.calls) > before:
             attempts.append(t)
@@ -165,9 +165,9 @@ def test_load_failure_retry_delay_doubles_up_to_cap(clock, vocab_source):
     vocab_source.corrupt = False  # the operator deletes the corrupt file
     clock.now = 2729.0
     with pytest.raises(ModelLoadError):
-        pipeline.stress("Қазақстан", "kk")
+        pipeline.stress("Казан", "tt")
     clock.now = 2730.0
-    assert pipeline.stress("Қазақстан", "kk") == "Қазақста́н"
+    assert pipeline.stress("Казан", "tt") == "Каза́н"
     assert pipeline._failures == {}
 
 
@@ -184,21 +184,21 @@ def test_transient_load_failure_heals_after_cooldown(clock, monkeypatch):
     monkeypatch.setattr(simple_backend, "_load_vocab", _flaky)
     pipeline = stressonnx.StressPipeline(failure_cooldown_s=30.0)
     with pytest.raises(ModelLoadError) as excinfo:
-        pipeline.stress("Қазақстан", "kk")
+        pipeline.stress("Казан", "tt")
     assert isinstance(excinfo.value.__cause__, MemoryError)
     clock.now = 30.0
-    assert pipeline.stress("Қазақстан", "kk") == "Қазақста́н"
+    assert pipeline.stress("Казан", "tt") == "Каза́н"
 
 
 def test_warm_up_recovers_from_load_failure(clock, vocab_source):
     """warm_up() loads the pair again and clears the remembered failure."""
     pipeline = stressonnx.StressPipeline(failure_cooldown_s=30.0)
     with pytest.raises(ModelLoadError):
-        pipeline.stress("Қазақстан", "kk")
+        pipeline.stress("Казан", "tt")
     vocab_source.corrupt = False
     clock.now = 1.0
-    pipeline.warm_up("kk")
-    assert pipeline.stress("Қазақстан", "kk") == "Қазақста́н"
+    pipeline.warm_up("tt")
+    assert pipeline.stress("Казан", "tt") == "Каза́н"
 
 
 def test_failure_stored_after_warm_up_does_not_shadow_loaded_model(vocab_source):
@@ -222,7 +222,7 @@ def test_failure_stored_after_warm_up_does_not_shadow_loaded_model(vocab_source)
 
     def request():
         try:
-            pipeline.stress("Қазақстан", "kk")
+            pipeline.stress("Казан", "tt")
         except ModelLoadError as exc:
             errors.append(exc)
 
@@ -230,12 +230,12 @@ def test_failure_stored_after_warm_up_does_not_shadow_loaded_model(vocab_source)
     worker.start()
     assert pipeline._failures.storing.wait(10)
     vocab_source.corrupt = False
-    pipeline.warm_up("kk")
+    pipeline.warm_up("tt")
     pipeline._failures.release.set()
     worker.join(10)
     assert not worker.is_alive()
     assert len(errors) == 1
-    assert pipeline.stress("Қазақстан", "kk") == "Қазақста́н"
+    assert pipeline.stress("Казан", "tt") == "Каза́н"
     assert dict(pipeline._failures) == {}
 
 
@@ -252,7 +252,7 @@ def test_download_failure_is_retried_after_flat_cooldown(clock, monkeypatch):
     for t in (0, 29, 30, 59, 60, 89, 90):
         clock.now = float(t)
         with pytest.raises(ModelDownloadError):
-            pipeline.stress("Қазақстан", "kk")
+            pipeline.stress("Казан", "tt")
     assert calls == [0.0, 30.0, 60.0, 90.0]
 
 
@@ -275,7 +275,7 @@ def test_remembered_failure_traceback_stays_bounded(monkeypatch, fallback):
     tracebacks = []
     for _ in range(20):
         try:
-            pipeline.stress("Қазақстан", "kk", fallback=fallback)
+            pipeline.stress("Казан", "tt", fallback=fallback)
         except ModelDownloadError as exc:
             tracebacks.append(_traceback_frames(exc))
     assert len(tracebacks) == 20

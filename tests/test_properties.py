@@ -33,8 +33,8 @@ def _marks_only_on_vowels(out: str, vowels) -> bool:
 
 @settings(max_examples=200, deadline=None)
 @given(_CYR)
-def test_simple_kk_mechanics(text):
-    s = SimpleStressor("kk")
+def test_simple_tt_mechanics(text):
+    s = SimpleStressor("tt")
     s._ensure_loaded()
     out = s(text)
     # output minus marks and case equals input (no character invented or lost)
@@ -65,7 +65,7 @@ def test_notation_round_trip(text):
 @settings(max_examples=100, deadline=None)
 @given(_CYR)
 def test_simple_idempotent(text):
-    s = SimpleStressor("kk")
+    s = SimpleStressor("tt")
     s._ensure_loaded()
     once = s(text)
     assert s(once) == once
@@ -74,7 +74,7 @@ def test_simple_idempotent(text):
 @settings(max_examples=50, deadline=None)
 @given(_CYR)
 def test_analyze_offsets_index_the_original(text):
-    r = analyze(text, "kk")
+    r = analyze(text, "tt")
     assert r.original == text
     for w in r.words:
         assert r.original[w.start:w.end] == w.text

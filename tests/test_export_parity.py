@@ -81,7 +81,6 @@ def test_stress_simple_matches_silero():
     # and benchmarks/oov_rules_eval.py.  Yakut is absent too: the upstream
     # vocabulary marks vowel length, so stressonnx does not use it (#151).
     sample = {
-        ("kk", "kaz"): "Қазақстан",  # in-vocab only: kk OOV words take rule none, silero puts a final mark
         ("tt", "tat"): "Сәлам Казан",
         ("hy", "hye"): "Բարեւ Երեւան",
         ("az-Latn", "aze_lat"): "Salam Bakı",

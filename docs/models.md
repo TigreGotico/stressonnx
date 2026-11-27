@@ -1048,9 +1048,8 @@ Kipchak Turkic, close to Kazakh. Last-syllable stress. Vowel harmony is
 preserved in standard orthography. The OOV last-vowel rule is reliable.
 
 **Kazakh (`kk`)**
-Kipchak Turkic. Last-syllable stress default. Russian loanwords retain
-their original stress (these are in the dictionary). Stress does not
-change with case or conjugation suffixes, so the OOV rule works well.
+Kipchak Turkic. No word stress mark: McCollum & Chen 2021 find no final
+word stress. The model has no vocabulary and the rule is `none`.
 
 **Khakas (`kjh`)**
 Siberian Turkic, Sayan branch, with agglutinative suffixing. Last-syllable
@@ -1098,9 +1097,9 @@ Permic (Uralic). Stress is consistently on the **last syllable**. The OOV
 last-vowel rule is highly accurate for this language.
 
 **Kalmyk (`xal`)**
-Mongolic language (Oirat branch). Stress is on the **last syllable** in
-most words. Vowel harmony and vowel reduction interact with stress
-assignment. The OOV last-vowel rule holds for standard forms.
+Mongolic language (Oirat branch). No word stress mark: Санжеев 1940 finds
+no stress of the Russian kind. The model has no vocabulary and the rule is
+`none`.
 
 **Belarusian, `simple` path (`be`, `model="simple"`)**
 The same language as the default `silero` path but using vocabulary-only

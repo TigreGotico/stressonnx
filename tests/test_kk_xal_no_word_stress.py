@@ -8,8 +8,6 @@ import pytest
 import stressonnx
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError,
-                   reason="https://github.com/TigreGotico/stressonnx/issues/159")
 @pytest.mark.parametrize("lang, word", [("kk", "Қазақстан"), ("xal", "аавасн")])
 def test_a_vocabulary_word_takes_no_mark(lang, word):
     assert stressonnx.stress(word, lang, model="simple") == word
