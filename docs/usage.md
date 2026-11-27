@@ -5,7 +5,7 @@ from stressonnx import StressPipeline, analyze, stress, to_plus_notation
 
 # One-shot function (caches model instances internally)
 stress("Привіт світ", "uk")                   # 'Приві́т сві́т'
-stress("Алматы Қазақстан", "kk")              # 'Алматы́ Қазақста́н'
+stress("Казан Татарстан", "tt")               # 'Каза́н Татарста́н'
 
 # Pick a specific model, or a capability instead of a model id
 stress("красивый город", "ru", model="silero")    # 'краси́вый го́род'
@@ -41,8 +41,8 @@ than one mark. `w.stressed_indices` lists every marked offset in order, and
 `w.stressed_index` is the first of them:
 
 ```python
-w, = analyze("Қазақстан-Ресей", "kk").words
-w.stressed_indices   # (7, 13)  'Қазақста́н-Ресе́й'
+w, = analyze("Татарстан-Россия", "tt").words
+w.stressed_indices   # (7, 14)  'Татарста́н-Росси́я'
 w.stressed_index     # 7
 ```
 
