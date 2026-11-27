@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.3a69](https://github.com/TigreGotico/stressonnx/tree/0.0.3a69) (2026-11-27)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a68...0.0.3a69)
+
+**Merged pull requests:**
+
+- docs: cite the sources for kbd final long-vowel stress [\#167](https://github.com/TigreGotico/stressonnx/pull/167) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
+## [0.0.3a68](https://github.com/TigreGotico/stressonnx/tree/0.0.3a68) (2026-11-27)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a67...0.0.3a68)
+
 ## [0.0.3a67](https://github.com/TigreGotico/stressonnx/tree/0.0.3a67) (2026-11-27)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a66...0.0.3a67)
@@ -330,10 +342,6 @@
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a24...0.0.3a25)
 
-**Merged pull requests:**
-
-- feat: Belarusian dictionary layer of the silero model from GrammarDB [\#53](https://github.com/TigreGotico/stressonnx/pull/53) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
-
 ## [0.0.3a24](https://github.com/TigreGotico/stressonnx/tree/0.0.3a24) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a23...0.0.3a24)
@@ -365,10 +373,6 @@
 ## [0.0.3a19](https://github.com/TigreGotico/stressonnx/tree/0.0.3a19) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a18...0.0.3a19)
-
-**Merged pull requests:**
-
-- fix: set the Python floor to 3.11 and align docs with measured behaviour [\#52](https://github.com/TigreGotico/stressonnx/pull/52) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 
 ## [0.0.3a18](https://github.com/TigreGotico/stressonnx/tree/0.0.3a18) (2026-11-05)
 

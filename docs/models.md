@@ -92,7 +92,7 @@ The difficulty varies enormously by language:
 | Ukrainian | Low-medium | Free stress, fewer homographs than Russian but same phonology |
 | Belarusian | Low-medium | Free, akane (unstressed /o/ → [a]) changes surface form |
 | Turkic (Tatar, Kyrgyz, and others; Kazakh takes rule `none`) | High | Predominantly final-syllable stress with grammatically regular exceptions |
-| Caucasian (Georgian, Armenian, Kabardino-Balkarian) | Medium | Fixed position in most forms, loanwords and compound words break the rule |
+| Caucasian (Georgian, Armenian, Kabardian) | Medium | Fixed position in most forms, loanwords and compound words break the rule |
 | Erzya / Moksha | Low-medium | Initial stress default, but many exceptions, vowel reduction in unstressed syllables |
 | Yakut (Sah) | Medium | Final stress (Böhtlingk 1851); the vocabulary marks vowel length, not stress |
 
@@ -981,7 +981,7 @@ is scored against the language's own curated vocabulary in
 | hy | last non-schwa vowel (ը never stressed) | Chakmakjian 2024 (Speech Prosody) | 0.78 |
 | tg | final vowel, except unstressed word-final izafet -и (stressed final /i/ is written ӣ) | Perry 2005, *A Tajik Persian Reference Grammar* | 0.74 |
 | myv mdf | first vowel, Moksha retracts off an initial high vowel to a following а/я syllable | Hamari & Ajanki 2022, *Oxford Guide to the Uralic Languages* §23.2.3 | 0.54 to 0.76 (see per-language rows) |
-| kbd | final vowel, penult when the word ends in э, ы or я | Colarusso 1992 §2.5.2; Kuipers 1960 p. 117 | 0.41 |
+| kbd | final vowel, penult when the word ends in э, ы or я | Colarusso 1992 §2.5.2; Kuipers 1960 p. 117 and §14; Gordon & Applebaum 2010 §2.3 | 0.41 |
 | kjh | first long (double) vowel, else final vowel | Баскаков 1975 §49 | no vocabulary |
 | be (`simple`) | no mark: Belarusian stress is lexical, not positional | East Slavic accentology literature | vocabulary only |
 
@@ -1067,12 +1067,12 @@ An Iranian language, not Turkic. Stress in Tajik is **penultimate** in most
 native words, and last-syllable in loanwords and with certain suffixes. The
 last-vowel OOV rule is a simplification but covers loanword-heavy usage.
 
-**Kabardino-Balkarian (`kbd`)**
-Northwest Caucasian (Kabardian) plus Turkic (Balkarian): two different
-languages sharing an orthographic standard. Kabardian has **first-syllable**
-or **root-syllable** default stress. Balkarian follows the Kipchak
-last-syllable pattern. The shared dictionary handles the most common forms.
-OOV last-vowel is a compromise.
+**Kabardian (`kbd`)**
+Northwest Caucasian. Stress falls on the final syllable when it is heavy
+(a long vowel or a coda consonant), and on the penult when the final
+syllable is light (Gordon & Applebaum 2010, §2.3). The `kbd` rule stresses
+the final syllable, or the penult when the word ends in э, ы or я,
+which end in a short vowel. See [Languages](languages.md#kabardian-kbd).
 
 **Armenian (`hy`)**
 Indo-European, isolated branch. Eastern Armenian has **penultimate stress**
