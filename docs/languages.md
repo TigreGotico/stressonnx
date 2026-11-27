@@ -388,7 +388,9 @@ vowel takes the stress. Kuipers (1960, §14, p. 35): "if prefixes are added
 to a monosyllable ending in ā the stress does not move back but remains on
 ā". Gordon & Applebaum (2010, §2.3, p. 37): stress falls on "the final
 syllable if it is heavy, i.e. contains either a long vowel (CVV) or a coda
-consonant (CVC)". The rule
+consonant (CVC)". Matasović (Short Grammar of East Circassian, p. 16) spells и as
+yə, and (p. 11) word-final yə "merges with the glide and is pronounced as
+[i:]". The rule
 agrees with the vocabulary on 0.407 of its words. The vocabulary has no
 published provenance, so that number is not an accuracy.
 
