@@ -376,12 +376,16 @@ mutually consistent. The contested status is documented rather than hidden.
 
 ### Kabardian (`kbd`)
 
-**Why.** Northwest Caucasian, with dense consonant clusters and a
-two-vowel vertical system. Descriptions (Colarusso 1992; the Jaimoukha
-grammar compilation) give final stress with retraction to the penult in
-words ending in the schwa letter э. Source quality is the weakest in this
-library (paraphrase-level only), and the measured rule accuracy (0.404)
-reflects that. Treat kbd as functional but low-confidence.
+**Why.** Northwest Caucasian, with dense consonant clusters and two short
+vowels. Colarusso (1992, §2.5.2, p. 17): "final vowels cannot receive normal
+stress". Kuipers (1960, p. 117) gives the letter values: э and ы are the
+short vowels, я is /ja/, а is the long vowel, and о, у, е can end in a glide.
+
+**What stressonnx does.** The `kbd` rule stresses the final syllable, or the
+syllable before it when the word ends in э, ы or я. A final а or и keeps
+final stress, because no source states how they behave (#154). The rule
+agrees with the vocabulary on 0.407 of its words. The vocabulary has no
+published provenance, so that number is not an accuracy.
 
 ---
 
