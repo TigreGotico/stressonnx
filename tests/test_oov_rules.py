@@ -73,12 +73,16 @@ def test_moksha_high_vowel_retraction(word, expected):
     assert oov("mdf", word) == expected
 
 
-# Kabardian: final syllable, except word-final schwa э → penult (Jaimoukha).
+# Kabardian: the syllable before a word-final vowel letter (Colarusso 1992,
+# §2.5.2; Kuipers 1960, pp. 116-118), else the final syllable.
 @pytest.mark.parametrize("word,expected", [
-    ("дадэ", "да́дэ"),       # 'grandpa' — Jaimoukha's own example
-    ("далун", "далу́н"),     # consonant-final → plain final stress
+    ("дадэ", "да́дэ"),
+    ("жыгы", "жы́гы"),
+    ("унэ", "у́нэ"),
+    ("далун", "далу́н"),     # consonant-final
+    ("бжьыхьэ", "бжьы́хьэ"),
 ])
-def test_kabardian_final_schwa(word, expected):
+def test_kabardian_final_vowel(word, expected):
     assert oov("kbd", word) == expected
 
 

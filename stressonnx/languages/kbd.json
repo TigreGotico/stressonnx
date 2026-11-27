@@ -6,10 +6,11 @@
     "simple": "kbd"
   },
   "sources": [
-    "Colarusso 1992, A Grammar of the Kabardian Language, §2.5.1, p. 16: stress \"is confined to the last stem morpheme, and does not shift back to most affixes\"; §2.5.2, p. 17: \"final vowels cannot receive normal stress\""
+    "Colarusso 1992, A Grammar of the Kabardian Language, §2.5.1, p. 16: stress \"is confined to the last stem morpheme, and does not shift back to most affixes\"; §2.5.2, p. 17: \"final vowels cannot receive normal stress\"",
+    "Kuipers 1960, Phoneme and Morpheme in Kabardian, appendix \"Kabardian alphabets\", pp. 116-118 (page image): э = /a/ (short), ы = /ə/, а = /ā/, о = /aw/, у = /əw/ or /w/, е = /aj/ or /ja/, я = /ja/"
   ],
   "tag": "kbd",
   "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяёӏ",
   "vowels": "аеиоуыэюяё",
-  "rule_accuracy": 0.404
+  "rule_accuracy": 0.407
 }
