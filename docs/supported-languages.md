@@ -68,8 +68,9 @@ language: `ru → ruaccent-silero`, `uk/be → silero`, everything else → `sim
 below `ruaccent` and `silero` (McNemar p = 7e-91 against `silero`, p = 2e-104
 against `ruaccent`) and took about 0.4 s per row in the scoreboard run (two
 onnxruntime threads on a shared host), so no default, `prefer=` strategy or
-fallback picks it. The scoreboard does not run it on the two large sets
-(Wiktionary, ruslan-stressed) and says so in their tables. Its port is
+fallback picks it. On the Wiktionary sentences it scores 0.936 at about
+0.3 s per row. The scoreboard does not run it on ruslan-stressed and says so
+in that table. Its port is
 byte-identical to the upstream torch model on 1011 inputs.
 
 Models are hosted on
