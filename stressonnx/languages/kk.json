@@ -3,7 +3,7 @@
   "script": "cyrillic",
   "rule": "none",
   "hf": {
-    "simple": "kaz"
+    "simple": null
   },
   "sources": [
     "McCollum & Chen 2021, JIPA 51(2), \"Stress and intonation\": \"we found no evidence for claims that Kazakh exhibits a final pitch accent, and perhaps only marginal evidence for an initial stress accent\"",

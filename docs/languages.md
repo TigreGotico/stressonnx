@@ -246,9 +246,10 @@ enabled. Tatar is the exception: four suffix variants (-ча/-чә adverbial,
 vocabulary-evidence bar and are enabled in the `tt` rule (0.896 → 0.904).
 ### Kazakh (`kk`)
 
-**What stressonnx does.** The curated vocabulary exported from silero_stress,
-and rule `none` for unknown words: a word outside the vocabulary stays
-unmarked. The acoustic study of McCollum & Chen 2021 (JIPA) found "no
+**What stressonnx does.** No word gets a stress mark. The simple model has
+no vocabulary for kk and the rule is `none`. The silero_stress vocabulary
+marks the final vowel of 0.99 of its words, which is the Turkic default that
+the primary source rejects, so stressonnx does not use it. The acoustic study of McCollum & Chen 2021 (JIPA) found "no
 evidence for claims that Kazakh exhibits a final pitch accent, and perhaps
 only marginal evidence for an initial stress accent", and other authors hold
 that Kazakh has phrase-level prominence only. The Kazakh alphabet includes ё
@@ -388,11 +389,11 @@ reflects that. Treat kbd as functional but low-confidence.
 
 ### Kalmyk (`xal`)
 
-**What stressonnx does.** The curated vocabulary exported from silero_stress,
-and rule `none` for unknown words. Санжеев 1940 (Грамматика калмыцкого
-языка) states that Kalmyk has no stress of the kind Russian has. The
-vocabulary marks final stress on its entries, but no primary source in the
-library supports a positional rule for unknown words.
+**What stressonnx does.** No word gets a stress mark. The simple model has
+no vocabulary for xal and the rule is `none`. Санжеев 1940 (Грамматика
+калмыцкого языка) states that Kalmyk has no stress of the kind Russian has.
+The silero_stress vocabulary marks the final vowel of almost every word, so
+stressonnx does not use it.
 
 ---
 

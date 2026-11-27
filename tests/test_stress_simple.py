@@ -7,7 +7,7 @@ import pytest
 
 # (lang, input, expected) — combining acute (U+0301) after the stressed vowel
 SIMPLE_CASES = [
-    ("kk", "Қазақстан", "Қазақста́н"),
+    ("kk", "Қазақстан", "Қазақстан"),  # no word stress (McCollum & Chen 2021)
     ("tt", "Казан", "Каза́н"),
     ("ky", "Бишкек", "Бишке́к"),
     ("az-Cyrl", "Бакы", "Бакы́"),
@@ -25,7 +25,7 @@ SIMPLE_CASES = [
     ("kjh", "Абакан", "Абака́н"),
     ("tg", "Душанбе", "Душанбе́"),
     ("udm", "Ижевск", "Иже́вск"),
-    ("xal", "Элиста", "Элиста"),  # rule none: an OOV word stays unmarked
+    ("xal", "Элиста", "Элиста"),  # no word stress (Санжеев 1940)
     ("be", "свет", "све́т"),
     # bel_simple exercises the vocab + rule path
 ]
