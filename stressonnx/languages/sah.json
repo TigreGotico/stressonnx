@@ -3,15 +3,14 @@
   "script": "cyrillic",
   "rule": "last",
   "hf": {
-    "simple": "sah"
+    "simple": null
   },
   "sources": [
     "Böhtlingk 1851, Über die Sprache der Jakuten, Einleitung p. XXVII: \"Der Ton ruht auf der letzten Silbe\"",
     "Russian Wikipedia, Якутский язык, citing Campbell & King 2013, p. 1794: \"финальное (падающее всегда на последний слог) ударение, которое не связано с дифтонгами и долготой гласных\"",
-    "The simple-sah vocabulary marks the second letter of a long vowel or diphthong in 85,180 of its 85,232 words, so its marks show vowel length, not stress (#142)"
+    "The simple-sah vocabulary on the Hub marks the second letter of a long vowel or diphthong in 85,180 of its 85,232 words, so its marks show vowel length, not stress. The simple model does not use it (#151)"
   ],
   "tag": "sah",
   "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяёҕҥүһө",
-  "vowels": "аеиоуыэюяёүө",
-  "rule_accuracy": 0.177
+  "vowels": "аеиоуыэюяёүө"
 }

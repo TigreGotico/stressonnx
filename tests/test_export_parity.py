@@ -78,13 +78,13 @@ def test_stress_simple_matches_silero():
     # (Akhvlediani/Gudava/Aronson), which the upstream vocabulary itself
     # follows on 100% of its entries, while upstream's own OOV fallback
     # contradicts its vocabulary on 55% of them — see tests/test_oov_rules.py
-    # and benchmarks/oov_rules_eval.py.
+    # and benchmarks/oov_rules_eval.py.  Yakut is absent too: the upstream
+    # vocabulary marks vowel length, so stressonnx does not use it (#151).
     sample = {
         ("tt", "tat"): "Сәлам Казан",
         ("hy", "hye"): "Բարեւ Երեւան",
         ("az-Latn", "aze_lat"): "Salam Bakı",
         ("uz-Latn", "uzb_lat"): "Salom Toshkent",
-        ("sah", "sah"): "Дорообо Дьокуускай",
     }
     for (lang, ref_code), sentence in sample.items():
         ref = SimpleAccentor(lang=ref_code)(sentence)  # silero emits + notation
