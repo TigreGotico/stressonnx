@@ -57,6 +57,7 @@ SCORES = {
     ("supported-languages.md", "| `kubataba` |"): [
         ("ru", "russtress", "kubataba", "acc"), ("ru", "russtress", "kubataba", "homo"),
         ("ru", "russtress", "silero", "acc"), ("ru", "russtress", "ruaccent", "acc")],
+    ("supported-languages.md", "On the Wiktionary sentences it scores"): [("ru", "wiktionary", "kubataba", "acc")],
 }
 
 

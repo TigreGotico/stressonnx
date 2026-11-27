@@ -50,8 +50,8 @@ The rows are the russtress gold set (11124 targets; homograph accuracy on
 the 724 targets in the RUAccent omograph roster). On Russian, `ruaccent`
 and `silero` differ by 0.003 in plain accuracy (exact McNemar p = 0.047);
 `ruaccent` is more accurate on the homograph targets. On the Wiktionary
-example sentences (137221 targets) `silero` scores 0.984 against
-`ruaccent`'s 0.976 (p = 1e-75), and `ruaccent` keeps the higher homograph
+example sentences (137221 targets) `silero` scores 0.985 against
+`ruaccent`'s 0.976 (p = 1e-104), and `ruaccent` keeps the higher homograph
 accuracy (0.926 against 0.908). Its larger download gives homograph
 resolution from a wider context. The default, `ruaccent-silero`, has the
 highest score on both gold sets (0.951 and 0.990); its int8 variant ties
@@ -350,7 +350,7 @@ rows are in `benchmarks/RESULTS.md`):
 | set | targets | ruaccent | silero | ruaccent-silero | vs ruaccent (only right / ruaccent only right / p) | vs silero |
 |-----|---------|----------|--------|-----------------|------|------|
 | russtress | 11124 | 0.947 | 0.944 | 0.951 | 46 / 0 / 3e-14 | 179 / 97 / 9e-07 |
-| wiktionary | 137221 | 0.976 | 0.984 | 0.990 | 1893 / 0 / < 1e-300 | 1399 / 615 / 6e-70 |
+| wiktionary | 137221 | 0.976 | 0.985 | 0.990 | 1893 / 0 / < 1e-300 | 1234 / 615 / 1e-47 |
 
 On russtress the homograph accuracy is that of `ruaccent` (0.833),
 because the fill never touches a word `ruaccent` marked. On Wiktionary it
