@@ -1,13 +1,22 @@
 # Changelog
 
+## [0.0.3a65](https://github.com/TigreGotico/stressonnx/tree/0.0.3a65) (2026-11-27)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a64...0.0.3a65)
+
+**Merged pull requests:**
+
+- fix: Kabardian OOV words ending in ы or я stress the syllable before [\#153](https://github.com/TigreGotico/stressonnx/pull/153) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+- test: strict xfail for final stress of sah vocabulary words [\#152](https://github.com/TigreGotico/stressonnx/pull/152) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+- docs: cite Poppe 1963 for tt and Kononov 1960 for uz stress [\#150](https://github.com/TigreGotico/stressonnx/pull/150) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+- fix: Yakut OOV words take final stress [\#149](https://github.com/TigreGotico/stressonnx/pull/149) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a64](https://github.com/TigreGotico/stressonnx/tree/0.0.3a64) (2026-11-26)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a63...0.0.3a64)
 
 **Merged pull requests:**
 
-- docs: cite Poppe 1963 for tt and Kononov 1960 for uz stress [\#150](https://github.com/TigreGotico/stressonnx/pull/150) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
-- fix: Yakut OOV words take final stress [\#149](https://github.com/TigreGotico/stressonnx/pull/149) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 - feat\(benchmarks\): mk GOLD set from the Pravopis 2017 stress marks [\#148](https://github.com/TigreGotico/stressonnx/pull/148) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 
 ## [0.0.3a63](https://github.com/TigreGotico/stressonnx/tree/0.0.3a63) (2026-11-26)
@@ -346,10 +355,6 @@
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a17...0.0.3a18)
 
-**Merged pull requests:**
-
-- feat: stressrnn, the StressRNN character BiLSTM as a selectable Russian model [\#43](https://github.com/TigreGotico/stressonnx/pull/43) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
-
 ## [0.0.3a17](https://github.com/TigreGotico/stressonnx/tree/0.0.3a17) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a16...0.0.3a17)
@@ -362,10 +367,6 @@
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a15...0.0.3a16)
 
-**Merged pull requests:**
-
-- feat: ruaccent-big-poetry, the RUAccent big\_poetry omograph model as a selectable model id [\#42](https://github.com/TigreGotico/stressonnx/pull/42) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
-
 ## [0.0.3a15](https://github.com/TigreGotico/stressonnx/tree/0.0.3a15) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a14...0.0.3a15)
@@ -373,10 +374,6 @@
 ## [0.0.3a14](https://github.com/TigreGotico/stressonnx/tree/0.0.3a14) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a13...0.0.3a14)
-
-**Merged pull requests:**
-
-- fix: keep caller letters and give ё words the same marks in ruaccent [\#41](https://github.com/TigreGotico/stressonnx/pull/41) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 
 ## [0.0.3a13](https://github.com/TigreGotico/stressonnx/tree/0.0.3a13) (2026-11-05)
 
