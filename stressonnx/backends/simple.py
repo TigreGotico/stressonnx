@@ -162,10 +162,12 @@ def _digraph_head(word: str, i: int) -> bool:
 
 
 def _rule_kbd(word: str, vowels: list) -> Optional[int]:
-    """Kabardian: final syllable, except words ending in the schwa letter э,
-    which stress the penult (Colarusso 1992, §2.5.2: "final vowels cannot
-    receive normal stress")."""
-    return len(vowels) - 2 if word.endswith("э") else len(vowels) - 1
+    """Kabardian: final syllable, but the syllable before a word-final vowel.
+    Colarusso 1992, §2.5.2, p. 17: "final vowels cannot receive normal
+    stress".  Kuipers 1960, pp. 116-118: э and ы spell the short vowels and
+    я spells /ja/.  о, у, е and и can spell a vowel and a glide, which closes
+    the syllable, and а is the long vowel, so these keep final stress."""
+    return len(vowels) - 2 if word[-1] in "эыя" else len(vowels) - 1
 
 
 OOV_RULES: dict = {
