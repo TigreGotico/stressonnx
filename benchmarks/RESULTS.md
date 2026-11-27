@@ -522,7 +522,7 @@ literature cited in the rule functions of `stressonnx/backends/simple.py`.
 | mdf | first, retract off initial high vowel to а/я | 4821 | 0.761 | Hamari & Ajanki 2022 |
 | tg | final, word-final izafet -и unstressed | 8530 | 0.736 | Perry 2005 |
 | myv | first | 4931 | 0.538 | stress is a tendency, not a rule (Oxford Guide to the Uralic Languages) |
-| kbd | final, unless word-final э, ы or я → penult | 5517 | 0.407 | Colarusso 1992 §2.5.2, Kuipers 1960 p. 117; final а and и open (#154) |
+| kbd | final, unless word-final э, ы or я → penult | 5517 | 0.407 | Colarusso 1992 §2.5.2, Kuipers 1960 p. 117 and §14, Gordon & Applebaum 2010 §2.3 |
 | kjh | last | 12018 | 0.280 | no primary source on Khakas stress could be located; Turkic-default kept |
 | sah | last | 85232 | 0.177 | final stress (Böhtlingk 1851; Campbell & King 2013); the vocabulary marks the second letter of a long vowel or diphthong, which is length, not stress |
 | be (`simple`) | none | 1891586 | — | Belarusian stress is lexical, not positional — no rule is defensible; vocabulary only |
