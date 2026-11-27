@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a71](https://github.com/TigreGotico/stressonnx/tree/0.0.3a71) (2026-11-27)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a70...0.0.3a71)
+
+**Merged pull requests:**
+
+- fix\(kjh\): stress a long vowel, else the last syllable; drop the vocabulary [\#168](https://github.com/TigreGotico/stressonnx/pull/168) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a70](https://github.com/TigreGotico/stressonnx/tree/0.0.3a70) (2026-11-27)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a69...0.0.3a70)
@@ -341,10 +349,6 @@
 ## [0.0.3a26](https://github.com/TigreGotico/stressonnx/tree/0.0.3a26) (2026-11-06)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a25...0.0.3a26)
-
-**Merged pull requests:**
-
-- feat: uk\_accentor, the ukrainian-accentor-transformer seq2seq model as a selectable Ukrainian model [\#57](https://github.com/TigreGotico/stressonnx/pull/57) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 
 ## [0.0.3a25](https://github.com/TigreGotico/stressonnx/tree/0.0.3a25) (2026-11-06)
 
