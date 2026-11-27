@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a67](https://github.com/TigreGotico/stressonnx/tree/0.0.3a67) (2026-11-27)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a66...0.0.3a67)
+
+**Merged pull requests:**
+
+- fix: kk and xal take no stress mark [\#161](https://github.com/TigreGotico/stressonnx/pull/161) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a66](https://github.com/TigreGotico/stressonnx/tree/0.0.3a66) (2026-11-27)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a65...0.0.3a66)
