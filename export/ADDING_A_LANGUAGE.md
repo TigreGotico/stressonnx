@@ -240,11 +240,18 @@ The script:
 - Exports it to `accentor.onnx` via `torch.onnx.export`.
 - Dumps `embedding.npy` (the n-gram embedding matrix — `onnxruntime` has no
   native `EmbeddingBag` op, so the pooling step runs in NumPy instead, not
-  inside the ONNX graph), `ngram_dict.txt.gz`, `exceptions.txt.gz`,
-  `skip_stress_words.txt.gz`, `skip_yo_words.txt.gz`, and `meta.json`
+  inside the ONNX graph), `ngram_dict.txt.gz`, `exceptions.txt.gz`, and
+  `meta.json`
   (containing `family`, `has_yo`, `alpha`, `vowels`, and embedding stats).
+  A bundle whose `meta.json` declares a `dictionary_source` also ships
+  `dictionary.txt.gz` (`word<TAB>vowel ordinal`), a dictionary layer the
+  runtime reads before the exceptions table; `build_uk_word_stress_vocab.py`
+  and `build_be_grammardb_vocab.py` build the two that exist.  A bundle whose
+  `meta.json` declares a `homograph_source` also ships `homographs.json.gz`,
+  grammar rules and a frequency prior over the spellings the dictionary
+  source lists with several stresses; `build_be_homographs.py` builds it.
 - Verifies the ONNX classifier's output matches the original PyTorch output
-  (max absolute difference < 1e-3).
+  (the largest difference is below 3e-5 of the largest logit).
 
 **Upload:**
 

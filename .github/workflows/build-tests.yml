@@ -16,6 +16,6 @@ jobs:
     uses: OpenVoiceOS/gh-automations/.github/workflows/build-tests.yml@dev
     secrets: inherit
     with:
-      python_versions: '["3.10", "3.11", "3.12", "3.13"]'
+      python_versions: '["3.11", "3.12", "3.13"]'
       install_extras: 'test'
-      test_path: 'tests --ignore=tests/test_export_parity.py'
+      test_path: 'tests benchmarks/test_scoring.py --ignore=tests/test_export_parity.py'

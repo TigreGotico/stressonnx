@@ -4,7 +4,7 @@ import pytest
 # Basic accentuation cases — output is combining acute (U+0301) after stressed vowel
 CASES = [
     ("Привет мир", "Приве́т мир"),
-    ("Замок на горе котёнок", "За́мок на горе́ котёнок"),
+    ("Замок на горе котёнок", "За́мок на горе́ котё́нок"),
     ("Молоко убежало", "Молоко́ убежа́ло"),
 ]
 
@@ -14,7 +14,7 @@ CASES = [
 # белок: бело́к = egg-white / protein (яйца), бе́лок = squirrel-genitive (белка)
 HOMOGRAPH_CASES = [
     ("старинный замок стоит на горе", "стари́нный за́мок сто́ит на горе́"),
-    ("дверной замок надёжен", "дверно́й замо́к надёжен"),
+    ("дверной замок надёжен", "дверно́й замо́к надё́жен"),
     ("белок яйца полезен", "бело́к яйца́ поле́зен"),
     ("мука для хлеба", "мука́ для хле́ба"),
     ("мука была невыносима", "му́ка была́ невыноси́ма"),
@@ -37,6 +37,13 @@ def test_stress_ru_homographs(inp, expected):
     assert stress(inp, "ru") == expected
 
 
+@pytest.mark.parametrize("inp,expected", HOMOGRAPH_CASES)
+def test_stress_ru_homographs_sentence_initial(inp, expected):
+    """A capital letter does not change which homograph reading is chosen."""
+    from stressonnx import stress
+    assert stress(inp[0].upper() + inp[1:], "ru") == expected[0].upper() + expected[1:]
+
+
 def test_ruaccent_stressor_class():
     from stressonnx import RuAccentStressor
     s = RuAccentStressor()
@@ -45,10 +52,10 @@ def test_ruaccent_stressor_class():
     assert "́" in result
 
 
-def test_ru_default_is_ruaccent():
+def test_ru_default_is_ruaccent_silero():
     """ru must be routed to RuAccentStressor by default, not the silero backend."""
     from stressonnx import DEFAULT_MODEL, RUACCENT_LANGS
-    assert DEFAULT_MODEL["ru"] == "ruaccent"
+    assert DEFAULT_MODEL["ru"] == "ruaccent-silero"
     assert "ru" in RUACCENT_LANGS
 
 

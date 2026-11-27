@@ -10,6 +10,7 @@ from enum import Enum
 from typing import Protocol, runtime_checkable
 
 from stressonnx.errors import UnsupportedLanguageError
+from stressonnx.langs import resolve_lang
 
 # ---------------------------------------------------------------------------
 # Public data model
@@ -72,6 +73,20 @@ class ModelEntry:
         this model accepts.  Used by phoonnx (and other callers) to verify
         that the input text is in a script the model can handle before
         dispatching.
+    variant:
+        Model variant the family backend loads, for families that ship more
+        than one: the omograph model of the ruaccent family.  ``None`` for
+        families with a single variant.
+    fill:
+        Source of a mark for the words the family's own pipeline leaves
+        unmarked (the ruaccent family): ``"silero"`` runs the silero model
+        on the text and takes its mark on each such word.  ``None`` leaves
+        them unmarked.
+    precision:
+        Weight precision of the family's large models, for families that
+        ship more than one (the ruaccent family): ``"fp32"`` loads the
+        original weights, ``"int8"`` the dynamically quantized stress-usage
+        and omograph models.  ``None`` for families with one precision.
     """
 
     langs: frozenset
@@ -79,6 +94,9 @@ class ModelEntry:
     hf_subdir: str | None
     description: str
     input_scripts: frozenset  # frozenset[Script]
+    variant: str | None = None
+    fill: str | None = None
+    precision: str | None = None
 
 
 @runtime_checkable
@@ -101,7 +119,7 @@ HF_REPO_ID = "TigreGotico/stressonnx-models"
 #: fetched from exactly this revision, so releases are reproducible and an
 #: upstream force-push cannot change what users run.  Bump deliberately when
 #: models are uploaded (see export/ADDING_A_LANGUAGE.md).
-HF_REPO_REVISION = "b8ba7afdb78534afa1a7f4794b98d019c3866aef"
+HF_REPO_REVISION = "cb1594ddf81928e678a3a7ee7a22415e6e3a218f"
 
 # Files for main_accentor family
 _MAIN_FILES = [
@@ -109,8 +127,48 @@ _MAIN_FILES = [
     "embedding.npy",
     "ngram_dict.txt.gz",
     "exceptions.txt.gz",
+    "meta.json",
+]
+
+#: Dictionary layer of a main_accentor bundle whose meta.json declares a
+#: ``dictionary_source``: one ``word<TAB>vowel ordinal`` line per form,
+#: consulted before the exceptions table and the model
+_DICTIONARY_FILE = "dictionary.txt.gz"
+
+#: Homograph layer of a main_accentor bundle whose meta.json declares a
+#: ``homograph_source``: grammar rules and a frequency prior over the
+#: spellings the dictionary source lists with several stresses
+_HOMOGRAPH_FILE = "homographs.json.gz"
+
+# Extra files of a main_accentor bundle whose meta.json declares a
+# ``homosolver`` (ru)
+_HOMOSOLVER_FILES = [
+    "homosolver.onnx",
+    "homosolver_vocab.txt.gz",
+    "homodict.json.gz",
+    "homophrases.json.gz",
+]
+
+# Homographs left unstressed (and without е→ё) by a ru bundle that predates
+# the homosolver
+_SKIP_FILES = [
     "skip_stress_words.txt.gz",
     "skip_yo_words.txt.gz",
+]
+
+# Files for the stressrnn family
+_STRESSRNN_FILES = [
+    "model.onnx",
+    "exception_dictionary.txt.gz",
+    "meta.json",
+]
+
+# Files for the uk_accentor family
+_UK_ACCENTOR_FILES = [
+    "encoder.onnx",
+    "decoder.onnx",
+    "tokenizer.json",
+    "vocab.txt",
     "meta.json",
 ]
 
@@ -118,6 +176,13 @@ _MAIN_FILES = [
 # stressonnx/languages/, so only the vocabulary is fetched)
 _SIMPLE_FILES = [
     "vocab.gz",
+]
+
+# Files for kubataba family (encoder graph, one decoder step, char vocab)
+_KUBATABA_FILES = [
+    "encoder.onnx",
+    "decoder_step.onnx",
+    "vocab.json",
 ]
 
 # ---------------------------------------------------------------------------
@@ -132,6 +197,12 @@ RUACCENT_LANGS = {t for t, spec in LANGUAGES.items() if "ruaccent" in spec["hf"]
 
 #: Languages backed by the neural ONNX pipeline (main_accentor).
 MAIN_LANGS = {t for t, spec in LANGUAGES.items() if "silero" in spec["hf"]}
+
+#: Languages backed by the StressRNN character BiLSTM.
+STRESSRNN_LANGS = {t for t, spec in LANGUAGES.items() if "stressrnn" in spec["hf"]}
+
+#: Languages backed by the ukrainian-accentor-transformer seq2seq model.
+UK_ACCENTOR_LANGS = {t for t, spec in LANGUAGES.items() if "uk_accentor" in spec["hf"]}
 
 #: Languages backed by vocabulary + rules (simple_accentor) — every language.
 SIMPLE_LANGS = {t for t, spec in LANGUAGES.items() if "simple" in spec["hf"]}
@@ -160,7 +231,7 @@ def lang_to_script(lang: str) -> Script:
     Parameters
     ----------
     lang:
-        A language tag from :data:`ALL_LANGS` (e.g. ``"ru"``, ``"aze_lat"``).
+        A language tag from :data:`ALL_LANGS` (e.g. ``"ru"``, ``"az-Latn"``).
 
     Returns
     -------
@@ -178,15 +249,12 @@ def lang_to_script(lang: str) -> Script:
 
         >>> lang_to_script("ru")
         <Script.CYRILLIC: 'cyrillic'>
-        >>> lang_to_script("kat")
+        >>> lang_to_script("ka")
         <Script.GEORGIAN: 'georgian'>
-        >>> lang_to_script("aze_lat")
+        >>> lang_to_script("az-Latn")
         <Script.LATIN: 'latin'>
     """
-    try:
-        return LANG_SCRIPT[lang]
-    except KeyError:
-        raise UnsupportedLanguageError(lang, LANG_SCRIPT) from None
+    return LANG_SCRIPT[resolve_lang(lang, LANG_SCRIPT)]
 
 
 # Convenience sets — scripts present in each model family
@@ -205,10 +273,63 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         hf_subdir="ru_ruaccent",
         description=(
             "Homograph-aware Russian accentor (RUAccent by Den4ikAI, "
-            "Apache-2.0). Four-model ONNX pipeline: stress-usage classifier, "
-            "yo-homograph resolver, omograph resolver, char-level accent model."
+            "MIT). Four-model ONNX pipeline: stress-usage classifier, "
+            "yo-homograph resolver, omograph resolver (turbo3.1), "
+            "char-level accent model."
         ),
         input_scripts=_CYRILLIC_ONLY,
+        variant="turbo3.1",
+        precision="fp32",
+    ),
+    "ruaccent-int8": ModelEntry(
+        langs=frozenset(RUACCENT_LANGS),
+        family="ruaccent",
+        hf_subdir="ru_ruaccent",
+        description=(
+            "The ruaccent pipeline with int8 weights in the stress-usage and "
+            "omograph models: a third of the download and memory, faster, "
+            "and a small loss on homographs."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+        variant="turbo3.1",
+        precision="int8",
+    ),
+    "ruaccent-big-poetry": ModelEntry(
+        langs=frozenset(RUACCENT_LANGS),
+        family="ruaccent",
+        hf_subdir="ru_ruaccent",
+        description=(
+            "The ruaccent pipeline with the RUAccent big_poetry omograph "
+            "resolver (ruBERT-base NLI, MIT) in place of turbo3.1."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+        variant="big_poetry",
+        precision="fp32",
+    ),
+    "ruaccent-silero": ModelEntry(
+        langs=frozenset(RUACCENT_LANGS),
+        family="ruaccent",
+        hf_subdir="ru_ruaccent",
+        description=(
+            "The ruaccent pipeline, with the silero mark on every word of "
+            "two or more vowels that ruaccent leaves unmarked (its "
+            "stress-usage model gates function words such as и́ли, э́то, "
+            "бы́ло and the one-vowel head of что́-то)."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+        variant="turbo3.1",
+        fill="silero",
+        precision="fp32",
+    ),
+    "ruaccent-silero-int8": ModelEntry(
+        langs=frozenset(RUACCENT_LANGS),
+        family="ruaccent",
+        hf_subdir="ru_ruaccent",
+        description="The ruaccent-silero pipeline with the int8 weights of ruaccent-int8.",
+        input_scripts=_CYRILLIC_ONLY,
+        variant="turbo3.1",
+        fill="silero",
+        precision="int8",
     ),
     "silero": ModelEntry(
         langs=frozenset(MAIN_LANGS),
@@ -216,8 +337,33 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         hf_subdir=None,  # per-language: <lang>/
         description=(
             "Neural ONNX accentor exported from silero_stress (MIT). "
-            "Fasttext-style n-gram embedding-bag + MLP heads. "
+            "Fasttext-style n-gram embedding-bag + MLP heads; for Russian "
+            "a BERT homograph resolver picks the stress of dictionary "
+            "homographs from context. "
             "Supports Ukrainian, Belarusian, and Russian."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+    ),
+    "stressrnn": ModelEntry(
+        langs=frozenset(STRESSRNN_LANGS),
+        family="stressrnn",
+        hf_subdir="ru_stressrnn",
+        description=(
+            "Character BiLSTM accentor from StressRNN (Klim, Apache-2.0; a "
+            "fork of RusStress by Ponomareva and Milintsevich) with a "
+            "Zaliznyak exception dictionary.  Russian only; selectable, "
+            "never a default."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+    ),
+    "uk-accentor": ModelEntry(
+        langs=frozenset(UK_ACCENTOR_LANGS),
+        family="uk_accentor",
+        hf_subdir="ukr_accentor",
+        description=(
+            "Seq2seq Transformer accentor from ukrainian-accentor-transformer "
+            "(Mykhailenko, MIT), trained on lang-uk news text stressed with "
+            "ukrainian-word-stress.  Ukrainian only; selectable, never a default."
         ),
         input_scripts=_CYRILLIC_ONLY,
     ),
@@ -232,15 +378,31 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         ),
         input_scripts=_ALL_SCRIPTS,
     ),
+    "kubataba": ModelEntry(
+        langs=frozenset({"ru"}),
+        family="kubataba",
+        hf_subdir="ru_kubataba",
+        description=(
+            "Character-level encoder-decoder Transformer for Russian "
+            "(kubataba/Russian-Stress-Accent-Predictor, MIT). Sentence-level "
+            "seq2seq model, 12.5M parameters, trained on 19th-century prose "
+            "with machine-made (ru-accent-poet) stress labels. "
+            "Opt-in alternative to 'ruaccent'; no homograph resolution, "
+            "no ё restoration, single-vowel words left unmarked."
+        ),
+        input_scripts=_CYRILLIC_ONLY,
+    ),
 }
 
 #: Default model-id for each language tag: the highest-quality model that
-#: serves the language (ruaccent > silero > simple).
+#: serves the language (ruaccent > silero > simple).  ``kubataba`` is
+#: opt-in only: it never wins a default, a ``prefer=`` strategy or the
+#: fallback chain.
 DEFAULT_MODEL: dict = {}
-# Build defaults: RUACCENT_LANGS → ruaccent, MAIN_LANGS → silero,
+# Build defaults: RUACCENT_LANGS → ruaccent-silero, MAIN_LANGS → silero,
 # SIMPLE_LANGS → simple (do not overwrite a higher-priority entry).
 for _lang in RUACCENT_LANGS:
-    DEFAULT_MODEL[_lang] = "ruaccent"
+    DEFAULT_MODEL[_lang] = "ruaccent-silero"
 for _lang in MAIN_LANGS:
     if _lang not in DEFAULT_MODEL:
         DEFAULT_MODEL[_lang] = "silero"
@@ -249,12 +411,7 @@ for _lang in SIMPLE_LANGS:
         DEFAULT_MODEL[_lang] = "simple"
 
 
-# OOV stress-position rule per simple lang.
-# "last"  → last vowel
-# "first" → first vowel
-# "none"  → skip (return unchanged)
-# "kat"   → ≤3 vowels → first, else penultimate
-# Per-language OOV stress rule, from the language data files — see
-# SimpleStressor._accentuate_oov for the rule implementations and
-# benchmarks/RESULTS.md for measured accuracy.
+# Per-language OOV stress rule, from the language data files.  The keys of
+# stressonnx.backends.simple.OOV_RULES name the rules, and each rule function
+# documents its source; benchmarks/RESULTS.md has the measured accuracy.
 _OOV_RULES = {tag: spec["rule"] for tag, spec in LANGUAGES.items()}

@@ -1,15 +1,15 @@
 {
   "name": "Kalmyk",
   "script": "cyrillic",
-  "rule": "last",
+  "rule": "none",
   "hf": {
-    "simple": "xal"
+    "simple": null
   },
   "sources": [
-    "Bläsing, Kalmuck: final stress (understudied)"
+    "Санжеев 1940, Грамматика калмыцкого языка: \"в калмыцком языке отсутствует ударение, по крайней мере — в том виде, в каком ударение имеется в русском языке\"",
+    "Bläsing, Kalmuck (not in the library): final stress; not followed, because the primary grammar above finds no word stress of the Russian kind"
   ],
   "tag": "xal",
   "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяҗңүһәө",
-  "vowels": "аеиоуыэюяүәө",
-  "rule_accuracy": 1.0
+  "vowels": "аеиоуыэюяүәө"
 }

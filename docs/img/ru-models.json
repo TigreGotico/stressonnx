@@ -1,0 +1,11 @@
+{
+ "simple": 0.871,
+ "kubataba": 0.888,
+ "stressrnn": 0.892,
+ "ruaccent-big-poetry": 0.942,
+ "silero": 0.944,
+ "ruaccent-int8": 0.946,
+ "ruaccent": 0.947,
+ "ruaccent-silero": 0.951,
+ "ruaccent-silero-int8": 0.951
+}

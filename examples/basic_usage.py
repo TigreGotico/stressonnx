@@ -6,7 +6,7 @@ from stressonnx import StressPipeline, stress, to_plus_notation
 
 # --- module-level function ---------------------------------------------------
 
-# Russian (default model: ruaccent, homograph-aware)
+# Russian (default model: ruaccent-silero, homograph-aware)
 print(stress("привет мир", "ru"))
 # → приве́т мир
 

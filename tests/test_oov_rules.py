@@ -73,12 +73,16 @@ def test_moksha_high_vowel_retraction(word, expected):
     assert oov("mdf", word) == expected
 
 
-# Kabardian: final syllable, except word-final schwa э → penult (Jaimoukha).
+# Kabardian: the syllable before a word-final vowel letter (Colarusso 1992,
+# §2.5.2; Kuipers 1960, pp. 116-118), else the final syllable.
 @pytest.mark.parametrize("word,expected", [
-    ("дадэ", "да́дэ"),       # 'grandpa' — Jaimoukha's own example
-    ("далун", "далу́н"),     # consonant-final → plain final stress
+    ("дадэ", "да́дэ"),
+    ("жыгы", "жы́гы"),
+    ("унэ", "у́нэ"),
+    ("далун", "далу́н"),     # consonant-final
+    ("бжьыхьэ", "бжьы́хьэ"),
 ])
-def test_kabardian_final_schwa(word, expected):
+def test_kabardian_final_vowel(word, expected):
     assert oov("kbd", word) == expected
 
 
@@ -88,15 +92,14 @@ def test_rules_table_prevails_over_meta():
     assert s._oov_rule == "chv"  # meta.json says "last"; the language file wins
 
 
-# Yakut: long vowels / diphthongs (vowel digraphs) attract stress; the mark
-# sits on the second element of the heavy nucleus (Krueger 1962; see
-# _rule_sah).  Words below are vocabulary-attested spellings.
+# Yakut: final stress, not tied to diphthongs or vowel length (Böhtlingk 1851,
+# p. XXVII; Russian Wikipedia citing Campbell & King 2013, p. 1794).
 @pytest.mark.parametrize("word,expected", [
-    ("буолан", "буо́лан"),    # diphthong уо in the first syllable wins
-    ("эрээри", "эрээ́ри"),    # long ээ wins over final short и
-    ("кини", "кини́"),        # no heavy nucleus → final vowel
+    ("буолан", "буола́н"),
+    ("эрээри", "эрээри́"),
+    ("уоттарга", "уоттарга́"),
 ])
-def test_yakut_heavy_nucleus(word, expected):
+def test_yakut_final(word, expected):
     assert oov("sah", word) == expected
 
 

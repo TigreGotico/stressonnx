@@ -6,7 +6,8 @@
     "simple": "chv"
   },
   "sources": [
-    "Clark 1998 / Krueger 1961 / Dobrovolsky 1999: last full vowel; ӑ/ӗ never stressed"
+    "Clark 1998 / Krueger 1961 / Dobrovolsky 1999: last full vowel; ӑ/ӗ never stressed",
+    "Dobrovolsky 1999, The phonetics of Chuvash stress, Proc. XIV ICPhS p. 539: \"stress the last full vowel of a word; if there are no full vowels, stress the first vowel of the word\""
   ],
   "tag": "cv",
   "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяёҫӑӗӳ",

@@ -1,7 +1,15 @@
 """make_stressor: the model-aware backend factory."""
-from stressonnx.backends import RuAccentStressor, _SileroStressor, SimpleStressor
-from stressonnx.registry import DEFAULT_MODEL, MODEL_REGISTRY
-from stressonnx.errors import UnsupportedLanguageError
+from stressonnx.backends import (
+    KubatabaStressor,
+    RuAccentStressor,
+    _SileroStressor,
+    SimpleStressor,
+    StressRnnStressor,
+    UkAccentorStressor,
+)
+from stressonnx.registry import ALL_LANGS, DEFAULT_MODEL, MODEL_REGISTRY
+from stressonnx.errors import UnknownModelError, UnsupportedLanguageError
+from stressonnx.langs import resolve_lang
 
 
 def make_stressor(
@@ -14,15 +22,18 @@ def make_stressor(
     Parameters
     ----------
     model:
-        Model-id string — one of ``"ruaccent"``, ``"silero"``, or ``"simple"``.
+        Model-id string, a key of :data:`MODEL_REGISTRY`: ``"ruaccent"``,
+        ``"ruaccent-int8"``, ``"ruaccent-big-poetry"``, ``"ruaccent-silero"``,
+        ``"ruaccent-silero-int8"``, ``"silero"``, ``"simple"``, ``"kubataba"``,
+        ``"stressrnn"`` or ``"uk-accentor"``.
         When *None*, the default model for *lang* is used (see
         :data:`DEFAULT_MODEL`).
     lang:
-        Language tag (e.g. ``"ru"``, ``"ukr"``, ``"kaz"``).  Required when
+        Language tag (e.g. ``"ru"``, ``"uk"``, ``"kk"``).  Required when
         *model* is *None* so the default can be looked up.  Optional when
         *model* is given and the model supports only one language, but
         **required** when the model covers multiple languages (``"silero"``
-        covers both ``"ukr"`` and ``"bel"``).
+        covers both ``"uk"`` and ``"be"``).
     cache_dir:
         Override the HF download cache directory.
 
@@ -33,9 +44,17 @@ def make_stressor(
 
     Raises
     ------
+    UnsupportedLanguageError
+        If *lang* is unknown, or *model* does not serve it (``.model`` names
+        the model).  Also a :class:`ValueError`.
+    UnknownModelError
+        If *model* is not in :data:`MODEL_REGISTRY`.  Also a :class:`ValueError`.
     ValueError
-        If the combination of *model* and *lang* is unsupported.
+        If neither *model* nor *lang* pins the language.
     """
+    if lang is not None:
+        lang = resolve_lang(lang, ALL_LANGS)
+
     if model is None:
         if lang is None:
             raise ValueError("At least one of 'model' or 'lang' must be provided.")
@@ -45,18 +64,12 @@ def make_stressor(
 
     entry = MODEL_REGISTRY.get(model)
     if entry is None:
-        raise ValueError(
-            f"Unknown model {model!r}.  "
-            f"Available models: {sorted(MODEL_REGISTRY.keys())}."
-        )
+        raise UnknownModelError(model, MODEL_REGISTRY)
 
     # One validation for every family: a given lang must be one the model
     # serves, and multi-language families cannot infer the language.
     if lang is not None and lang not in entry.langs:
-        raise ValueError(
-            f"Model {model!r} does not support language {lang!r}.  "
-            f"Supported: {sorted(entry.langs)}."
-        )
+        raise UnsupportedLanguageError(lang, entry.langs, model=model)
     if lang is None and len(entry.langs) > 1:
         raise ValueError(
             f"Model {model!r} supports multiple languages "
@@ -64,9 +77,16 @@ def make_stressor(
         )
 
     if entry.family == "ruaccent":
-        return RuAccentStressor(cache_dir=cache_dir)
+        return RuAccentStressor(cache_dir=cache_dir, omograph=entry.variant, fill=entry.fill,
+                                precision=entry.precision)
     if entry.family == "silero":
         return _SileroStressor(lang=lang, cache_dir=cache_dir)
     if entry.family == "simple":
         return SimpleStressor(lang=lang, cache_dir=cache_dir)
+    if entry.family == "stressrnn":
+        return StressRnnStressor(cache_dir=cache_dir)
+    if entry.family == "kubataba":
+        return KubatabaStressor(cache_dir=cache_dir)
+    if entry.family == "uk_accentor":
+        return UkAccentorStressor(cache_dir=cache_dir)
     raise ValueError(f"Internal error: unknown family {entry.family!r}.")

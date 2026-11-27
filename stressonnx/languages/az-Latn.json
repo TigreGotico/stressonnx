@@ -11,5 +11,6 @@
   "tag": "az-Latn",
   "alpha": "abcçdeəfgğhxıijkqlmnoöprsştuüvyzw'",
   "vowels": "aeəıioöuü",
-  "rule_accuracy": 0.816
+  "rule_accuracy": 0.816,
+  "casing": "turkic"
 }

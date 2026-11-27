@@ -1,15 +1,16 @@
 {
   "name": "Kazakh",
   "script": "cyrillic",
-  "rule": "last",
+  "rule": "none",
   "hf": {
-    "simple": "kaz"
+    "simple": null
   },
   "sources": [
-    "Kirchner 1998 via Schiering & van der Hulst 2010: Turkic final stress"
+    "McCollum & Chen 2021, JIPA 51(2), \"Stress and intonation\": \"we found no evidence for claims that Kazakh exhibits a final pitch accent, and perhaps only marginal evidence for an initial stress accent\"",
+    "Kirchner 1998 via Schiering & van der Hulst 2010 (secondary): Turkic final stress; not followed, because the primary acoustic study above finds no final word stress",
+    "The Kazakh Cyrillic alphabet has 42 letters, Ё and Ъ among them, for Russian loanwords (Wikipedia, Kazakh alphabets)"
   ],
   "tag": "kk",
-  "alpha": "абвгдежзийклмнопрстуфхцчшщыьэюяіғқңүұһәө",
-  "vowels": "аеиоуыэюяіүұәө",
-  "rule_accuracy": 0.987
+  "alpha": "абвгдежзийклмнопрстуфхцчшщыьэюяіғқңүұһәөёъ",
+  "vowels": "аеиоуыэюяіүұәөё"
 }

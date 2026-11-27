@@ -14,13 +14,13 @@ classifiers = [
 ]
 authors = [{name = "JarbasAI", email = "jarbasai@mailfence.com"}]
 readme = "README.md"
-requires-python = ">=3.10"  # PEP 604 unions in evaluated positions; CI matrix floor
+requires-python = ">=3.11"
 dependencies = [
     "numpy",
     "onnxruntime",
     "huggingface_hub",
     # used only by the ruaccent backend, but ru is the default language —
-    # kept as a hard dependency so the default path works out of the box
+    # kept as a hard dependency so the default path works out of the box.
     "tokenizers",
 ]
 
@@ -30,7 +30,15 @@ Homepage = "https://github.com/TigreGotico/stressonnx"
 [project.optional-dependencies]
 export = [
     "torch",
-    "silero_stress",
+    # torch.onnx needs onnx; the dynamo exporter (export_kubataba.py) needs onnxscript
+    "onnx",
+    "onnxscript",
+    # the exported files and the parity tests track this exact release
+    "silero_stress==1.5",
+    # the Ukrainian dictionary layer tracks this exact release
+    "ukrainian-word-stress==2.1.0",
+    # export_uk_accentor.py reads the upstream SentencePiece model
+    "sentencepiece",
 ]
 test = [
     "pytest",

@@ -4,7 +4,7 @@ import pytest
 # Output uses combining acute (U+0301) placed after the stressed vowel.
 UKR_CASES = [
     ("Привіт світ", "Приві́т сві́т"),
-    ("Молоко втекло", "Молоко втекло́"),
+    ("Молоко втекло", "Молоко́ втекло́"),
     ("Голова болить", "Голова́ боли́ть"),
 ]
 

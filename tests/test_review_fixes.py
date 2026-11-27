@@ -45,13 +45,13 @@ def test_every_simple_lang_has_registered_rule():
 def test_corrupt_cache_engages_fallback(tmp_path, monkeypatch):
     """A file that downloads fine but fails to parse must raise ModelLoadError
     (a StressonnxError) — and therefore participate in the fallback chain."""
-    bad = tmp_path / "kaz" / "vocab.gz"
+    bad = tmp_path / "tat" / "vocab.gz"
     bad.parent.mkdir(parents=True)
     bad.write_bytes(b"this is not gzip")
-    (tmp_path / "kaz" / "meta.json").write_text(
+    (tmp_path / "tat" / "meta.json").write_text(
         '{"alpha": "аб", "vowels": "а", "oov_rule": "last"}'
     )
-    s = SimpleStressor("kk", cache_dir=str(tmp_path))
+    s = SimpleStressor("tt", cache_dir=str(tmp_path))
     with pytest.raises(ModelLoadError) as excinfo:
         s._ensure_loaded()
     assert isinstance(excinfo.value, StressonnxError)
@@ -73,19 +73,19 @@ def test_revision_is_pinned():
 
 
 def test_warm_up_shares_singleton_with_stress():
-    warm_up("kk")
-    key = ("kk", "simple")
-    assert key in stressonnx._SINGLETONS
-    backend = stressonnx._SINGLETONS[key]
+    warm_up("tt")
+    key = ("tt", "simple")
+    assert key in stressonnx.DEFAULT_PIPELINE._singletons
+    backend = stressonnx.DEFAULT_PIPELINE._singletons[key]
     assert backend._loaded
-    assert stress("Қазақстан", "kk") == "Қазақста́н"
-    assert stressonnx._SINGLETONS[key] is backend
+    assert stress("Казан", "tt") == "Каза́н"
+    assert stressonnx.DEFAULT_PIPELINE._singletons[key] is backend
 
 
 def test_default_and_explicit_model_share_one_instance():
     stress("Қазақстан", "kk")
     stress("Қазақстан", "kk", model="simple")
-    keys = [k for k in stressonnx._SINGLETONS if k[0] == "kk"]
+    keys = [k for k in stressonnx.DEFAULT_PIPELINE._singletons if k[0] == "kk"]
     assert keys == [("kk", "simple")]
 
 
@@ -97,7 +97,7 @@ def test_failure_cooldown_prevents_immediate_retry(monkeypatch):
         raise OSError("simulated outage")
 
     monkeypatch.setattr(download, "hf_hub_download", _boom)
-    stressonnx._SINGLETONS.clear()
+    stressonnx.DEFAULT_PIPELINE._singletons.clear()
     with pytest.raises(ModelDownloadError):
         stress("привет", "ru")
     first = len(calls)

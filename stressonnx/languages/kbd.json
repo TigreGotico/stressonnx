@@ -6,10 +6,14 @@
     "simple": "kbd"
   },
   "sources": [
-    "Jaimoukha grammar compilation; consistent with Colarusso 1992 (paraphrase-level, low confidence)"
+    "Colarusso 1992, A Grammar of the Kabardian Language, §2.5.1, p. 16: stress \"is confined to the last stem morpheme, and does not shift back to most affixes\"; §2.5.2, p. 17: \"final vowels cannot receive normal stress\"",
+    "Kuipers 1960, Phoneme and Morpheme in Kabardian, §14, p. 35: \"if prefixes are added to a monosyllable ending in ā the stress does not move back but remains on ā\"; \"the sequences Cī, Cē, Cū, Cō, Cā (where C stands for any consonant) have in common that they end in a long vowel\"",
+    "Matasović, A Short Grammar of East Circassian (Kabardian), p. 9: \"the diphthong yə as ī\"; p. 11: \"The vowel ə is preserved word-finally after y and w, when it merges with the glide and is pronounced as [i:] viz. [u:]\"; p. 16: и = yə",
+    "Gordon & Applebaum 2010, Acoustic correlates of stress in Turkish and Kabardian, JIPA 40(1), §2.3, p. 37: stress falls on \"the final syllable if it is heavy, i.e. contains either a long vowel (CVV) or a coda consonant (CVC), and the penult if the final syllable is light\"",
+    "Kuipers 1960, Phoneme and Morpheme in Kabardian, appendix \"Kabardian alphabets\", pp. 116-118 (page image): э = /a/ (short), ы = /ə/, а = /ā/, о = /aw/, у = /əw/ or /w/, е = /aj/ or /ja/, я = /ja/"
   ],
   "tag": "kbd",
   "alpha": "абвгдежзийклмнопрстуфхцчшщъыьэюяёӏ",
   "vowels": "аеиоуыэюяё",
-  "rule_accuracy": 0.404
+  "rule_accuracy": 0.407
 }
