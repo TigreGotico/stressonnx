@@ -28,12 +28,12 @@ def test_guillemets_do_not_block_lookup():
     assert stress("«город» — красивый", "ru") == "«го́род» — краси́вый"
 
 
-def test_ellipsis_and_em_dash_kaz():
-    assert stress("Алматы… Астана—Шымкент", "kk") == "Алматы́… Астана́—Шымкент"  # Шымкент is OOV: rule none
+def test_ellipsis_and_em_dash_tat():
+    assert stress("Казан… Чаллы—Түбән", "tt") == "Каза́н… Чаллы́—Түбә́н"
 
 
-def test_guillemets_kaz():
-    assert stress("«Сәлем» Қазақстан!", "kk") == "«Сәлем» Қазақста́н!"  # Сәлем is OOV: rule none
+def test_guillemets_tat():
+    assert stress("«Сәлам» Татарстан!", "tt") == "«Сәла́м» Татарста́н!"
 
 
 def test_digits_are_boundaries():

@@ -45,13 +45,13 @@ def test_every_simple_lang_has_registered_rule():
 def test_corrupt_cache_engages_fallback(tmp_path, monkeypatch):
     """A file that downloads fine but fails to parse must raise ModelLoadError
     (a StressonnxError) — and therefore participate in the fallback chain."""
-    bad = tmp_path / "kaz" / "vocab.gz"
+    bad = tmp_path / "tat" / "vocab.gz"
     bad.parent.mkdir(parents=True)
     bad.write_bytes(b"this is not gzip")
-    (tmp_path / "kaz" / "meta.json").write_text(
+    (tmp_path / "tat" / "meta.json").write_text(
         '{"alpha": "аб", "vowels": "а", "oov_rule": "last"}'
     )
-    s = SimpleStressor("kk", cache_dir=str(tmp_path))
+    s = SimpleStressor("tt", cache_dir=str(tmp_path))
     with pytest.raises(ModelLoadError) as excinfo:
         s._ensure_loaded()
     assert isinstance(excinfo.value, StressonnxError)
@@ -73,12 +73,12 @@ def test_revision_is_pinned():
 
 
 def test_warm_up_shares_singleton_with_stress():
-    warm_up("kk")
-    key = ("kk", "simple")
+    warm_up("tt")
+    key = ("tt", "simple")
     assert key in stressonnx.DEFAULT_PIPELINE._singletons
     backend = stressonnx.DEFAULT_PIPELINE._singletons[key]
     assert backend._loaded
-    assert stress("Қазақстан", "kk") == "Қазақста́н"
+    assert stress("Казан", "tt") == "Каза́н"
     assert stressonnx.DEFAULT_PIPELINE._singletons[key] is backend
 
 
