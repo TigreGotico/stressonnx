@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.3a66](https://github.com/TigreGotico/stressonnx/tree/0.0.3a66) (2026-11-27)
+
+[Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a65...0.0.3a66)
+
+**Merged pull requests:**
+
+- test: strict xfail for kk and xal vocabulary words with no mark [\#160](https://github.com/TigreGotico/stressonnx/pull/160) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+- feat\(benchmarks\): results.json holds the GOLD scores as data [\#158](https://github.com/TigreGotico/stressonnx/pull/158) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+- docs: Kabardian rule for words ending in э, ы or я [\#157](https://github.com/TigreGotico/stressonnx/pull/157) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+- fix: the simple sah model uses the final-stress rule for every word [\#156](https://github.com/TigreGotico/stressonnx/pull/156) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.3a65](https://github.com/TigreGotico/stressonnx/tree/0.0.3a65) (2026-11-27)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a64...0.0.3a65)
@@ -358,10 +369,6 @@
 ## [0.0.3a17](https://github.com/TigreGotico/stressonnx/tree/0.0.3a17) (2026-11-05)
 
 [Full Changelog](https://github.com/TigreGotico/stressonnx/compare/0.0.3a16...0.0.3a17)
-
-**Merged pull requests:**
-
-- feat: kubataba Russian seq2seq model as an opt-in registry entry [\#44](https://github.com/TigreGotico/stressonnx/pull/44) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
 
 ## [0.0.3a16](https://github.com/TigreGotico/stressonnx/tree/0.0.3a16) (2026-11-05)
 
