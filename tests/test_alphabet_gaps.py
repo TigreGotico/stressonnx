@@ -12,8 +12,8 @@ def test_kk_yo_is_a_vowel_of_the_alphabet():
     assert "ё" in spec["vowels"]
 
 
-def test_kjh_letter_che_with_descender_finds_the_vocabulary_entry():
-    # the kjh vocabulary writes Ӌ as Ҷ; both spellings get its reading, and the input letter stays
+def test_kjh_letter_che_with_descender_stays_in_the_word():
+    # kjh.json folds Ӌ to Ҷ, so Ӌ is a word letter; the output keeps the input letter
     assert stress("аалыҷаам", "kjh") == "аа́лыҷаам"
     assert stress("аалыӌаам Аалыӌаам", "kjh") == "аа́лыӌаам Аа́лыӌаам"
     assert stress("ААЛЫӋААМ", "kjh") == "АА́ЛЫӋААМ"

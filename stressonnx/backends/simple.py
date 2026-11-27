@@ -170,6 +170,17 @@ def _rule_kbd(word: str, vowels: list) -> Optional[int]:
     return len(vowels) - 2 if word[-1] in "эыя" else len(vowels) - 1
 
 
+def _rule_kjh(word: str, vowels: list) -> Optional[int]:
+    """Khakas: a long vowel (spelled double) takes the stress, else the final
+    syllable. Баскаков 1975, §49, p. 43: "Долгие гласные основы (корня) всегда
+    ударные"; roots with short vowels stress the last syllable. The mark goes
+    on the second letter of the pair."""
+    for n in range(1, len(vowels)):
+        if vowels[n] == vowels[n - 1] + 1 and word[vowels[n]] == word[vowels[n - 1]]:
+            return n
+    return len(vowels) - 1
+
+
 OOV_RULES: dict = {
     "last": _rule_last,
     "first": _rule_first,
@@ -181,6 +192,7 @@ OOV_RULES: dict = {
     "mdf": _rule_mdf,
     "tat": _rule_tat,
     "kbd": _rule_kbd,
+    "kjh": _rule_kjh,
 }
 
 

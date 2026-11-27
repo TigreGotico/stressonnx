@@ -975,13 +975,14 @@ is scored against the language's own curated vocabulary in
 
 | Language(s) | Rule | Source | Accuracy |
 |---|---|---|---|
-| ky tt ba az uz kjh sah udm | final vowel | Turkic/Permic final-stress default (Kirchner 1998, Poppe 1964, Krueger 1962, Winkler 2001) | 0.82 to 1.00 (sah 0.177: its vocabulary marks vowel length, not stress) |
+| ky tt ba az uz sah udm | final vowel | Turkic/Permic final-stress default (Kirchner 1998, Poppe 1964, Krueger 1962, Winkler 2001) | 0.82 to 1.00 (sah 0.177: its vocabulary marks vowel length, not stress) |
 | cv | last **full** vowel: reduced ӑ/ӗ never stressed, all-reduced words stress the first syllable | Clark 1998, Krueger 1961, Dobrovolsky 1999 (ICPhS) | 0.94 |
 | ka | antepenultimate vowel, initial for shorter words | Akhvlediani 1949, Gudava 1969, Aronson 1990 (Georgian stress is weak and contested, Borise 2020 argues fixed initial) | 1.00 |
 | hy | last non-schwa vowel (ը never stressed) | Chakmakjian 2024 (Speech Prosody) | 0.78 |
 | tg | final vowel, except unstressed word-final izafet -и (stressed final /i/ is written ӣ) | Perry 2005, *A Tajik Persian Reference Grammar* | 0.74 |
 | myv mdf | first vowel, Moksha retracts off an initial high vowel to a following а/я syllable | Hamari & Ajanki 2022, *Oxford Guide to the Uralic Languages* §23.2.3 | 0.54 to 0.76 (see per-language rows) |
 | kbd | final vowel, penult when the word ends in э, ы or я | Colarusso 1992 §2.5.2; Kuipers 1960 p. 117 | 0.41 |
+| kjh | first long (double) vowel, else final vowel | Баскаков 1975 §49 | no vocabulary |
 | be (`simple`) | no mark: Belarusian stress is lexical, not positional | East Slavic accentology literature | vocabulary only |
 
 Single-vowel OOV words are always stressed on their sole vowel regardless of
@@ -1052,9 +1053,9 @@ Kipchak Turkic. No word stress mark: McCollum & Chen 2021 find no final
 word stress. The model has no vocabulary and the rule is `none`.
 
 **Khakas (`kjh`)**
-Siberian Turkic, Sayan branch, with agglutinative suffixing. Last-syllable
-stress is the default. The OOV last-vowel rule is correct for native
-vocabulary.
+Siberian Turkic, Sayan branch. A long stem vowel takes the stress; in other
+words the last syllable does (Баскаков 1975, §49). See
+[Languages](languages.md#khakas-kjh).
 
 **Yakut/Sakha (`sah`)**
 Siberian Turkic. Stress falls on the last syllable and does not depend on
