@@ -94,51 +94,59 @@ McNemar (exact, two-sided) on targets both models scored:
 
 Source: https://kaikki.org/dictionary/Russian/ (CC-BY-SA).  Scored: marked polysyllabic words.
 Rows in: 26494; rows scored: 24419; targets: 137221.
-Dropped while loading: Latin letters: transliteration or gloss (rows): 378; acute not on a vowel (targets): 14; example of an affix entry (rows): 1583; monosyllabic token (targets): 828; no usable target (rows): 114; token carries 2+ acutes (targets): 532.
-Not run: kubataba, about 1.4 s per row on this set (60 sampled rows), about 10 hours for the set; not run
+Dropped while loading: Latin letters: transliteration or gloss (rows): 378; acute not on a vowel (targets): 43; example of an affix entry (rows): 1583; monosyllabic token (targets): 838; no usable target (rows): 114; token carries 2+ acutes (targets): 532.
 Labels agree with the RUAccent accent dictionary, unambiguous entries on 92.0% of 25918 targets the dictionary covers.
 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
-| ruaccent | GOLD | 137221 | 0 | 0.976 | 0.975–0.977 | 0.926 (9410) | 38.6 | 1.5 |
-| ruaccent-int8 | GOLD | 137221 | 0 | 0.976 | 0.975–0.977 | 0.925 (9410) | 21.5 | 1.0 |
-| ruaccent-big-poetry | GOLD | 137221 | 0 | 0.974 | 0.973–0.975 | 0.893 (9410) | 53.2 | 2.0 |
-| stressrnn | GOLD | 137221 | 0 | 0.914 | 0.912–0.915 | 0.739 (9410) | 0.4 | 0.1 |
-| silero | GOLD | 137221 | 0 | 0.984 | 0.984–0.985 | 0.908 (9410) | 1.0 | 0.2 |
-| ruaccent-silero | GOLD | 137221 | 0 | 0.990 | 0.989–0.990 | 0.933 (9410) | 51.5 | 1.6 |
-| ruaccent-silero-int8 | GOLD | 137221 | 0 | 0.990 | 0.989–0.990 | 0.933 (9410) | 33.8 | 1.4 |
-| simple | GOLD | 137221 | 0 | 0.915 | 0.913–0.916 | 0.007 (9410) | 0.1 | 8.5 |
+| simple | GOLD | 137221 | 0 | 0.916 | 0.914–0.917 | 0.007 (9410) | 0.0 | 12.2 |
+| kubataba | GOLD | 137221 | 0 | 0.936 | 0.935–0.938 | 0.811 (9410) | 303.5 | 6.7 |
+| stressrnn | GOLD | 137221 | 0 | 0.914 | 0.912–0.915 | 0.739 (9410) | 0.3 | 1.0 |
+| silero | GOLD | 137221 | 0 | 0.985 | 0.985–0.986 | 0.908 (9410) | 0.5 | 2.1 |
+| ruaccent-int8 | GOLD | 137221 | 0 | 0.976 | 0.975–0.977 | 0.925 (9410) | 8.9 | 8.6 |
+| ruaccent | GOLD | 137221 | 0 | 0.976 | 0.975–0.977 | 0.926 (9410) | 19.9 | 12.8 |
+| ruaccent-silero-int8 | GOLD | 137221 | 0 | 0.990 | 0.989–0.990 | 0.933 (9410) | 10.1 | 6.4 |
+| ruaccent-silero | GOLD | 137221 | 0 | 0.990 | 0.989–0.990 | 0.933 (9410) | 20.9 | 15.6 |
+| ruaccent-big-poetry | GOLD | 137221 | 0 | 0.974 | 0.973–0.975 | 0.893 (9410) | 33.6 | 22.9 |
 
 McNemar (exact, two-sided) on targets both models scored:
 
-- ruaccent vs ruaccent-int8: 137221 common targets, ruaccent only right 146, ruaccent-int8 only right 120, p = 0.125.
-- ruaccent vs ruaccent-big-poetry: 137221 common targets, ruaccent only right 630, ruaccent-big-poetry only right 320, p = 5e-24.
-- ruaccent vs stressrnn: 137221 common targets, ruaccent only right 10393, stressrnn only right 1832, p < 1e-300.
-- ruaccent vs silero: 137221 common targets, ruaccent only right 1284, silero only right 2393, p = 1e-75.
-- ruaccent vs ruaccent-silero: 137221 common targets, ruaccent only right 0, ruaccent-silero only right 1893, p < 1e-300.
-- ruaccent vs ruaccent-silero-int8: 137221 common targets, ruaccent only right 63, ruaccent-silero-int8 only right 1952, p < 1e-300.
-- ruaccent vs simple: 137221 common targets, ruaccent only right 10271, simple only right 1836, p < 1e-300.
-- ruaccent-int8 vs ruaccent-big-poetry: 137221 common targets, ruaccent-int8 only right 686, ruaccent-big-poetry only right 402, p = 6e-18.
-- ruaccent-int8 vs stressrnn: 137221 common targets, ruaccent-int8 only right 10384, stressrnn only right 1849, p < 1e-300.
-- ruaccent-int8 vs silero: 137221 common targets, ruaccent-int8 only right 1280, silero only right 2415, p = 7e-79.
-- ruaccent-int8 vs ruaccent-silero: 137221 common targets, ruaccent-int8 only right 59, ruaccent-silero only right 1978, p < 1e-300.
-- ruaccent-int8 vs ruaccent-silero-int8: 137221 common targets, ruaccent-int8 only right 0, ruaccent-silero-int8 only right 1915, p < 1e-300.
-- ruaccent-int8 vs simple: 137221 common targets, ruaccent-int8 only right 10266, simple only right 1857, p < 1e-300.
-- ruaccent-big-poetry vs stressrnn: 137221 common targets, ruaccent-big-poetry only right 10270, stressrnn only right 2019, p < 1e-300.
-- ruaccent-big-poetry vs silero: 137221 common targets, ruaccent-big-poetry only right 1290, silero only right 2709, p = 9e-114.
-- ruaccent-big-poetry vs ruaccent-silero: 137221 common targets, ruaccent-big-poetry only right 320, ruaccent-silero only right 2523, p < 1e-300.
-- ruaccent-big-poetry vs ruaccent-silero-int8: 137221 common targets, ruaccent-big-poetry only right 319, ruaccent-silero-int8 only right 2518, p < 1e-300.
-- ruaccent-big-poetry vs simple: 137221 common targets, ruaccent-big-poetry only right 9961, simple only right 1836, p < 1e-300.
-- stressrnn vs silero: 137221 common targets, stressrnn only right 817, silero only right 10487, p < 1e-300.
-- stressrnn vs ruaccent-silero: 137221 common targets, stressrnn only right 575, ruaccent-silero only right 11029, p < 1e-300.
+- simple vs kubataba: 137221 common targets, simple only right 6291, kubataba only right 9092, p = 2e-113.
+- simple vs stressrnn: 137221 common targets, simple only right 8202, stressrnn only right 7921, p = 0.027.
+- simple vs silero: 137221 common targets, simple only right 232, silero only right 9786, p < 1e-300.
+- simple vs ruaccent-int8: 137221 common targets, simple only right 1858, ruaccent-int8 only right 10112, p < 1e-300.
+- simple vs ruaccent: 137221 common targets, simple only right 1837, ruaccent only right 10117, p < 1e-300.
+- simple vs ruaccent-silero-int8: 137221 common targets, simple only right 92, ruaccent-silero-int8 only right 10261, p < 1e-300.
+- simple vs ruaccent-silero: 137221 common targets, simple only right 92, ruaccent-silero only right 10265, p < 1e-300.
+- simple vs ruaccent-big-poetry: 137221 common targets, simple only right 1837, ruaccent-big-poetry only right 9807, p < 1e-300.
+- kubataba vs stressrnn: 137221 common targets, kubataba only right 8155, stressrnn only right 5073, p = 2e-159.
+- kubataba vs silero: 137221 common targets, kubataba only right 1167, silero only right 7920, p < 1e-300.
+- kubataba vs ruaccent-int8: 137221 common targets, kubataba only right 2538, ruaccent-int8 only right 7991, p < 1e-300.
+- kubataba vs ruaccent: 137221 common targets, kubataba only right 2517, ruaccent only right 7996, p < 1e-300.
+- kubataba vs ruaccent-silero-int8: 137221 common targets, kubataba only right 717, ruaccent-silero-int8 only right 8085, p < 1e-300.
+- kubataba vs ruaccent-silero: 137221 common targets, kubataba only right 716, ruaccent-silero only right 8088, p < 1e-300.
+- kubataba vs ruaccent-big-poetry: 137221 common targets, kubataba only right 2719, ruaccent-big-poetry only right 7888, p < 1e-300.
+- stressrnn vs silero: 137221 common targets, stressrnn only right 817, silero only right 10652, p < 1e-300.
+- stressrnn vs ruaccent-int8: 137221 common targets, stressrnn only right 1849, ruaccent-int8 only right 10384, p < 1e-300.
+- stressrnn vs ruaccent: 137221 common targets, stressrnn only right 1832, ruaccent only right 10393, p < 1e-300.
 - stressrnn vs ruaccent-silero-int8: 137221 common targets, stressrnn only right 570, ruaccent-silero-int8 only right 11020, p < 1e-300.
-- stressrnn vs simple: 137221 common targets, stressrnn only right 7921, simple only right 8047, p = 0.323.
-- silero vs ruaccent-silero: 137221 common targets, silero only right 615, ruaccent-silero only right 1399, p = 6e-70.
-- silero vs ruaccent-silero-int8: 137221 common targets, silero only right 615, ruaccent-silero-int8 only right 1395, p = 2e-69.
-- silero vs simple: 137221 common targets, silero only right 9776, simple only right 232, p < 1e-300.
-- ruaccent-silero vs ruaccent-silero-int8: 137221 common targets, ruaccent-silero only right 63, ruaccent-silero-int8 only right 59, p = 0.786.
-- ruaccent-silero vs simple: 137221 common targets, ruaccent-silero only right 10420, simple only right 92, p < 1e-300.
-- ruaccent-silero-int8 vs simple: 137221 common targets, ruaccent-silero-int8 only right 10416, simple only right 92, p < 1e-300.
+- stressrnn vs ruaccent-silero: 137221 common targets, stressrnn only right 575, ruaccent-silero only right 11029, p < 1e-300.
+- stressrnn vs ruaccent-big-poetry: 137221 common targets, stressrnn only right 2019, ruaccent-big-poetry only right 10270, p < 1e-300.
+- silero vs ruaccent-int8: 137221 common targets, silero only right 2416, ruaccent-int8 only right 1116, p = 2e-108.
+- silero vs ruaccent: 137221 common targets, silero only right 2394, ruaccent only right 1120, p = 1e-104.
+- silero vs ruaccent-silero-int8: 137221 common targets, silero only right 615, ruaccent-silero-int8 only right 1230, p = 3e-47.
+- silero vs ruaccent-silero: 137221 common targets, silero only right 615, ruaccent-silero only right 1234, p = 1e-47.
+- silero vs ruaccent-big-poetry: 137221 common targets, silero only right 2710, ruaccent-big-poetry only right 1126, p = 2e-148.
+- ruaccent-int8 vs ruaccent: 137221 common targets, ruaccent-int8 only right 120, ruaccent only right 146, p = 0.125.
+- ruaccent-int8 vs ruaccent-silero-int8: 137221 common targets, ruaccent-int8 only right 0, ruaccent-silero-int8 only right 1915, p < 1e-300.
+- ruaccent-int8 vs ruaccent-silero: 137221 common targets, ruaccent-int8 only right 59, ruaccent-silero only right 1978, p < 1e-300.
+- ruaccent-int8 vs ruaccent-big-poetry: 137221 common targets, ruaccent-int8 only right 686, ruaccent-big-poetry only right 402, p = 6e-18.
+- ruaccent vs ruaccent-silero-int8: 137221 common targets, ruaccent only right 63, ruaccent-silero-int8 only right 1952, p < 1e-300.
+- ruaccent vs ruaccent-silero: 137221 common targets, ruaccent only right 0, ruaccent-silero only right 1893, p < 1e-300.
+- ruaccent vs ruaccent-big-poetry: 137221 common targets, ruaccent only right 630, ruaccent-big-poetry only right 320, p = 5e-24.
+- ruaccent-silero-int8 vs ruaccent-silero: 137221 common targets, ruaccent-silero-int8 only right 59, ruaccent-silero only right 63, p = 0.786.
+- ruaccent-silero-int8 vs ruaccent-big-poetry: 137221 common targets, ruaccent-silero-int8 only right 2518, ruaccent-big-poetry only right 319, p < 1e-300.
+- ruaccent-silero vs ruaccent-big-poetry: 137221 common targets, ruaccent-silero only right 2523, ruaccent-big-poetry only right 320, p < 1e-300.
 
 ### ru / homograph-eval — SILVER
 
@@ -489,6 +497,34 @@ Labels agree with the stressonnx simple-bg vocabulary (silero_stress export) on 
 | model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
 |-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
 | simple | GOLD | 292 | 0 | 0.764 | 0.716–0.808 | — | 0.0 | 0.1 |
+
+## sl
+
+### sl / sloleks — GOLD
+
+Source: http://hdl.handle.net/11356/1745 (CC-BY-SA-4.0).  Scored: lemmas of the MANUAL entries, stress as the accentuation form marks it.
+Rows in: 365340; rows scored: 76580; targets: 76580.
+Lemmas in citation form, so the score does not cover inflected forms.  sl has rule `none`, so a lemma outside the simple-sl vocabulary stays unmarked and counts as a miss.  A stress on the syllabic r is left out, because the model marks vowels only.
+Dropped while loading: accentuation letters differ from the lemma (rows): 942; entry status AUTOMATIC (rows): 264538; lemma with two stresses (rows): 2440; mark on the syllabic r or a consonant (rows): 2146; no lemma form with an accentuation (rows): 5979; no mark or more than one mark (rows): 8341; one vowel letter (rows): 2487.
+Labels agree with the stressonnx simple-sl vocabulary (English Wiktionary tonal-mark headwords) on 98.9% of 2909 targets the dictionary covers.
+
+| model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
+|-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
+| simple | GOLD | 76580 | 0 | 0.038 | 0.036–0.039 | — | 0.0 | 0.1 |
+
+## mk
+
+### mk / pravopis — GOLD
+
+Source: http://www.pravopis.mk/sites/default/files/Pravopis-2017.PDF (facts only (stress positions), no text).  Scored: words the Pravopis marks with a stress apostrophe, in its rules and word lists.
+Rows in: 1078; rows scored: 947; targets: 947.
+The Pravopis marks the examples of each stress rule and the words that break the antepenult rule, so the set has more exceptions than running text.  A stress on the syllabic р is left out, because the model marks vowels only.
+Dropped while loading: mark on the syllabic р or a consonant (words): 11; more than one mark (words): 20; one vowel letter (words): 11; word with a clitic after it (words): 1; word with two stresses (words): 18.
+Labels agree with the stressonnx simple-mk vocabulary (English Wiktionary headwords that break the antepenult rule) on 96.6% of 148 targets the dictionary covers.
+
+| model | tier | targets | dropped | accuracy | 95% CI | homograph acc (n) | ms/row | cold load (s) |
+|-------|------|---------|---------|----------|--------|-------------------|--------|---------------|
+| simple | GOLD | 947 | 0 | 0.347 | 0.318–0.379 | — | 0.1 | 0.0 |
 
 ## Languages without independent gold
 
